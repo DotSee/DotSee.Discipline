@@ -6,7 +6,7 @@
         public const string ErrorCreateNode = "AutoNode: There was a problem creating node '{0}' under node '{1}'.";
         public const string ErrorDictionaryKeyNotFound = "AutoNode: The dictionary key specified in autoNode.config was not found.";
         public const string ErrorGeneric = "AutoNode: There was a problem with new node creation. Please check that the doctype alias you have defined in rules actually exists";
-        public const string ErrorLoadConfig = "AutoNode: There was a problem loading AutoNode configuration from the config file";
+        public const string ErrorLoadConfig = "AutoNode: There was a problem loading AutoNode configuration";
         public const string ErrorNodeAliasNotFound = "AutoNode: Document type '{0}' does not exist. Aborting.";
         public const string ErrorRepublishNoSuccess = "AutoNode: Node '{0}' was not republished successfully under node '{1}'.";
         public const string ErrorSortFailed = "AutoNode: Bring new node first failed.";

@@ -9,11 +9,6 @@ namespace DotSee.Discipline.AutoNode
     {
         public void Compose(IUmbracoBuilder builder)
         {
-            builder.Services.AddSingleton<IConfigSource,ConfigSource>(
-                x => {
-                    return new ConfigSource { SourcePath = builder.BuilderHostingEnvironment.MapPathContentRoot(@"\App_Plugins\DotSee.AutoNode\autoNode.json") };
-                });
-
             builder.Services.AddSingleton<IRuleProviderService, JsonFileRuleProviderService>();
             builder.Services.AddSingleton<AutoNodeService>();
             builder.Services.AddSingleton<AutoNodeUtils>();

@@ -1,0 +1,23 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+    <PropertyGroup>
+        <DotSeeVariantsHiderContentFilesPath>$(MSBuildThisFileDirectory)..\App_Plugins\DotSee.VariantsHider\**\*.*</DotSeeVariantsHiderContentFilesPath>
+    </PropertyGroup>
+
+    <Target Name="CopyDotSeeVariantsHiderAssets" BeforeTargets="Build">
+        <ItemGroup>
+            <DotSeeVariantsHiderContentFiles Include="$(DotSeeVariantsHiderContentFilesPath)" />
+        </ItemGroup>
+        <Message Text="Copying DotSee.VariantsHiderfiles: $(DotSeeVariantsHiderContentFilesPath) - #@(DotSeeVariantsHiderContentFiles->Count()) files"  Importance="high" />
+        <Copy SourceFiles="@(DotSeeVariantsHiderContentFiles)" DestinationFiles="@(DotSeeVariantsHiderContentFiles->'$(MSBuildProjectDirectory)\App_Plugins\DotSee.VariantsHider\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    </Target>
+
+    <Target Name="ClearDotSeeVariantsHiderAssets" BeforeTargets="Clean">
+        <ItemGroup>
+            <DotSeeVariantsHiderDir Include="$(MSBuildProjectDirectory)\App_Plugins\DotSee.VariantsHider\" />
+        </ItemGroup>
+        <Message Text="Clear old DotSee.VariantsHider data" Importance="high" />
+        <RemoveDir Directories="@(DotSeeVariantsHiderDir)"  />
+    </Target>
+
+</Project>

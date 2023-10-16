@@ -30,7 +30,7 @@ namespace DotSee.Discipline.AutoNode
         /// <summary>
         /// Additional settings for autonode, presently only logLevel available
         /// </summary>
-        private Dictionary<string, string> _settings;
+        private RuleSettings _settings;
 
         /// <summary>
         /// Switch to indicate verbose or default logging
@@ -129,9 +129,9 @@ namespace DotSee.Discipline.AutoNode
                 return false;
             }
 
-            _settings = _ruleProviderService.Settings;
-            _logVerbose = (_settings != null && _settings["logLevel"] != null && _settings["logLevel"] == "Verbose");
-            _republishExistingNodes = (_settings != null && _settings["republishExistingNodes"] != null && _settings["republishExistingNodes"] == "true");
+            _settings = _ruleProviderService?.Settings;
+            _logVerbose = (_settings != null && _settings.LogLevel != null && _settings.LogLevel == "Verbose");
+            _republishExistingNodes = (_settings != null && _settings.RepublishExistingNodes);
             string createdDocTypeAlias = node.ContentType.Alias;
 
             bool hasChildren = _contentService.GetPagedChildren(node.Id, 0, 1, out long totalRecords).Any();

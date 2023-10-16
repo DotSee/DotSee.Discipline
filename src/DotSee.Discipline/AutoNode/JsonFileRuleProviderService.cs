@@ -9,28 +9,26 @@ using System.Linq;
 
 namespace DotSee.Discipline.AutoNode
 {
-    public class JsonFileRuleProviderService : IRuleProviderService<AutoNodeJsonRules>
+    public class JsonFileRuleProviderService : IRuleProviderService
     {
-        private Dictionary<string, string> _settings;
+        private RuleSettings _settings;
         private List<Rule> _rules;
-        private AutoNodeJsonRules _configType = null;
-        private readonly IConfigSource _configSource;
         private readonly ILogger _logger;
         private readonly IConfiguration _configuration;
 
-        public JsonFileRuleProviderService(ILogger logger, IConfigSource configSource, IConfiguration configuration)
+        public JsonFileRuleProviderService(ILogger logger, IConfiguration configuration)
         {
             _logger = logger;
-            _configSource = configSource;
-            _settings = new Dictionary<string, string>();
+            _settings = null;
+            _rules = null;
             _configuration = configuration;
         }
 
-        public Dictionary<string, string> Settings
+        public RuleSettings Settings
         {
             get
             {
-                return (_settings == null || !_settings.Any()) ? this.ConfigType.Settings : _settings;
+                return (_settings ?? GetSettings());
             }
         }
 
@@ -42,17 +40,29 @@ namespace DotSee.Discipline.AutoNode
             }
         }
 
-        IConfigSource IRuleProviderService.ConfigSource { get => _configSource; }
-
-        public AutoNodeJsonRules ConfigType => _configType ?? GetConfigFromJson();
 
         public void ReloadData()
         {
             _rules = null;
-            _settings = new Dictionary<string, string>();
-            _configType = null;
+            _settings = null;
         }
 
+        private RuleSettings GetSettings()
+        {
+            RuleSettings r = new();
+
+            try
+            {
+                _configuration.GetSection("DotSee.Discipline:AutoNode:Settings").Bind(r);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, MessageConstants.ErrorLoadConfig);
+                return null;
+            }
+            return r;
+        }
+         
         private List<Rule> GetRules()
         {
             List<Rule> r = new();

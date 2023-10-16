@@ -5,18 +5,12 @@ namespace DotSee.Discipline.AutoNode
 {
     public interface IRuleProviderService
     {
-        Dictionary<string, string> Settings { get; }
+        RuleSettings Settings { get; }
         IEnumerable<Rule> Rules { get; }
         //XmlDocument XmlConfig { get; }
         void ReloadData();
-
-        IConfigSource ConfigSource { get; }
     }
 
-    public interface IRuleProviderService<T>:IRuleProviderService where T : class
-    {
-        T ConfigType { get; }
-    }
     public interface IConfigSource
     {
         string SourcePath { get; set; }

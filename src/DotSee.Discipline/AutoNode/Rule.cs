@@ -8,12 +8,12 @@
         public string CreatedDocTypeAlias { get; set; }
         public string DocTypeAliasToCreate { get; set; }
         public string NodeName { get; set; }
-        public bool? BringNewNodeFirst { get; set; }
-        public bool? OnlyCreateIfNoChildren { get; set; }
-        public bool? CreateIfExistsWithDifferentName { get; set; }
-        public string DictionaryItemForName { get; set; }
-        public bool? KeepNewNodeUnpublished { get; set; }
-        public string Blueprint { get; set; }
+        public bool? BringNewNodeFirst { get; set; } = false;
+        public bool? OnlyCreateIfNoChildren { get; set; } = false;
+        public bool? CreateIfExistsWithDifferentName { get; set; } = true;
+        public string DictionaryItemForName { get; set; } = "AutoNode.Name";
+        public bool? KeepNewNodeUnpublished { get; set; } = false;
+        public string Blueprint { get; set; } = string.Empty;
 
         public Rule()
         { }
