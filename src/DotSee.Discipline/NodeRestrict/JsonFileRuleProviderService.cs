@@ -1,18 +1,14 @@
-﻿using DotSee.Discipline.Interfaces;
-using Lucene.Net.Util.Fst;
+﻿using DotSee.Discipline.AutoNode;
+using DotSee.Discipline.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.IO;
-using System.Linq;
 
-namespace DotSee.Discipline.AutoNode
+namespace DotSee.Discipline.NodeRestrict
 {
-    public class JsonFileRuleProviderService : IRuleProviderService<RuleSettings,IEnumerable<Rule>>
+    public class JsonFileRuleProviderService : IRuleProviderService<NodeRestrictSettings, IEnumerable<Rule>>
     {
-        private RuleSettings _settings;
+
+        private NodeRestrictSettings _settings;
         private List<Rule> _rules;
         private readonly ILogger _logger;
         private readonly IConfiguration _configuration;
@@ -20,12 +16,10 @@ namespace DotSee.Discipline.AutoNode
         public JsonFileRuleProviderService(ILogger logger, IConfiguration configuration)
         {
             _logger = logger;
-            _settings = null;
-            _rules = null;
             _configuration = configuration;
         }
 
-        public RuleSettings Settings
+        public NodeRestrictSettings Settings
         {
             get
             {
@@ -44,17 +38,17 @@ namespace DotSee.Discipline.AutoNode
 
         public void ReloadData()
         {
-            _rules = null;
             _settings = null;
+            _rules = null;
         }
 
-        private RuleSettings GetSettings()
+        private NodeRestrictSettings GetSettings()
         {
-            RuleSettings r = new();
+            NodeRestrictSettings r = new();
 
             try
             {
-                _configuration.GetSection("DotSee.Discipline:AutoNode:Settings").Bind(r);
+                _configuration.GetSection("DotSee.Discipline:NodeRestrict:Settings").Bind(r);
             }
             catch (Exception ex)
             {
@@ -63,14 +57,13 @@ namespace DotSee.Discipline.AutoNode
             }
             return r;
         }
-         
         private List<Rule> GetRules()
         {
             List<Rule> r = new();
 
             try
             {
-                _configuration.GetSection("DotSee.Discipline:AutoNode:Rules").Bind(r);
+                _configuration.GetSection("DotSee.Discipline:NodeRestrict:Rules").Bind(r);
             }
             catch (Exception ex)
             {
@@ -82,6 +75,5 @@ namespace DotSee.Discipline.AutoNode
 
             return r;
         }
-      
     }
 }

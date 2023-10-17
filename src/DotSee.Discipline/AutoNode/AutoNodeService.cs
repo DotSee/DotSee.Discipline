@@ -1,4 +1,5 @@
-﻿using Serilog;
+﻿using DotSee.Discipline.Interfaces;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +21,7 @@ namespace DotSee.Discipline.AutoNode
         /// <summary>
         /// The list of rule objects
         /// </summary>
-        private List<Rule> _rules;
+        private List<Rule> _rules=new List<Rule>();
 
         /// <summary>
         /// Flag to indicate whether have been loaded by the rules provider
@@ -48,7 +49,7 @@ namespace DotSee.Discipline.AutoNode
         private readonly ISqlContext _sqlContext;
         private readonly AutoNodeUtils _autoNodeUtils;
         
-        private readonly IRuleProviderService _ruleProviderService;
+        private readonly IRuleProviderService<RuleSettings, IEnumerable<Rule>> _ruleProviderService;
 
         #endregion Private Members
 
@@ -68,12 +69,11 @@ namespace DotSee.Discipline.AutoNode
               IContentService contentService
             , IContentTypeService contentTypeService
             , ILogger logger
-            , IRuleProviderService ruleProviderService
+            , IRuleProviderService<RuleSettings, IEnumerable<Rule>> ruleProviderService
             , ISqlContext sqlContext
             , AutoNodeUtils autoNodeUtils)
         {
-            _contentService = contentService;
-            _rules = new List<Rule>();
+            _contentService = contentService;            
             _logger = logger;
             _autoNodeUtils = autoNodeUtils;
             _contentTypeService = contentTypeService;
@@ -147,7 +147,6 @@ namespace DotSee.Discipline.AutoNode
                 }
             }
             return result;
-
         }
 
         #endregion Public Methods
