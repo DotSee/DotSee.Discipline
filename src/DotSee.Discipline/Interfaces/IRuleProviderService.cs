@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,9 +11,12 @@ namespace DotSee.Discipline.Interfaces
     {
         void ReloadData();
     }
-    public interface IRuleProviderService<TSettings,TRules> : IRuleProviderService where TSettings :class where TRules : class
+    public interface ISettings<T> where T:class
     {
-        TSettings Settings { get;  }
+        T Settings { get;  }
+    }
+    public interface IRuleProviderService<TRules> : IRuleProviderService   where TRules : class
+    {       
         TRules Rules { get; }
     }
 }

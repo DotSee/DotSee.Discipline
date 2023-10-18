@@ -12,7 +12,7 @@ namespace DotSee.Discipline.NodeRestrict
 
         public void Compose(IUmbracoBuilder builder)
         {
-            builder.Services.AddSingleton<IRuleProviderService<NodeRestrictSettings, IEnumerable<Rule>>, JsonFileRuleProviderService>();
+            builder.Services.AddSingleton<IRuleProviderService< IEnumerable<Rule>>, JsonFileRuleProviderService>();
             builder.Services.AddSingleton<NodeRestricService>();
             builder.AddNotificationHandler<ContentPublishingNotification, ContentPublishingHandler>();
         }

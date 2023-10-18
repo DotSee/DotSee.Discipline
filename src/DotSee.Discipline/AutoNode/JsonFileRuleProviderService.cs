@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace DotSee.Discipline.AutoNode
 {
-    public class JsonFileRuleProviderService : IRuleProviderService<RuleSettings,IEnumerable<Rule>>
+    public class JsonFileRuleProviderService :ISettings<RuleSettings>, IRuleProviderService<IEnumerable<Rule>>
     {
         private RuleSettings _settings;
         private List<Rule> _rules;

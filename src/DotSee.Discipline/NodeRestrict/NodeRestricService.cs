@@ -22,7 +22,7 @@ namespace DotSee.Discipline.NodeRestrict
 
         private IContentService _cs;
         private ISqlContext _sql;
-        private readonly IRuleProviderService<NodeRestrictSettings, IEnumerable<Rule>> _ruleProviderService;
+        private readonly IRuleProviderService< IEnumerable<Rule>> _ruleProviderService;
         private readonly IContentTypeService _contentTypeService;
         private List<Rule> _rules;
 
@@ -30,7 +30,7 @@ namespace DotSee.Discipline.NodeRestrict
 
         #region Constructors
 
-        public NodeRestricService(IContentService contentService, ISqlContext sqlContext, IRuleProviderService<NodeRestrictSettings, IEnumerable<Rule>> ruleProviderService, IContentTypeService contentTypeService)
+        public NodeRestricService(IContentService contentService, ISqlContext sqlContext, IRuleProviderService< IEnumerable<Rule>> ruleProviderService, IContentTypeService contentTypeService)
         {
             _cs = contentService;
             _sql = sqlContext;

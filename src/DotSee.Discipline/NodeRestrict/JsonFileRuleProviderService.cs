@@ -5,7 +5,7 @@ using Serilog;
 
 namespace DotSee.Discipline.NodeRestrict
 {
-    public class JsonFileRuleProviderService : IRuleProviderService<NodeRestrictSettings, IEnumerable<Rule>>
+    public class JsonFileRuleProviderService :ISettings<NodeRestrictSettings>, IRuleProviderService< IEnumerable<Rule>>
     {
 
         private NodeRestrictSettings _settings;

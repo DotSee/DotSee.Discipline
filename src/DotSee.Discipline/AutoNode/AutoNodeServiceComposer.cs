@@ -10,7 +10,7 @@ namespace DotSee.Discipline.AutoNode
     {
         public void Compose(IUmbracoBuilder builder)
         {
-            builder.Services.AddSingleton<IRuleProviderService<RuleSettings, IEnumerable<Rule>>, JsonFileRuleProviderService>();
+            builder.Services.AddSingleton<IRuleProviderService< IEnumerable<Rule>>, JsonFileRuleProviderService>();
             builder.Services.AddSingleton<AutoNodeService>();
             builder.Services.AddSingleton<AutoNodeUtils>();
             builder.AddNotificationHandler<ContentPublishedNotification, ContentPublishedHandler>();
