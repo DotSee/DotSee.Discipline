@@ -15,6 +15,7 @@ namespace DotSee.Discipline.NodeRestrict
             builder.Services.AddSingleton<IRuleProviderService< IEnumerable<Rule>>, JsonFileRuleProviderService>();
             builder.Services.AddSingleton<NodeRestricService>();
             builder.AddNotificationHandler<ContentPublishingNotification, ContentPublishingHandler>();
+            
         }
     }
 }

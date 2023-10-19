@@ -12,4 +12,19 @@
 		<PackageReference Include="Umbraco.Cms.Web.Common" Version="10.0.0" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <None Update="VariantsHider\App_Plugins\DotSee.Discipline.VariantsHider\arrive.js">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="VariantsHider\App_Plugins\DotSee.Discipline.VariantsHider\hider.js">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="VariantsHider\App_Plugins\DotSee.Discipline.VariantsHider\package.manifest">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="VariantsHider\App_Plugins\DotSee.Discipline.VariantsHider\toggle.js">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
 </Project>

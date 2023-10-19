@@ -26,6 +26,21 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="App_Plugins\DotSee.Discipline.VariantsHider\arrive.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="App_Plugins\DotSee.Discipline.VariantsHider\hider.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="App_Plugins\DotSee.Discipline.VariantsHider\package.manifest">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="App_Plugins\DotSee.Discipline.VariantsHider\toggle.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\DotSee.Discipline\DotSee.Discipline.csproj" />
   </ItemGroup>
 
