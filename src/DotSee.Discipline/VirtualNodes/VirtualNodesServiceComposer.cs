@@ -9,8 +9,9 @@ namespace DotSee.Discipline.VirtualNodes
     {
         public void Compose(IUmbracoBuilder builder)
         {
-            builder.Services.AddTransient<IRuleProviderService<IEnumerable<string>>, JsonFileRuleProviderService>();
-            builder.Services.AddTransient<VirtualNodesRuleManager>();
+            builder.Services
+                .AddTransient<IRuleProviderService<IEnumerable<string>>, JsonFileRuleProviderService>()
+                .AddTransient<VirtualNodesRuleManager>();         
             builder.UrlProviders().Insert<VirtualNodesUrlProvider>();
             builder.ContentFinders().Append<VirtualNodesContentFinder>();
         }      
