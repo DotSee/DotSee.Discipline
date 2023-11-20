@@ -287,8 +287,6 @@ wwwroot/umbraco/*.*
 **/*.suo
 **/.suo
 **/obj/
-**/[Mm]edia/
-Umbraco.Website/App_Plugins/DotSee.Discipline/
-UmbracoV10/App_Plugins/DotSee.Discipline/
-Smidge
-/src/UmbracoV10/App_Plugins/DotSee.Discipline.VariantsHider/arrive.js
+**/[Mm]edia/Smidge
+**/UmbracoV10/App_Plugins/DotSee.Discipline.*/
+**/Umbraco.Website/App_Plugins/DotSee.Discipline.*/
