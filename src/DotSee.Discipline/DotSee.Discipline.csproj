@@ -4,6 +4,10 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>warnings</Nullable>
+	  <PackageId>DotSee.Discipline.Test</PackageId>
+	  <Version>1.0.0</Version>
+	  <Authors>DotSee</Authors>
+	  <Company>DotSee</Company>
   </PropertyGroup>
 
 	<ItemGroup>
