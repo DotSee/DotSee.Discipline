@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.7.34031.279
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotSee.Discipline", "DotSee.Discipline\DotSee.Discipline.csproj", "{DAEAAFA3-EA25-4328-BC79-69A7A4D788F8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotSee.Discipline", "DotSee.Discipline\DotSee.Discipline.csproj", "{DAEAAFA3-EA25-4328-BC79-69A7A4D788F8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmbracoV10", "UmbracoV10\UmbracoV10.csproj", "{E137483B-33E9-4799-93C3-78BB1CDA9BD3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UmbracoV10", "UmbracoV10\UmbracoV10.csproj", "{E137483B-33E9-4799-93C3-78BB1CDA9BD3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

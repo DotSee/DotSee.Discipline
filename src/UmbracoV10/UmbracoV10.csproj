@@ -3,9 +3,17 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+	    <PackageId>DotSee.Discipline.Test</PackageId>
+	  <Version>1.0.3</Version>
+	  <Authors>DotSee</Authors>
+	  <Company>DotSee</Company>	  
   </PropertyGroup>
+  <ItemGroup>
+    <None Remove="nuget.exe" />
+  </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="DotSee.Discipline" Version="1.0.4" />
     <PackageReference Include="Umbraco.Cms" Version="10.0.0" />
   </ItemGroup>
 
@@ -23,25 +31,6 @@
 
   <ItemGroup>
     <Folder Include="wwwroot" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="App_Plugins\DotSee.Discipline.VariantsHider\arrive.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="App_Plugins\DotSee.Discipline.VariantsHider\hider.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="App_Plugins\DotSee.Discipline.VariantsHider\package.manifest">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="App_Plugins\DotSee.Discipline.VariantsHider\toggle.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\DotSee.Discipline\DotSee.Discipline.csproj" />
   </ItemGroup>
 
   <!-- Keep this as false if ModelsBuilder mode is InMemoryAuto -->
