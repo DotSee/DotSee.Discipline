@@ -1,7 +1,7 @@
 ﻿{
   "javascript": [
-    "~/App_Plugins/DotSee.VariantsHider/arrive.js",
-    "~/App_Plugins/DotSee.VariantsHider/hider.js",
-    "~/App_Plugins/DotSee.VariantsHider/toggle.js"
+    "~/App_Plugins/DotSee.Discipline.VariantsHider/arrive.js",
+    "~/App_Plugins/DotSee.Discipline.VariantsHider/hider.js",
+    "~/App_Plugins/DotSee.Discipline.VariantsHider/toggle.js"
   ]
 }
