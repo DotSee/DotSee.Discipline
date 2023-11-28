@@ -287,7 +287,7 @@ wwwroot/umbraco/*.*
 **/*.suo
 **/.suo
 **/obj/
-**/[Mm]edia/Smidge
 **/UmbracoV10/App_Plugins/DotSee.Discipline.*/
 **/Umbraco.Website/App_Plugins/DotSee.Discipline.*/
 /src/UmbracoV10/nuget.exe
+Smidge
