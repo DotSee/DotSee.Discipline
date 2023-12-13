@@ -9,7 +9,7 @@ using Umbraco.Cms.Core.Events;
 using Umbraco.Cms.Core.Notifications;
 
 namespace DotSee.Discipline.VariantsHider
-{
+{ 
     public class VariantsHiderService : INotificationHandler<MenuRenderingNotification>
     {
         private readonly IConfiguration _configuration;
