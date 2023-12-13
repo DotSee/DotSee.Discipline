@@ -13,7 +13,7 @@ namespace DotSee.Discipline.VariantsHider
     public class VariantsHiderService : INotificationHandler<MenuRenderingNotification>
     {
         private readonly IConfiguration _configuration;
-         
+          
         public VariantsHiderService(IConfiguration configuration)
         {
             _configuration = configuration;
