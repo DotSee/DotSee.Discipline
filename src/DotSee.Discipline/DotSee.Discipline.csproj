@@ -1,10 +1,36 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>warnings</Nullable>
+	  <PackageId>DotSee.Discipline</PackageId>
+	  <Version>1.0.6</Version>
+	  <Authors>DotSee</Authors>
+	  <Company>DotSee</Company>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="App_Plugins\DotSee.Discipline.VariantsHider\arrive.js" />
+    <None Remove="App_Plugins\DotSee.Discipline.VariantsHider\hider.js" />
+    <None Remove="App_Plugins\DotSee.Discipline.VariantsHider\package.manifest" />
+    <None Remove="App_Plugins\DotSee.Discipline.VariantsHider\toggle.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="App_Plugins\DotSee.Discipline.VariantsHider\arrive.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="App_Plugins\DotSee.Discipline.VariantsHider\hider.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="App_Plugins\DotSee.Discipline.VariantsHider\package.manifest">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="App_Plugins\DotSee.Discipline.VariantsHider\toggle.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Umbraco.Cms.Core" Version="10.0.0" />

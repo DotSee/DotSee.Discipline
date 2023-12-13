@@ -1,20 +1,22 @@
-﻿using DotSee.Discipline.Interfaces;
+﻿using DotSee.Discipline.AutoNode;
+using DotSee.Discipline.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.DependencyInjection;
 using Umbraco.Cms.Core.Notifications;
 
-namespace DotSee.Discipline.AutoNode
+namespace DotSee.Discipline.NodeRestrict
 {
-    public class AutoNodeServiceComposer : IComposer
+    public class NodeRestrictServiceComposer : IComposer
     {
+
         public void Compose(IUmbracoBuilder builder)
         {
             builder.Services
                 .AddSingleton<IRuleProviderService<IEnumerable<Rule>>, JsonFileRuleProviderService>()
-                .AddSingleton<AutoNodeService>()
-                .AddSingleton<AutoNodeUtils>();
-            builder.AddNotificationHandler<ContentPublishedNotification, ContentPublishedHandler>();
+                .AddSingleton<NodeRestricService>();
+            builder.AddNotificationHandler<ContentPublishingNotification, ContentPublishingHandler>();
+
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Serilog;
+﻿using DotSee.Discipline.Interfaces;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +21,7 @@ namespace DotSee.Discipline.AutoNode
         /// <summary>
         /// The list of rule objects
         /// </summary>
-        private List<Rule> _rules;
+        private List<Rule> _rules = new List<Rule>();
 
         /// <summary>
         /// Flag to indicate whether have been loaded by the rules provider
@@ -47,15 +48,15 @@ namespace DotSee.Discipline.AutoNode
         private readonly ILogger _logger;
         private readonly ISqlContext _sqlContext;
         private readonly AutoNodeUtils _autoNodeUtils;
-        
-        private readonly IRuleProviderService _ruleProviderService;
+
+        private readonly IRuleProviderService<IEnumerable<Rule>> _ruleProviderService;
 
         #endregion Private Members
 
         #region Public Members
         public List<Rule> Rules
         {
-            get => _rules; 
+            get => _rules;
         }
         #endregion Public Members
 
@@ -68,17 +69,17 @@ namespace DotSee.Discipline.AutoNode
               IContentService contentService
             , IContentTypeService contentTypeService
             , ILogger logger
-            , IRuleProviderService ruleProviderService
+            , IRuleProviderService<IEnumerable<Rule>> ruleProviderService
             , ISqlContext sqlContext
             , AutoNodeUtils autoNodeUtils)
         {
             _contentService = contentService;
-            _rules = new List<Rule>();
             _logger = logger;
             _autoNodeUtils = autoNodeUtils;
             _contentTypeService = contentTypeService;
             _ruleProviderService = ruleProviderService;
             _sqlContext = sqlContext;
+            _rules = ruleProviderService.Rules.ToList();
         }
 
         #endregion Constructors
@@ -102,6 +103,7 @@ namespace DotSee.Discipline.AutoNode
             _rules.RemoveAll<Rule>(x => true);
             _rulesLoaded = false;
         }
+
 
         /// <summary>
         /// Applies all rules on creation of a node.
@@ -129,7 +131,7 @@ namespace DotSee.Discipline.AutoNode
                 return false;
             }
 
-            _settings = _ruleProviderService?.Settings;
+            _settings = (_ruleProviderService as ISettings<RuleSettings>)?.Settings;
             _logVerbose = (_settings != null && _settings.LogLevel != null && _settings.LogLevel == "Verbose");
             _republishExistingNodes = (_settings != null && _settings.RepublishExistingNodes);
             string createdDocTypeAlias = node.ContentType.Alias;
@@ -143,11 +145,10 @@ namespace DotSee.Discipline.AutoNode
                 if (rule.CreatedDocTypeAlias.InvariantEquals(createdDocTypeAlias))
                 {
                     var partialResult = CreateOrPublishNode(node, rule, hasChildren, culture);
-                    result = result == false ? false : partialResult; 
+                    result = result == false ? false : partialResult;
                 }
             }
             return result;
-
         }
 
         #endregion Public Methods
@@ -308,7 +309,7 @@ namespace DotSee.Discipline.AutoNode
                 }
 
                 LogVerboseInfo(String.Format(MessageConstants.InfoCreateNodeSuccess, assignedNodeName, node.Name));
-                
+
             }
             catch (Exception ex)
             {
@@ -405,7 +406,7 @@ namespace DotSee.Discipline.AutoNode
                 existingNode = _contentService.GetPagedChildren(parentNode.Id, 0, 1, out totalRecords
                     , filter: query.Where
                     (
-                        x => 
+                        x =>
                         x.ContentTypeId == typeIdToCreate
                         && (x.Name.Equals(assignedNodeName, StringComparison.CurrentCultureIgnoreCase) || dontCreateIfExistsWithDifferentName)
                     )
