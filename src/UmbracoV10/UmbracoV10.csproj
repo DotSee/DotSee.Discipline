@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DotSee.Discipline" Version="1.0.4" />
+    <PackageReference Include="DotSee.Discipline" Version="1.0.6" />
     <PackageReference Include="Umbraco.Cms" Version="10.0.0" />
   </ItemGroup>
 

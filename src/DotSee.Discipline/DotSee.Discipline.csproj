@@ -11,23 +11,23 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="App_Plugins\DotSee.Discipline.VariantsHider\arrive.js" />
-    <None Remove="App_Plugins\DotSee.Discipline.VariantsHider\hider.js" />
-    <None Remove="App_Plugins\DotSee.Discipline.VariantsHider\package.manifest" />
-    <None Remove="App_Plugins\DotSee.Discipline.VariantsHider\toggle.js" />
+    <None Remove="wwwroot\App_Plugins\DotSee.Discipline.VariantsHider\arrive.js" />
+    <None Remove="wwwroot\App_Plugins\DotSee.Discipline.VariantsHider\hider.js" />
+    <None Remove="wwwroot\App_Plugins\DotSee.Discipline.VariantsHider\package.manifest" />
+    <None Remove="wwwroot\App_Plugins\DotSee.Discipline.VariantsHider\toggle.js" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="App_Plugins\DotSee.Discipline.VariantsHider\arrive.js">
+    <Content Include="wwwroot\App_Plugins\DotSee.Discipline.VariantsHider\arrive.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="App_Plugins\DotSee.Discipline.VariantsHider\hider.js">
+    <Content Include="wwwroot\App_Plugins\DotSee.Discipline.VariantsHider\hider.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="App_Plugins\DotSee.Discipline.VariantsHider\package.manifest">
+    <Content Include="wwwroot\App_Plugins\DotSee.Discipline.VariantsHider\package.manifest">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="App_Plugins\DotSee.Discipline.VariantsHider\toggle.js">
+    <Content Include="wwwroot\App_Plugins\DotSee.Discipline.VariantsHider\toggle.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
