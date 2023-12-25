@@ -9,14 +9,13 @@
 	  <Authors>DotSee</Authors>
 	  <Company>DotSee</Company>
 	  <ContentTargetFolders>content</ContentTargetFolders>
+	  <PackageOutputPath>../../output</PackageOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
     <Content Include="App_Plugins\DotSee.Discipline.VariantsHider\**\*.*">
 		<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
         <CopyToPublishDirectory>Always</CopyToPublishDirectory>
-		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		<Pack>true</Pack>
     </Content>
 
 	  <None Include="build\**">
