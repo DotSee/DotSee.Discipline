@@ -8,6 +8,7 @@
 	  <Version>1.0.6</Version>
 	  <Authors>DotSee</Authors>
 	  <Company>DotSee</Company>
+	  <ContentTargetFolders>content</ContentTargetFolders>
   </PropertyGroup>
 
   <ItemGroup>
