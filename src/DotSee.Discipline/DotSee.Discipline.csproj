@@ -11,28 +11,21 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="wwwroot\App_Plugins\DotSee.Discipline.VariantsHider\arrive.js" />
-    <None Remove="wwwroot\App_Plugins\DotSee.Discipline.VariantsHider\hider.js" />
-    <None Remove="wwwroot\App_Plugins\DotSee.Discipline.VariantsHider\package.manifest" />
-    <None Remove="wwwroot\App_Plugins\DotSee.Discipline.VariantsHider\toggle.js" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Include="wwwroot\App_Plugins\DotSee.Discipline.VariantsHider\arrive.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		<ContentTargetFolders>.</ContentTargetFolders>
+	
     </Content>
     <Content Include="wwwroot\App_Plugins\DotSee.Discipline.VariantsHider\hider.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		<ContentTargetFolders>.</ContentTargetFolders>
+		
     </Content>
     <Content Include="wwwroot\App_Plugins\DotSee.Discipline.VariantsHider\package.manifest">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		<ContentTargetFolders>.</ContentTargetFolders>
+		
     </Content>
     <Content Include="wwwroot\App_Plugins\DotSee.Discipline.VariantsHider\toggle.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		<ContentTargetFolders>.</ContentTargetFolders>
+		
     </Content>
 	  
   </ItemGroup>
@@ -42,5 +35,5 @@
 		<PackageReference Include="Umbraco.Cms.Web.BackOffice" Version="10.0.0" />
 		<PackageReference Include="Umbraco.Cms.Web.Common" Version="10.0.0" />
 	</ItemGroup>
-
+	
 </Project>
