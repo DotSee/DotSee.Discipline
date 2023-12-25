@@ -8,13 +8,12 @@
 	  <Version>1.0.6</Version>
 	  <Authors>DotSee</Authors>
 	  <Company>DotSee</Company>
-	  <ContentTargetFolders>.</ContentTargetFolders>
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="App_Plugins\DotSee.Discipline.VariantsHider\**">
+    <Content Include="App_Plugins\DotSee.Discipline.VariantsHider\**\*.*">
 		<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+        <CopyToPublishDirectory>Always</CopyToPublishDirectory>
 		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		<Pack>true</Pack>
     </Content>
