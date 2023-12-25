@@ -12,10 +12,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="wwwroot\App_Plugins\DotSee.Discipline.VariantsHider\**">
+    <Content Include="App_Plugins\DotSee.Discipline.VariantsHider\**">
 		<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>Always</CopyToPublishDirectory>
     </Content>
+
+	  <None Include="build\**">
+		  <Pack>true</Pack>
+		  <PackagePath>buildTransitive</PackagePath>
+	  </None>
 	  
   </ItemGroup>
 

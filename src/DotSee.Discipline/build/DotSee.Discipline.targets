@@ -8,12 +8,12 @@
       <DotSeeDisciplinePackageContentFiles Include="$(DotSeeDisciplinePackageContentFilesPath)" />
     </ItemGroup>
     <Message Text="Copying DotSee.Discipline.Package files: $(DotSeeDisciplinePackageContentFilesPath) - #@(DotSeeDisciplinePackageContentFiles->Count()) files" Importance="high" />
-    <Copy SourceFiles="@(DotSeeDisciplinePackageContentFiles)" DestinationFiles="@(DotSeeDisciplinePackageContentFiles->'$(MSBuildProjectDirectory)\wwwroot\App_Plugins\DotSee.Discipline.VariantsHider\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(DotSeeDisciplinePackageContentFiles)" DestinationFiles="@(DotSeeDisciplinePackageContentFiles->'$(MSBuildProjectDirectory)\App_Plugins\DotSee.Discipline.VariantsHider\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
   </Target>
 
   <Target Name="ClearDotSeeDisciplinePackageAssets" BeforeTargets="Clean">
     <ItemGroup>
-      <DotSeeDisciplinePackageDir Include="$(MSBuildProjectDirectory)\wwwroot\App_Plugins\DotSee.Discipline.VariantsHider\" />
+      <DotSeeDisciplinePackageDir Include="$(MSBuildProjectDirectory)\App_Plugins\DotSee.Discipline.VariantsHider\" />
     </ItemGroup>
     <Message Text="Clear old DotSee.Discipline.VariantsHider data" Importance="high" />
     <RemoveDir Directories="@(DotSeeDisciplinePackageDir)" />
