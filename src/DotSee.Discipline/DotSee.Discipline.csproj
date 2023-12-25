@@ -8,24 +8,13 @@
 	  <Version>1.0.6</Version>
 	  <Authors>DotSee</Authors>
 	  <Company>DotSee</Company>
+	  <ContentTargetFolders>.</ContentTargetFolders>
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="wwwroot\App_Plugins\DotSee.Discipline.VariantsHider\arrive.js">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	
-    </Content>
-    <Content Include="wwwroot\App_Plugins\DotSee.Discipline.VariantsHider\hider.js">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		
-    </Content>
-    <Content Include="wwwroot\App_Plugins\DotSee.Discipline.VariantsHider\package.manifest">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		
-    </Content>
-    <Content Include="wwwroot\App_Plugins\DotSee.Discipline.VariantsHider\toggle.js">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		
+    <Content Include="wwwroot\App_Plugins\DotSee.Discipline.VariantsHider\**">
+		<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
     </Content>
 	  
   </ItemGroup>
