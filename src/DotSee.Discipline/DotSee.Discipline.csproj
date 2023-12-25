@@ -20,16 +20,21 @@
   <ItemGroup>
     <Content Include="wwwroot\App_Plugins\DotSee.Discipline.VariantsHider\arrive.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		<ContentTargetFolders>.</ContentTargetFolders>
     </Content>
     <Content Include="wwwroot\App_Plugins\DotSee.Discipline.VariantsHider\hider.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		<ContentTargetFolders>.</ContentTargetFolders>
     </Content>
     <Content Include="wwwroot\App_Plugins\DotSee.Discipline.VariantsHider\package.manifest">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		<ContentTargetFolders>.</ContentTargetFolders>
     </Content>
     <Content Include="wwwroot\App_Plugins\DotSee.Discipline.VariantsHider\toggle.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		<ContentTargetFolders>.</ContentTargetFolders>
     </Content>
+	  
   </ItemGroup>
 
 	<ItemGroup>
