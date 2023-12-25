@@ -15,6 +15,7 @@
     <Content Include="App_Plugins\DotSee.Discipline.VariantsHider\**">
 		<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+		<Pack>true</Pack>
     </Content>
 
 	  <None Include="build\**">
