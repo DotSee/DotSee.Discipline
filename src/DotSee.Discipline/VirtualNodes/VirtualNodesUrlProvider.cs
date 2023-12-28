@@ -102,6 +102,11 @@ namespace DotSee.Discipline.VirtualNodes
             int cnt = 0;
             foreach (string p in urlParts)
             {
+                if(cnt+1 >= urlParts.Length)
+                { 
+                    cnt++;
+                    continue;
+                }
                 IPublishedContent currItem = umbracoContext.Content.GetById(int.Parse(pathIds[cnt]));
 
                 //Omit any virtual node unless it's leaf level (we still need this otherwise it will be pointing to parent's URL)
