@@ -102,7 +102,7 @@ namespace DotSee.Discipline.VirtualNodes
             int cnt = 0;
             foreach (string p in urlParts)
             {
-                if(cnt+1 >= urlParts.Length)
+                if(cnt+1 > pathIds.Length)
                 { 
                     cnt++;
                     continue;
