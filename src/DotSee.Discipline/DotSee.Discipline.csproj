@@ -1,15 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net6.0;net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>warnings</Nullable>
+    <Nullable>disable</Nullable>
 	  <PackageId>DotSee.Discipline</PackageId>
 	  <Version>1.0.6</Version>
 	  <Authors>DotSee</Authors>
 	  <Company>DotSee</Company>
+	  <Product>DotSee.Discipline</Product>
 	  <ContentTargetFolders>content</ContentTargetFolders>
 	  <PackageOutputPath>../../output</PackageOutputPath>
+	  <PackageTags>umbraco;umbraco-marketplace</PackageTags>
+	  <PackageReadmeFile>README.md</PackageReadmeFile>
+	  <RepositoryType>git</RepositoryType>
+	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,10 +30,14 @@
 	  
   </ItemGroup>
 
-	<ItemGroup>
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net6.0'">
 		<PackageReference Include="Umbraco.Cms.Core" Version="10.0.0" />
 		<PackageReference Include="Umbraco.Cms.Web.BackOffice" Version="10.0.0" />
-		<PackageReference Include="Umbraco.Cms.Web.Common" Version="10.0.0" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+		<PackageReference Include="Umbraco.Cms.Web.Website" Version="13.0.0" />
+		<PackageReference Include="Umbraco.Cms.Web.BackOffice" Version="13.0.0" />
 	</ItemGroup>
 	
 </Project>
