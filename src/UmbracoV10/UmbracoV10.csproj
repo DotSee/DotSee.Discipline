@@ -13,7 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DotSee.Discipline" Version="1.0.6" />
     <PackageReference Include="Umbraco.Cms" Version="10.0.0" />
   </ItemGroup>
 
@@ -31,6 +30,10 @@
 
   <ItemGroup>
     <Folder Include="wwwroot" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DotSee.Discipline\DotSee.Discipline.csproj" />
   </ItemGroup>
 
   <!-- Keep this as false if ModelsBuilder mode is InMemoryAuto -->
