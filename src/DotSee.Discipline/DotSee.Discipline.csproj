@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
+	  <StaticWebAssetBasePath>/</StaticWebAssetBasePath>
     <Nullable>disable</Nullable>
 	  <PackageId>DotSee.Discipline</PackageId>
 	  <Version>1.0.6</Version>
