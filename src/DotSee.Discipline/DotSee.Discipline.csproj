@@ -6,7 +6,7 @@
 		<StaticWebAssetBasePath>/</StaticWebAssetBasePath>
 		<Nullable>disable</Nullable>
 		<PackageId>DotSee.Discipline</PackageId>
-		<Version>1.0.6</Version>
+		<Version>$(Build.BuildNumber)</Version>
 		<Authors>DotSee</Authors>
 		<Company>DotSee</Company>
 		<Product>DotSee.Discipline</Product>
