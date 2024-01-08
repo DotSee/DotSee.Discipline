@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <DotSeeDisciplinePackageContentFilesPath>$(MSBuildThisFileDirectory)..\App_Plugins\DotSee.Discipline.VariantsHider\**\*.*</DotSeeDisciplinePackageContentFilesPath>
+    <DotSeeDisciplinePackageContentFilesPath>$(MSBuildThisFileDirectory)..\content\App_Plugins\DotSee.Discipline.VariantsHider\**\*.*</DotSeeDisciplinePackageContentFilesPath>
   </PropertyGroup>
 
   <Target Name="CopyDotSeeDisciplinePackageAssets" BeforeTargets="Build">
@@ -18,4 +18,5 @@
     <Message Text="Clear old DotSee.Discipline.VariantsHider data" Importance="high" />
     <RemoveDir Directories="@(DotSeeDisciplinePackageDir)" />
   </Target>
+	
 </Project>

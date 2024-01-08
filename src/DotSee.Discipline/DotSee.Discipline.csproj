@@ -1,41 +1,50 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>warnings</Nullable>
-	  <PackageId>DotSee.Discipline</PackageId>
-	  <Version>1.0.6</Version>
-	  <Authors>DotSee</Authors>
-	  <Company>DotSee</Company>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="App_Plugins\DotSee.Discipline.VariantsHider\arrive.js" />
-    <None Remove="App_Plugins\DotSee.Discipline.VariantsHider\hider.js" />
-    <None Remove="App_Plugins\DotSee.Discipline.VariantsHider\package.manifest" />
-    <None Remove="App_Plugins\DotSee.Discipline.VariantsHider\toggle.js" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="App_Plugins\DotSee.Discipline.VariantsHider\arrive.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="App_Plugins\DotSee.Discipline.VariantsHider\hider.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="App_Plugins\DotSee.Discipline.VariantsHider\package.manifest">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="App_Plugins\DotSee.Discipline.VariantsHider\toggle.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
+	<PropertyGroup>
+		<TargetFrameworks>net6.0;net8.0</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<StaticWebAssetBasePath>/</StaticWebAssetBasePath>
+		<Nullable>disable</Nullable>
+		<PackageId>DotSee.Discipline</PackageId>
+		<Version>1.0.6</Version>
+		<Authors>DotSee</Authors>
+		<Company>DotSee</Company>
+		<Product>DotSee.Discipline</Product>
+		<ContentTargetFolders>content</ContentTargetFolders>
+		<PackageOutputPath>../../output</PackageOutputPath>
+		<PackageTags>umbraco;umbraco-marketplace</PackageTags>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<RepositoryType>git</RepositoryType>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+	</PropertyGroup>
 
 	<ItemGroup>
+		<Content Include="App_Plugins\DotSee.Discipline.VariantsHider\**\*.*">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+			<CopyToPublishDirectory>Always</CopyToPublishDirectory>
+		</Content>
+
+		<None Include="build\**">
+			<Pack>true</Pack>
+			<PackagePath>buildTransitive</PackagePath>
+		</None>
+
+	</ItemGroup>
+	<ItemGroup>
+		<None Include="..\..\docs\README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net6.0'">
 		<PackageReference Include="Umbraco.Cms.Core" Version="10.0.0" />
 		<PackageReference Include="Umbraco.Cms.Web.BackOffice" Version="10.0.0" />
-		<PackageReference Include="Umbraco.Cms.Web.Common" Version="10.0.0" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+		<PackageReference Include="Umbraco.Cms.Web.Website" Version="13.0.0" />
+		<PackageReference Include="Umbraco.Cms.Web.BackOffice" Version="13.0.0" />
 	</ItemGroup>
 
 </Project>
