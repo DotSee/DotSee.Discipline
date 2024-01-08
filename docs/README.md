@@ -1,6 +1,24 @@
-﻿This is a plugin combining the functionality of the legacy V8 AutoNode, NodeRestrict, VirtualNodes, and HideNotCreatedVariants plugins for Umbraco v10.
+﻿This is a plugin for Umbraco V10+ combining the functionality of the following legacy V8 plugins:
+- **AutoNode**: Automatically create new nodes upon publishing a node, based on rules
+- **NodeRestrict**: Restrict number of nodes to be created under a node, based on rules
+- **VirtualNodes**: Hide the url segment of a specific node based on doctype
+- **HideNotCreatedVariants**: Toggle show/hide of non-created variants for languages in the back office
 
-# Restricting creation of new nodes in the Umbraco back office
+# General Notes
+In your appSettings.json, create a new root level entry as follows:
+
+```
+ "DotSee.Discipline": {
+
+    [Specific configs go here]
+ 
+ }
+```
+
+and then use the configuration for any of the functions you need to use. 
+All functionality is disabled by default, so if you do not include configuration for a specific functionality it won't kick in at all.
+
+# Restricting creation of new nodes in the Umbraco back office (formerly NodeRestrict)
 
 You can restrict the number of allowed published child nodes either via rules defined in appsettings.json (parent doctype - child doctype) or via a special property in a single node (limiting the number of children of any doctype).
 
@@ -10,7 +28,7 @@ If the max number of allowed nodes is reached, new nodes will be saved but not p
 
 ## Configuration
 
-Below is an example of an actual configuration in appsettings.json:
+Below is an example of an actual configuration in appsettings.json, under the "DotSee.Discipline" entry:
 
 ``` 
   "NodeRestrict": {
@@ -42,7 +60,6 @@ Below is an example of an actual configuration in appsettings.json:
       ]
     }
 ```
-
 
 You can define rules for parent/child sets based on document type as well as use a special property on any page that will define the number of allowed children (of any doctype) for that specific page only.
 
@@ -81,6 +98,7 @@ Let's suppose that, on your site, you have pages of type "Advert" that you place
 }
  
 ```
+
 Another far-fetched example would be to limit EVERY node in your site to having a maximum of 10 children, with no warning messages and a standard message when the limit is reached. To do that, you need a rule like the following:
 ```
 {
@@ -109,7 +127,6 @@ Now let's suppose you have a single, specific node where you need to limit its n
       },
 ```
 
-
 And have a numeric property with alias "mySpecialPropertyAlias" in your document. Then you can go and set the number 5 on it. This will behave exactly like a rule, but only for the specific node.
 If the node doesn't have a value for the "special" property, then this will be ignored.
 
@@ -125,14 +142,11 @@ Rules are processed top-down, so make sure the more general rules go to the bott
 
 If a rule is processed, no more rules are evaluated.
 
-
-
-# Automatically creating new child nodes when a node is published in the back office
+# Automatically creating new child nodes when a node is published in the back office (formerly AutoNode)
 
 This functionality allows for the creating of new nodes upon publishing a node on the back office, based on a set of user-defined rules.
 
 ## Configuration
-
 
  "settings": {
    "logLevel": "Verbose",
@@ -155,7 +169,7 @@ Here's an explanation of global attributes:
 **logLevel**: Set this to "verbose" to get as detailed logging as possible. Leave it empty for default logging.
 republishExistingNodes: Set it to "true" to force republishing of any child nodes that are specified in rules but are already there (may be slow).
  
- Here's an explanation of rule-specific attributes:
+Here's an explanation of rule-specific attributes:
 
 **createdDocTypeAlias**: The document type alias of the document being published. IF the document being published has the specified doctype alias, then the rule will execute.
 **docTypeAliasToCreate**: The document type alias of the document that will be automatically created as a child document.
@@ -176,14 +190,13 @@ The plugin works for new nodes as well as existing nodes (if they are published 
 
 This plugin works only with doctypes, so it's not possible at the moment to have any other criteria for automatic document creation.
 
-
-# Hiding URL segments from Umbraco generated URLs
+# Hiding URL segments from Umbraco generated URLs (formerly VirtualNodes)
 
 This lets you specify one or more document types that will be excluded from Umbraco-generated URLs, thus making them "invisible". Those can be used as grouping nodes and they will not appear as part of the URL.
 
-## Usage
+## Configuration
 
-After you install the package, you will have to add one appSettings entry to your web.config file, as follows:
+Use the following configuration under the "DotSee.Discipline" entry:
 
 ```
  "VirtualNodes": {
@@ -196,14 +209,10 @@ Where aDocTypeAlias, someOtherDocTypeAlias is the document type alias(es) you wa
 You can also use wildcards at the start and/or the end of the document type alias, like this:
 
 ```
-```
       "Rules": [ "dog*", "*cat", "*mouse* ]
 ```
 
-```
-
 This means that all document type aliases ending with "dog", all document types starting with "cat" and all those containing "mouse" will have their URL segments hidden when Umbraco creates URLs for nodes that contain them in the path.
-
 
 ## Other Notes
 
@@ -220,3 +229,21 @@ instead of
 resulting in a 404 when trying to access /aaa/ccc (the old url with the hidden segment)
 
 This only affects automatic 301 redirects, but otherwise the package is going to function correctly.
+
+# Hiding not created nodes in the back office 
+
+This one was originally published as a Gist and explained here: https://www.dot-see.com/blog/hiding-unpublished-variants-from-the-content-tree/
+Its purpose is to have a right-click option on the "Content" node that allows you to toggle hiding / showing not created variants, i.e. variants that have been created for a language but not for other ones, so that your content tree is somehow decluttered.
+
+## Configuration
+There are two settings, Enabled (which is fairly obvious) and Caption which controls what will be shown on the right click menu option. 
+
+```
+ "VariantsHider": {
+      "Enabled": true,
+      "Caption": "Hide stuff"
+    }
+```
+
+
+
