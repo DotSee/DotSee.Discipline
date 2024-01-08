@@ -1,0 +1,23 @@
+﻿{
+  "$schema": "https://marketplace.umbraco.com/umbraco-marketplace-schema.json",
+  "AuthorDetails": {
+    "Description": "DotSee Web Services",
+    "Url": "https://www.dot-see.com",
+    "ImageUrl": "https://avatars.githubusercontent.com/u/95360900",
+    "Contributors": [ "Sotiris Filippidis", "Stelios Zisis", "Dimitra Psychogyiou", "Konstantinos Giannopoulos" ]
+  },
+  "Category": "Editor Tools",
+  "IssueTrackerUrl": "https://github.com/DotSee/DotSee.Discipline/issues",
+  "LicenseTypes": [
+    "Free"
+  ],
+  "PackageType": "Package",
+  "Tags": [
+    "backoffice",
+    "autonode",
+    "noderestrict",
+    "virtualnodes",
+    "hidenotcreatedvariants"
+  ],
+  "Title": "Discipline"
+}
