@@ -16,6 +16,7 @@
 		<PackageOutputPath>../../output</PackageOutputPath>
 		<PackageTags>umbraco;umbraco-marketplace</PackageTags>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageProjectUrl>https://github.com/DotSee/DotSee.Discipline</PackageProjectUrl>
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/DotSee/DotSee.Discipline</RepositoryUrl>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
