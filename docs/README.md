@@ -65,14 +65,14 @@ You can define rules for parent/child sets based on document type as well as use
 
 A rule has the following attributes:
 
-**parentDocType**: The document type alias of the parent of the document being published. You can alternatively use the "\*" character here to match all document types.
-**childDocType**: The document type alias of the document being published. You can alternatively use the "\*" character here to match all document types.
-**maxNodes**: The maximum number of "childDocType" nodes allowed under a "ParentDocType" node.
-**showWarnings**: When set, displays warning messages regarding the number of nodes allowed if a rule is matched but the maximum number of children has not yet been reached.
-**customMessage**: Overrides the standard message when the maximum number of nodes has been reached.
-**customMessageCategory** Overrides the standard category literal when the maximum number of nodes has been reached. Standard literal is "Publish".
-**customWarningMessage**: Overrides the standard warning message when a rule is matched but maximum number of nodes has not yet been reached.
-**customWarningMessageCategory**: verrides the standard category literal when a rule is matched but maximum number of nodes has not yet been reached. Standard literal is "Publish".
+- **parentDocType**: The document type alias of the parent of the document being published. You can alternatively use the "\*" character here to match all document types.
+- **childDocType**: The document type alias of the document being published. You can alternatively use the "\*" character here to match all document types.
+- **maxNodes**: The maximum number of "childDocType" nodes allowed under a "ParentDocType" node.
+- **showWarnings**: When set, displays warning messages regarding the number of nodes allowed if a rule is matched but the maximum number of children has not yet been reached.
+- **customMessage**: Overrides the standard message when the maximum number of nodes has been reached.
+- **customMessageCategory** Overrides the standard category literal when the maximum number of nodes has been reached. Standard literal is "Publish".
+- **customWarningMessage**: Overrides the standard warning message when a rule is matched but maximum number of nodes has not yet been reached.
+- **customWarningMessageCategory**: verrides the standard category literal when a rule is matched but maximum number of nodes has not yet been reached. Standard literal is "Publish".
 
 A rule is matched only when "parentDocType" and "childDocType" match. That is, the document being published must be of "childDocType" and its parent document must be of "parentDocType". In our example, the rule applies if we publish a "LandingPage" document under a "Home" document.
 
@@ -171,14 +171,14 @@ republishExistingNodes: Set it to "true" to force republishing of any child node
  
 Here's an explanation of rule-specific attributes:
 
-**createdDocTypeAlias**: The document type alias of the document being published. IF the document being published has the specified doctype alias, then the rule will execute.
-**docTypeAliasToCreate**: The document type alias of the document that will be automatically created as a child document.
-**nodeName**: The name of the newly created node.
-**bringNodeFirst**: If set to true, will bring the newly created node first in the Umbraco back-end.
-**onlyCreateIfNoChildren** (optional): This, naturally, regards republishing. If set to true, then republishing a node that already has child nodes (including any already automatically created nodes) will NOT run the rule. If set to false, the rule will run even if the node being published already has children. Note: If this setting is set to false and there are already automatically created nodes under the node being published, then they won't be created again. (The check is performed on both doctype and node name as defined in rules - if such a node is found, it will not be created again)
-**createIfExistsWithDifferentName** (optional): This is true by default - it means that if you rename the automatically created node and republish its parent, a new node will be created. If you need to restrict node creation even more, then you can set this to False and it will not create a new node when a node of the same doctype is found.
-**dictionaryItemForName** (optional): The key for a dictionary item which will specify what the name of the new node will be in a multilingual Umbraco installation. This means that new nodes will take their names according to the value of this dictionary entry and names will be different for each language. (The createIfExistsWithDifferentName setting also takes multilingual names under consideration).If the dictionary key is not found or the corresponding dictionary entry contains no value, then it falls back to the default new node name as defined in the rule.
-**blueprint** (optional): The name of a blueprint (aka "content template") that will be used to populate the newly created node with content.
+- **createdDocTypeAlias**: The document type alias of the document being published. IF the document being published has the specified doctype alias, then the rule will execute.
+- **docTypeAliasToCreate**: The document type alias of the document that will be automatically created as a child document.
+- **nodeName**: The name of the newly created node.
+- **bringNodeFirst**: If set to true, will bring the newly created node first in the Umbraco back-end.
+- **onlyCreateIfNoChildren** (optional): This, naturally, regards republishing. If set to true, then republishing a node that already has child nodes (including any already automatically created nodes) will NOT run the rule. If set to false, the rule will run even if the node being published already has children. Note: If this setting is set to false and there are already automatically created nodes under the node being published, then they won't be created again. (The check is performed on both doctype and node name as defined in rules - if such a node is found, it will not be created again)
+- **createIfExistsWithDifferentName** (optional): This is true by default - it means that if you rename the automatically created node and republish its parent, a new node will be created. If you need to restrict node creation even more, then you can set this to False and it will not create a new node when a node of the same doctype is found.
+- **dictionaryItemForName** (optional): The key for a dictionary item which will specify what the name of the new node will be in a multilingual Umbraco installation. This means that new nodes will take their names according to the value of this dictionary entry and names will be different for each language. (The createIfExistsWithDifferentName setting also takes multilingual names under consideration).If the dictionary key is not found or the corresponding dictionary entry contains no value, then it falls back to the default new node name as defined in the rule.
+- **blueprint** (optional): The name of a blueprint (aka "content template") that will be used to populate the newly created node with content.
 
 ## Limitations / Warnings
 
