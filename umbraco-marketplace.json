@@ -4,23 +4,20 @@
     "Name": "DotSee Web Services S.A.",
     "Description": "Development and Support Services for Umbraco CMS",
     "Url": "https://www.dot-see.com",
-    "ImageUrl": "https://avatars.githubusercontent.com/u/95360900",
+    "ImageUrl": "https://raw.githubusercontent.com/DotSee/DotSee/main/DotSee.png",
     "Contributors": [
       {
         "Name": "Sotiris Filippidis",
         "Url": "https://www.linkedin.com/in/sotirisf/"
       },
       {
-        "Name": "Stelios Zisis",
-        "Url": ""
+        "Name": "Stelios Zisis"
       },
       {
-        "Name": "Dimitra Psychogyiou",
-        "Url": ""
+        "Name": "Dimitra Psychogyiou"
       },
       {
-        "Name": "Konstantinos Giannopoulos",
-        "Url": ""
+        "Name": "Konstantinos Giannopoulos"
       }
     ]
   },
