@@ -6,6 +6,8 @@
 		<StaticWebAssetBasePath>/</StaticWebAssetBasePath>
 		<Nullable>disable</Nullable>
 		<PackageId>DotSee.Discipline</PackageId>
+		<Description>Keep your back office in order with a set of rule-driven functions for automatic node creation, restrictions on creating new nodes, hiding parts of a URL and toggling display of not created nodes in multilingual setups</Description>
+		<Title>DotSee.Discipline</Title>
 		<Version>1.0.6</Version>
 		<Authors>DotSee</Authors>
 		<Company>DotSee</Company>
@@ -15,6 +17,7 @@
 		<PackageTags>umbraco;umbraco-marketplace</PackageTags>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<RepositoryType>git</RepositoryType>
+		<RepositoryUrl>https://github.com/DotSee/DotSee.Discipline</RepositoryUrl>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	</PropertyGroup>
 
