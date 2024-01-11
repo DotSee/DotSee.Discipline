@@ -13,6 +13,7 @@
 		<Company>DotSee</Company>
 		<Product>DotSee.Discipline</Product>
 		<ContentTargetFolders>content</ContentTargetFolders>
+		<PackageIcon>DotSee.png</PackageIcon>
 		<PackageOutputPath>../../output</PackageOutputPath>
 		<PackageTags>umbraco;umbraco-marketplace</PackageTags>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
@@ -39,6 +40,11 @@
 			<Pack>True</Pack>
 			<PackagePath>\</PackagePath>
 		</None>
+		<None Include="..\..\docs\DotSee.png">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+
 	</ItemGroup>
 
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net6.0'">
