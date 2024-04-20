@@ -1,26 +1,22 @@
-﻿
-
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Umbraco.Cms.Core.Configuration.Models;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.Routing;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Web;
-using Umbraco.Cms.Web.Common.UmbracoContext;
 using Umbraco.Extensions;
 
 namespace DotSee.Discipline.VirtualNodes
 {
     public class VirtualNodesUrlProvider : DefaultUrlProvider
     {
-       
         private readonly GlobalSettings _globalSettings;
         private readonly VirtualNodesRuleManager _virtualNodesRuleManager;
         private readonly IUmbracoContextFactory _umbContextFactory;
 
-        public VirtualNodesUrlProvider(IOptionsMonitor<RequestHandlerSettings> requestSettings, ILogger<DefaultUrlProvider> logger, ISiteDomainMapper siteDomainMapper, IUmbracoContextAccessor umbracoContextAccessor, UriUtility uriUtility, ILocalizationService localizationService,IOptions<GlobalSettings> globalSettings, VirtualNodesRuleManager virtualNodesRuleManager,IUmbracoContextFactory umbContextFactory) : base(requestSettings, logger, siteDomainMapper, umbracoContextAccessor, uriUtility, localizationService)
-        {         
+        public VirtualNodesUrlProvider(IOptionsMonitor<RequestHandlerSettings> requestSettings, ILogger<DefaultUrlProvider> logger, ISiteDomainMapper siteDomainMapper, IUmbracoContextAccessor umbracoContextAccessor, UriUtility uriUtility, ILocalizationService localizationService, IOptions<GlobalSettings> globalSettings, VirtualNodesRuleManager virtualNodesRuleManager, IUmbracoContextFactory umbContextFactory) : base(requestSettings, logger, siteDomainMapper, umbracoContextAccessor, uriUtility, localizationService)
+        {
             _globalSettings = globalSettings.Value;
             _virtualNodesRuleManager = virtualNodesRuleManager;
             _umbContextFactory = umbContextFactory;
@@ -28,13 +24,10 @@ namespace DotSee.Discipline.VirtualNodes
 
         public override UrlInfo GetUrl(IPublishedContent content, UrlMode mode, string culture, Uri current)
         {
-         
-
             //Just in case
             if (content == null) { return null; }
 
             //If this is a virtual node itself, no need to handle it - should return normal URL
-
             bool hasVirtualNodeInPath = false;
             foreach (IPublishedContent item in content.Ancestors()) //.Union(content.Children())
             {
@@ -44,25 +37,20 @@ namespace DotSee.Discipline.VirtualNodes
                     break;
                 }
             }
-            using (var umb=_umbContextFactory.EnsureUmbracoContext())
+            using (var umb = _umbContextFactory.EnsureUmbracoContext())
             {
-                var _urlInfo=hasVirtualNodeInPath ? ConstructUrl(umb.UmbracoContext, content.Id, current, mode, content, culture) : null;
+                var _urlInfo = hasVirtualNodeInPath ? ConstructUrl(umb.UmbracoContext, content.Id, current, mode, content, culture) : null;
                 return _urlInfo;
             }
-           
         }
-     
 
-        private UrlInfo ConstructUrl(IUmbracoContext umbracoContext, int id, Uri current, UrlMode mode, IPublishedContent content,string culture)
+        private UrlInfo ConstructUrl(IUmbracoContext umbracoContext, int id, Uri current, UrlMode mode, IPublishedContent content, string culture)
         {
-
             string path = content.Path;
 
             //Keep path items in par with path segments in url
             //If we are hiding the top node from path, then we'll have to skip one path item (the root). 
             //If we are not, then we'll have to skip two path items (root and home)
-          
-         
             int pathItemsToSkip = (_globalSettings.HideTopLevelNodeFromPath == true) ? 2 : 1;
 
             //Get the path ids but skip what's needed in order to have the same number of elements in url and path ids.
@@ -72,8 +60,15 @@ namespace DotSee.Discipline.VirtualNodes
             //DO NOT USE THIS - RECURSES: string url = content.Url;
             //https://our.umbraco.org/forum/developers/extending-umbraco/73533-custom-url-provider-stackoverflowerror
             //https://our.umbraco.org/forum/developers/extending-umbraco/66741-iurlprovider-cannot-evaluate-expression-because-the-current-thread-is-in-a-stack-overflow-state
-            string url = base.GetUrl(content,mode, culture, current).Text;
-
+            string url = null;
+            try
+            {
+                url = base.GetUrl(content, mode, culture, current).Text;
+            }
+            catch (NullReferenceException ex)
+            {
+                return null;
+            }
             //If we come from an absolute URL, strip the host part and keep it so that we can append
             //it again when returing the URL. 
             string hostPart = "";
@@ -102,8 +97,8 @@ namespace DotSee.Discipline.VirtualNodes
             int cnt = 0;
             foreach (string p in urlParts)
             {
-                if(cnt+1 > pathIds.Length)
-                { 
+                if (cnt + 1 > pathIds.Length)
+                {
                     cnt++;
                     continue;
                 }
