@@ -2,9 +2,6 @@
 
 
 using DotSee.Discipline.Interfaces;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using System.Xml;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Persistence.Querying;
 using Umbraco.Cms.Core.Services;
@@ -15,14 +12,14 @@ namespace DotSee.Discipline.NodeRestrict
     /// <summary>
     /// Creates new nodes under a newly created node, according to a set of rules
     /// </summary>
-    public class NodeRestricService
+    public class NodeRestrictService
     {
 
         #region Private Members
 
         private IContentService _cs;
         private ISqlContext _sql;
-        private readonly IRuleProviderService< IEnumerable<Rule>> _ruleProviderService;
+        private readonly IRuleProviderService<IEnumerable<Rule>> _ruleProviderService;
         private readonly IContentTypeService _contentTypeService;
         private List<Rule> _rules;
 
@@ -30,7 +27,7 @@ namespace DotSee.Discipline.NodeRestrict
 
         #region Constructors
 
-        public NodeRestricService(IContentService contentService, ISqlContext sqlContext, IRuleProviderService< IEnumerable<Rule>> ruleProviderService, IContentTypeService contentTypeService)
+        public NodeRestrictService(IContentService contentService, ISqlContext sqlContext, IRuleProviderService<IEnumerable<Rule>> ruleProviderService, IContentTypeService contentTypeService)
         {
             _cs = contentService;
             _sql = sqlContext;
@@ -128,7 +125,7 @@ namespace DotSee.Discipline.NodeRestrict
         /// <param name="node">The node to check against the rule</param>
         /// <returns>Null if the rule does not apply to the node, or a Result object if it does.</returns>
         private Result CheckRule(Rule rule, IContent node, string culture = null)
-        {         
+        {
             IContent parent = _cs.GetById(node.ParentId);
             //If maxnodes not at least equal 1 then skip this rule.
             if (rule.MaxNodes <= 0) { return null; }
@@ -139,15 +136,15 @@ namespace DotSee.Discipline.NodeRestrict
             bool isMatchChild = rule.ChildDocType.ToLower().Equals(node.ContentType.Alias.ToLower()) || rule.ChildDocType.Equals("*");
             ////If rule doctypes do not match, skip this rule
             if (!isMatchChild || !isMatchParent) { return null; }
-         
+
 
             //If we're checking for children regardless of doctype, then getting a page size equal to 
             //the max nodes limit is enough to check. Otherwise, get everything so we can filter
             var maxNodes = rule.ChildDocType.Equals("*") ? int.MaxValue : rule.MaxNodes;
 
-            IEnumerable<IContent> children = new List<IContent>();          
-                var filter = GetFilter(rule,  culture);
-                children = _cs.GetPagedChildren(node.ParentId, 0, maxNodes, out totalChildren, filter);
+            IEnumerable<IContent> children = new List<IContent>();
+            var filter = GetFilter(rule, culture);
+            children = _cs.GetPagedChildren(node.ParentId, 0, maxNodes, out totalChildren, filter);
             if (rule.ParentDocType != "*")
             {
                 var _parentTypeToSearch = _contentTypeService.Get(rule.ParentDocType);
@@ -156,11 +153,11 @@ namespace DotSee.Discipline.NodeRestrict
 
             return Result.GetResult(children.Count(), rule);
         }
-        private IQuery<IContent> GetFilter(Rule rule,  string culture)
+        private IQuery<IContent> GetFilter(Rule rule, string culture)
         {
             switch (rule.ChildDocType)
             {
-                case "*":         
+                case "*":
                     return culture == null
                ? _sql.Query<IContent>()
                    .Where(x => x.Published)
