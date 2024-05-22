@@ -48,7 +48,7 @@ namespace DotSee.Discipline.NodeProtect
 
             try
             {
-                _configuration.GetSection("DotSee.Discipline:NodeRestrict:Settings").Bind(r);
+                _configuration.GetSection("DotSee.Discipline:NodeProtect:Settings").Bind(r);
             }
             catch (Exception ex)
             {
@@ -63,7 +63,7 @@ namespace DotSee.Discipline.NodeProtect
 
             try
             {
-                _configuration.GetSection("DotSee.Discipline:NodeRestrict:Rules").Bind(r);
+                _configuration.GetSection("DotSee.Discipline:NodeProtect:Rules").Bind(r);
             }
             catch (Exception ex)
             {

@@ -22,10 +22,9 @@
         /// </summary>
         public string CustomMessageCategory { get; set; }
         /// <summary>
-        /// Custom category for the warning message. This overrides the standard category literal.
+        /// Set this to true to make the rule be ignored if the user performing the action is an admin
         /// </summary>
-        public bool FromProperty { get; set; }
-
+        public bool IgnoreForAdmins { get; set; }
 
         /// <summary>
         /// Holds the data for a node restriction rule.
@@ -33,18 +32,21 @@
         /// <param name="docTypeAlias">Doctype alias that will not be allowed to be deleted</param>
         /// <param name="documentGuids">Document GUIDs that will not be allowed to be deleted</param>
         /// <param name="fromProperty">Indicates whether the rule has been created on the fly based on the document's special property (true) or is a rule that comes from the config file (false)</param>
+        /// <param name="ignoreForAdmins">Set this to true to make the rule be ignored if the user performing the action is an admin</param>
         /// <param name="customMessage">A custom "limit reached" message. This overrides the standard message.</param>
         /// <param name="customMessageCategory">Custom category for the "limit reached" message. This overrides the standard category literal.</param>
         public Rule(
             string docTypeAlias,
             string documentGuids,
             bool fromProperty = false,
+            bool ignoreForAdmins = false,
             string customMessage = "",
             string customMessageCategory = "")
         {
             DocTypeAlias = docTypeAlias;
             DocumentGuids = documentGuids;
             FromProperty = fromProperty;
+            IgnoreForAdmins = ignoreForAdmins;
             CustomMessage = customMessage;
             CustomMessageCategory = customMessageCategory;
         }
