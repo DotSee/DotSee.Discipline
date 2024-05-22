@@ -64,7 +64,8 @@ namespace DotSee.Discipline.NodeProtect
             try
             {
                 if (
-                    node.HasProperty(PropertyAlias)
+                    PropertyAlias != null
+                    && node.HasProperty(PropertyAlias)
                     && node.Properties[PropertyAlias] != null
                     && node.GetValue<int>(PropertyAlias) > 0
                     )

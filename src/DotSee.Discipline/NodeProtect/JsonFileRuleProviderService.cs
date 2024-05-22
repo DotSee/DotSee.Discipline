@@ -35,7 +35,6 @@ namespace DotSee.Discipline.NodeProtect
             }
         }
 
-
         public void ReloadData()
         {
             _settings = null;

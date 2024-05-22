@@ -14,7 +14,7 @@ namespace DotSee.Discipline.NodeProtect
             builder.Services
                 .AddSingleton<IRuleProviderService<IEnumerable<Rule>>, JsonFileRuleProviderService>()
                 .AddSingleton<NodeProtectService>();
-            builder.AddNotificationHandler<ContentDeletingNotification, ContentDeletingHandler>();
+            builder.AddNotificationHandler<ContentMovingToRecycleBinNotification, ContentMovingToRecycleBinHandler>();
 
         }
     }
