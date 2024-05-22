@@ -38,14 +38,12 @@
         public Rule(
             string docTypeAlias,
             string documentGuids,
-            bool fromProperty = false,
             bool ignoreForAdmins = false,
             string customMessage = "",
             string customMessageCategory = "")
         {
             DocTypeAlias = docTypeAlias;
             DocumentGuids = documentGuids;
-            FromProperty = fromProperty;
             IgnoreForAdmins = ignoreForAdmins;
             CustomMessage = customMessage;
             CustomMessageCategory = customMessageCategory;
