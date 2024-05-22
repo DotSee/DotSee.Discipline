@@ -1,7 +1,7 @@
 ﻿namespace DotSee.Discipline.NodeProtect
 {
     /// <summary>
-    /// Holds rules for restricting node publishing.
+    /// Holds rules for protecting nodes from deletion
     /// </summary>
     public class Rule
     {
@@ -14,31 +14,33 @@
         /// </summary>
         public string DocumentGuids { get; set; }
         /// <summary>
-        /// If true, a warning message will be displayed when a node is published and a rule is in effect, if the limit has not been reached
+        /// A custom "node protected" message. This overrides the standard message.
         /// </summary>
         public string CustomMessage { get; set; }
         /// <summary>
-        /// A custom "limit reached" message. This overrides the standard message.
+        /// A custom message category for the "node protected" message.
         /// </summary>
         public string CustomMessageCategory { get; set; }
         /// <summary>
         /// Set this to true to make the rule be ignored if the user performing the action is an admin
         /// </summary>
-        public bool IgnoreForAdmins { get; set; }
+        public bool? IgnoreForAdmins { get; set; } = false;
+
+        public Rule()
+        { }
 
         /// <summary>
         /// Holds the data for a node restriction rule.
         /// </summary>
         /// <param name="docTypeAlias">Doctype alias that will not be allowed to be deleted</param>
         /// <param name="documentGuids">Document GUIDs that will not be allowed to be deleted</param>
-        /// <param name="fromProperty">Indicates whether the rule has been created on the fly based on the document's special property (true) or is a rule that comes from the config file (false)</param>
         /// <param name="ignoreForAdmins">Set this to true to make the rule be ignored if the user performing the action is an admin</param>
-        /// <param name="customMessage">A custom "limit reached" message. This overrides the standard message.</param>
-        /// <param name="customMessageCategory">Custom category for the "limit reached" message. This overrides the standard category literal.</param>
+        /// <param name="customMessage">A custom "node protected" message. This overrides the standard message.</param>
+        /// <param name="customMessageCategory">A custom message category for the "node protected" message.</param>
         public Rule(
             string docTypeAlias,
             string documentGuids,
-            bool ignoreForAdmins = false,
+            bool? ignoreForAdmins = false,
             string customMessage = "",
             string customMessageCategory = "")
         {

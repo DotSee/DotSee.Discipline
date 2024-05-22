@@ -1,5 +1,4 @@
-﻿using DotSee.Discipline.AutoNode;
-using DotSee.Discipline.Interfaces;
+﻿using DotSee.Discipline.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Serilog;
 

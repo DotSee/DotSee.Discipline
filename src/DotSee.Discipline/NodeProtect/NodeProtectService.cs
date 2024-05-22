@@ -53,10 +53,9 @@ namespace DotSee.Discipline.NodeProtect
         /// Applies all rules on publishing a node. 
         /// </summary>
         /// <param name="node">The newly created node we need to apply rules for</param>
-        public bool Run(IContent node)
+        public Result Run(IContent node)
         {
-
-            bool preventDeletion = false;
+            Result result = null;
 
             //Check if the document has the (optional) "special" property that defines 
             //whether it should be allowed to be deleted.
@@ -70,7 +69,10 @@ namespace DotSee.Discipline.NodeProtect
                     && node.GetValue<int>(PropertyAlias) > 0
                     )
                 {
-                    return true;
+                    //Create a rule on the fly and apply it for all children of the parent node.
+                    Rule customRule = new Rule("", node.Key.ToString());
+                    return CheckRule(customRule, node);
+
                 }
             }
             catch { }
@@ -80,13 +82,13 @@ namespace DotSee.Discipline.NodeProtect
             foreach (Rule rule in _rules)
             {
                 //Check if rule applies
-                preventDeletion = CheckRule(rule, node);
+                result = CheckRule(rule, node);
 
                 //Stop at the first rule that applies. 
-                if (preventDeletion) { break; }
+                if (result != null) { break; }
             }
-
-            return (preventDeletion);
+            //No rules applied, result will be null
+            return (result);
         }
 
         #endregion
@@ -99,13 +101,13 @@ namespace DotSee.Discipline.NodeProtect
         /// <param name="rule">The rule</param>
         /// <param name="node">The node to check against the rule</param>
         /// <returns>True if a rule that prevents deletion has been found to match.</returns>
-        private bool CheckRule(Rule rule, IContent node)
+        private Result CheckRule(Rule rule, IContent node)
         {
             bool guidsDefined = !string.IsNullOrEmpty(rule.DocumentGuids);
             bool doctypesDefined = !string.IsNullOrEmpty(rule.DocTypeAlias);
 
             //If nothing has been defined, rule will not apply
-            if (!guidsDefined && !doctypesDefined) { return false; }
+            if (!guidsDefined && !doctypesDefined) { return null; }
 
             var doctypes = rule.DocTypeAlias?.Split(',');
             var guids = rule.DocumentGuids?.Split(",");
@@ -117,7 +119,7 @@ namespace DotSee.Discipline.NodeProtect
                 {
                     if (item.ToLowerInvariant().Equals(currContentType))
                     {
-                        return true;
+                        return Result.GetResult(rule);
                     }
                 }
             }
@@ -129,13 +131,13 @@ namespace DotSee.Discipline.NodeProtect
                 {
                     if (item.ToLower().Equals(currGuid))
                     {
-                        return true;
+                        return Result.GetResult(rule);
                     }
                 }
             }
 
             //No rules have been found to match, so node can be deleted
-            return false;
+            return null;
         }
         #endregion
     }

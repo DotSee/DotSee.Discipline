@@ -17,7 +17,17 @@ namespace DotSee.Discipline.NodeProtect
         {
             foreach (MoveEventInfo<IContent> item in notification.MoveInfoCollection)
             {
-                _nodeProtectService.Run(item.Entity);
+                Result result = _nodeProtectService.Run(item.Entity);
+
+                //No rule applied, as you were.
+                if (result == null) { return; }
+
+                //If a result has come back, see if limit has been reached or not.
+
+                var rmm = new RuleMessageManager(result.Rule);
+                //Show message to warn user that he/she has no hope of ever deleting that node.
+                notification.CancelOperation(new EventMessage(rmm.GetMessageCategory(), rmm.GetMessage(), EventMessageType.Error));
+
             }
         }
     }
