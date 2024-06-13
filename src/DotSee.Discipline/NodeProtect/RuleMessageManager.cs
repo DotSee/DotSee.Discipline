@@ -1,4 +1,6 @@
-﻿namespace DotSee.Discipline.NodeProtect
+﻿using Umbraco.Cms.Core.Models;
+
+namespace DotSee.Discipline.NodeProtect
 {
     /// <summary>
     /// Holds messages related to node deletion prevention
@@ -15,13 +17,13 @@
         /// Returns the message to be displayed when a node is protected from deletion
         /// </summary>
         /// <returns></returns>
-        public string GetMessage()
+        public string GetMessage(IContent node)
         {
             //Custom message overrides everything
             if (!string.IsNullOrEmpty(_rule.CustomMessage)) { return (_rule.CustomMessage); }
 
             //This is the message that is returned when a rule is in the config file, and no custom message has been defined.
-            return "Node is protected and cannot be deleted.";
+            return $"Node '{node.Name}' (id: {node.Id}) is protected and cannot be deleted.";
         }
 
         /// <summary>

@@ -2,6 +2,7 @@
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
 
+
 namespace DotSee.Discipline.NodeProtect
 {
     /// <summary>
@@ -19,11 +20,13 @@ namespace DotSee.Discipline.NodeProtect
 
         #region Constructors
 
-        public NodeProtectService(IContentService contentService, IRuleProviderService<IEnumerable<Rule>> ruleProviderService)
+        public NodeProtectService(
+            IContentService contentService
+            , IRuleProviderService<IEnumerable<Rule>> ruleProviderService
+            )
         {
             _cs = contentService;
             _ruleProviderService = ruleProviderService;
-
             _rules = _ruleProviderService.Rules.ToList();
         }
 
@@ -72,7 +75,6 @@ namespace DotSee.Discipline.NodeProtect
                     //Create a rule on the fly and apply it for all children of the parent node.
                     Rule customRule = new Rule("", node.Key.ToString());
                     return CheckRule(customRule, node);
-
                 }
             }
             catch { }
@@ -85,7 +87,25 @@ namespace DotSee.Discipline.NodeProtect
                 result = CheckRule(rule, node);
 
                 //Stop at the first rule that applies. 
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+
+            //Checks for current node not successfull, check all children.
+            foreach (var subnode in _cs.GetPagedDescendants(node.Id, 0, int.MaxValue, out long total))
+            {
                 if (result != null) { break; }
+
+                foreach (Rule rule in _rules)
+                {
+                    //Check if rule applies
+                    result = CheckRule(rule, subnode);
+
+                    //Stop at the first rule that applies. 
+                    if (result != null) { break; }
+                }
             }
             //No rules applied, result will be null
             return (result);
