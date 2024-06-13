@@ -27,7 +27,7 @@ namespace DotSee.Discipline.NodeProtect
                 var rmm = new RuleMessageManager(result.Rule);
                 //Show message to warn user that he/she has no hope of ever deleting that node.
 
-                notification.CancelOperation(new EventMessage(rmm.GetMessageCategory(), rmm.GetMessage(item.Entity), EventMessageType.Error));
+                notification.CancelOperation(new EventMessage(rmm.GetMessageCategory(), rmm.GetMessage(result), EventMessageType.Error));
 
             }
         }

@@ -139,7 +139,7 @@ namespace DotSee.Discipline.NodeProtect
                 {
                     if (item.ToLowerInvariant().Equals(currContentType))
                     {
-                        return Result.GetResult(rule);
+                        return Result.GetResult(rule, node);
                     }
                 }
             }
@@ -151,7 +151,7 @@ namespace DotSee.Discipline.NodeProtect
                 {
                     if (item.ToLower().Equals(currGuid))
                     {
-                        return Result.GetResult(rule);
+                        return Result.GetResult(rule, node);
                     }
                 }
             }
