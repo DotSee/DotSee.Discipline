@@ -21,10 +21,6 @@
         /// A custom message category for the "node protected" message.
         /// </summary>
         public string CustomMessageCategory { get; set; }
-        /// <summary>
-        /// Set this to true to make the rule be ignored if the user performing the action is an admin
-        /// </summary>
-        public bool? IgnoreForAdmins { get; set; } = false;
 
         public Rule()
         { }
@@ -40,13 +36,11 @@
         public Rule(
             string docTypeAlias,
             string documentGuids,
-            bool? ignoreForAdmins = false,
             string customMessage = "",
             string customMessageCategory = "")
         {
             DocTypeAlias = docTypeAlias;
             DocumentGuids = documentGuids;
-            IgnoreForAdmins = ignoreForAdmins;
             CustomMessage = customMessage;
             CustomMessageCategory = customMessageCategory;
         }

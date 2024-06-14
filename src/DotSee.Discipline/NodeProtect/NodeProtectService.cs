@@ -58,6 +58,7 @@ namespace DotSee.Discipline.NodeProtect
         /// <param name="node">The newly created node we need to apply rules for</param>
         public Result Run(IContent node)
         {
+
             Result result = null;
 
             //Check if the document has the (optional) "special" property that defines 
