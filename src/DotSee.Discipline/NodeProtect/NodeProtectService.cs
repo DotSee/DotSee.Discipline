@@ -16,6 +16,8 @@ namespace DotSee.Discipline.NodeProtect
         private readonly IRuleProviderService<IEnumerable<Rule>> _ruleProviderService;
         private List<Rule> _rules;
 
+        private NodeProtectSettings _settings;
+
         #endregion
 
         #region Constructors
@@ -28,16 +30,8 @@ namespace DotSee.Discipline.NodeProtect
             _cs = contentService;
             _ruleProviderService = ruleProviderService;
             _rules = _ruleProviderService.Rules.ToList();
+            _settings = ((ISettings<NodeProtectSettings>)_ruleProviderService).Settings;
         }
-
-        #endregion
-
-        #region Public Properties
-
-        /// <summary>
-        /// Holds the property alias for the "special" property that can be added to nodes to indicate max number of children
-        /// </summary>
-        public string PropertyAlias { get; private set; }
 
         #endregion
 
@@ -61,27 +55,6 @@ namespace DotSee.Discipline.NodeProtect
 
             Result result = null;
 
-            //Check if the document has the (optional) "special" property that defines 
-            //whether it should be allowed to be deleted.
-            //Swallow any exceptions here. If it's there, it's there. If it's not, don't bother.
-            try
-            {
-                if (
-                    PropertyAlias != null
-                    && node.HasProperty(PropertyAlias)
-                    && node.Properties[PropertyAlias] != null
-                    && node.GetValue<int>(PropertyAlias) > 0
-                    )
-                {
-                    //Create a rule on the fly and apply it for all children of the parent node.
-                    Rule customRule = new Rule("", node.Key.ToString());
-                    return CheckRule(customRule, node);
-                }
-            }
-            catch { }
-
-            //If this part is reached, then we haven't found a "special" property at the parent node
-            //and we are going to check the rules loaded from the config file.
             foreach (Rule rule in _rules)
             {
                 //Check if rule applies
@@ -108,7 +81,7 @@ namespace DotSee.Discipline.NodeProtect
                     if (result != null) { break; }
                 }
             }
-            //No rules applied, result will be null
+            //Return the result or null if no result has been found
             return (result);
         }
 
@@ -124,6 +97,26 @@ namespace DotSee.Discipline.NodeProtect
         /// <returns>True if a rule that prevents deletion has been found to match.</returns>
         private Result CheckRule(Rule rule, IContent node)
         {
+            var propertyAlias = _settings.PropertyAlias;
+
+            //Check if the document has the (optional) "special" property that defines 
+            //whether it should be allowed to be deleted.
+            //Swallow any exceptions here. If it's there, it's there. If it's not, don't bother.
+            try
+            {
+                if (
+                    propertyAlias != null
+                    && node.HasProperty(propertyAlias)
+                    && node.Properties[propertyAlias] != null
+                    && node.GetValue<bool>(propertyAlias)
+                    )
+                {
+                    Rule customRule = new Rule("", node.Key.ToString());
+                    return Result.GetResult(customRule, node);
+                }
+            }
+            catch { }
+
             bool guidsDefined = !string.IsNullOrEmpty(rule.DocumentGuids);
             bool doctypesDefined = !string.IsNullOrEmpty(rule.DocTypeAlias);
 

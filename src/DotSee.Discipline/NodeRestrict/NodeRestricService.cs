@@ -1,7 +1,4 @@
-﻿
-
-
-using DotSee.Discipline.Interfaces;
+﻿using DotSee.Discipline.Interfaces;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Persistence.Querying;
 using Umbraco.Cms.Core.Services;
