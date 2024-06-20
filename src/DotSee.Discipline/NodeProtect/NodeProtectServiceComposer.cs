@@ -4,17 +4,17 @@ using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.DependencyInjection;
 using Umbraco.Cms.Core.Notifications;
 
-namespace DotSee.Discipline.NodeRestrict
+namespace DotSee.Discipline.NodeProtect
 {
-    public class NodeRestrictServiceComposer : IComposer
+    public class NodeProtectServiceComposer : IComposer
     {
 
         public void Compose(IUmbracoBuilder builder)
         {
             builder.Services
                 .AddSingleton<IRuleProviderService<IEnumerable<Rule>>, JsonFileRuleProviderService>()
-                .AddSingleton<NodeRestrictService>();
-            builder.AddNotificationHandler<ContentPublishingNotification, ContentPublishingHandler>();
+                .AddSingleton<NodeProtectService>();
+            builder.AddNotificationHandler<ContentMovingToRecycleBinNotification, ContentMovingToRecycleBinHandler>();
 
         }
     }
