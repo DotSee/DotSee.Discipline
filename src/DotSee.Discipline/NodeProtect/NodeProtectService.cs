@@ -15,7 +15,6 @@ namespace DotSee.Discipline.NodeProtect
         private IContentService _cs;
         private readonly IRuleProviderService<IEnumerable<Rule>> _ruleProviderService;
         private List<Rule> _rules;
-
         private NodeProtectSettings _settings;
 
         #endregion

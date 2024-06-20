@@ -19,6 +19,7 @@ namespace DotSee.Discipline.NodeRestrict
         private readonly IRuleProviderService<IEnumerable<Rule>> _ruleProviderService;
         private readonly IContentTypeService _contentTypeService;
         private List<Rule> _rules;
+        private NodeRestrictSettings _settings;
 
         #endregion
 
@@ -30,24 +31,11 @@ namespace DotSee.Discipline.NodeRestrict
             _sql = sqlContext;
             _ruleProviderService = ruleProviderService;
             _contentTypeService = contentTypeService;
-            ///Get rules from the config file. Any rules programmatically declared later on will be added too.
+            _settings = ((ISettings<NodeRestrictSettings>)_ruleProviderService).Settings;
 
+            ///Get rules from the config file. Any rules programmatically declared later on will be added too.
             _rules = _ruleProviderService.Rules.ToList();
         }
-
-        #endregion
-
-        #region Public Properties
-
-        /// <summary>
-        /// Holds the property alias for the "special" property that can be added to nodes to indicate max number of children
-        /// </summary>
-        public string PropertyAlias { get; private set; }
-
-        /// <summary>
-        /// True if showWarnings attribute is true in config file for warnings when applying limits based on a document property
-        /// </summary>
-        public bool ShowWarningsForProperty { get; private set; }
 
         #endregion
 
@@ -70,6 +58,7 @@ namespace DotSee.Discipline.NodeRestrict
         {
             //Get the parent node.
             var parent = _cs.GetById(node.ParentId);
+            string culture = null;
 
             //If we are publishing a top-level node, skip the whole process.
             if (parent == null) { return null; }
@@ -79,20 +68,26 @@ namespace DotSee.Discipline.NodeRestrict
 
             Result result = null;
 
+            if (node.AvailableCultures.Any())
+            {
+                culture = node.EditedCultures.First().ToString();
+            }
+
             //Check if the document's parent has the (optional) "special" property that defines the 
             //maximum number of children. If it does, then this overrides any other rules in effect.
             //Swallow any exceptions here. If it's there, it's there. If it's not, don't bother.
+            var propertyAlias = _settings.PropertyAlias;
             try
             {
                 if (
-                    parent.HasProperty(PropertyAlias)
-                    && parent.Properties[PropertyAlias] != null
-                    && parent.GetValue<int>(PropertyAlias) > 0
+                    parent.HasProperty(propertyAlias)
+                    && parent.Properties[propertyAlias] != null
+                    && parent.GetValue<int>(propertyAlias, culture) > 0
                     )
                 {
                     //Create a rule on the fly and apply it for all children of the parent node.
-                    Rule customRule = new Rule(parent.ContentType.Alias, "*", parent.GetValue<int>(PropertyAlias), true, ShowWarningsForProperty);
-                    return CheckRule(customRule, node);
+                    Rule customRule = new Rule(parent.ContentType.Alias, "*", parent.GetValue<int>(propertyAlias, culture), true, _settings.ShowWarnings);
+                    return CheckRule(customRule, node, culture);
                 }
             }
             catch { }
@@ -102,7 +97,7 @@ namespace DotSee.Discipline.NodeRestrict
             foreach (Rule rule in _rules)
             {
                 //Check if rule applies
-                result = CheckRule(rule, node);
+                result = CheckRule(rule, node, culture);
 
                 //Stop at the first rule that applies. 
                 if (result != null) { break; }
@@ -141,7 +136,9 @@ namespace DotSee.Discipline.NodeRestrict
 
             IEnumerable<IContent> children = new List<IContent>();
             var filter = GetFilter(rule, culture);
-            children = _cs.GetPagedChildren(node.ParentId, 0, maxNodes, out totalChildren, filter);
+            children = _cs.GetPagedChildren(node.ParentId, 0, maxNodes, out totalChildren, filter)
+                .Where(x => culture == null ? x.Published : x.Published && x.AvailableCultures.Contains(culture));
+
             if (rule.ParentDocType != "*")
             {
                 var _parentTypeToSearch = _contentTypeService.Get(rule.ParentDocType);
@@ -155,23 +152,16 @@ namespace DotSee.Discipline.NodeRestrict
             switch (rule.ChildDocType)
             {
                 case "*":
-                    return culture == null
-               ? _sql.Query<IContent>()
-                   .Where(x => x.Published)
-               : _sql.Query<IContent>().Where(x =>
-                           x.IsCulturePublished(culture));
 
+                    return _sql.Query<IContent>()
+                        .Where(x => x.Published);
                 default:
                     var _contentTypeToSearch = _contentTypeService.Get(rule.ChildDocType);
-                    return culture == null
-               ? _sql.Query<IContent>()
-                   .Where(x =>
-                           x.Published
-                           && (x.ContentTypeId == _contentTypeToSearch.Id))
-               : _sql.Query<IContent>().Where(x =>
-                           x.IsCulturePublished(culture)
-                           && x.ContentTypeId == _contentTypeToSearch.Id);
 
+                    return _sql.Query<IContent>()
+                        .Where(x =>
+                                x.Published
+                                && (x.ContentTypeId == _contentTypeToSearch.Id));
             }
         }
         #endregion
