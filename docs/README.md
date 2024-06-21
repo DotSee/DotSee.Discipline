@@ -243,10 +243,10 @@ You can add as many rules as necessary.
       },
       "Rules": [
         {
-          "DocTypeAlias": "",
+          "DocTypeAlias": "mydoctypealias,anotherdoctypealias",
           "DocumentGuids": "1d1529e8-3199-403f-bf3e-965bbb945d07",
-          "CustomMessage": "fsfdsa",
-          "CustomMessageCategory": "sdfsadfsa"
+          "CustomMessage": "A custom message",
+          "CustomMessageCategory": "Custom category"
         }
       ]
     }
@@ -264,6 +264,7 @@ There is also one more global attribute on "Settings":
 
 **propertyAlias**: The alias of the property (a true/false datatype) expected to be found in a document that will protect it if it's checked. This is checked along with any rules. Although it's easy for someone to set it to false, it can prevent accidental deletions on important nodes.
 
+If a user attempts to delete a node that contains a protected node as a descendant, then deletion will also be aborted.
 
 # Hiding not created nodes in the back office 
 
