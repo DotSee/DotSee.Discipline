@@ -7,13 +7,13 @@ namespace DotSee.Discipline.NodeRestrict
 {
     public class ContentPublishingHandler : INotificationHandler<ContentPublishingNotification>
     {
-        private readonly NodeRestricService _restrictor;
+        private readonly NodeRestrictService _restrictor;
         private readonly IContentTypeService _contentTypeService;
 
-        public ContentPublishingHandler(NodeRestricService restrictor,IContentTypeService contentTypeService)
+        public ContentPublishingHandler(NodeRestrictService restrictor, IContentTypeService contentTypeService)
         {
             _restrictor = restrictor;
-           _contentTypeService = contentTypeService;
+            _contentTypeService = contentTypeService;
         }
         public void Handle(ContentPublishingNotification notification)
         {

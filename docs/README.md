@@ -230,6 +230,42 @@ resulting in a 404 when trying to access /aaa/ccc (the old url with the hidden s
 
 This only affects automatic 301 redirects, but otherwise the package is going to function correctly.
 
+# Protecting nodes from deletion
+
+This lets you specify nodes that will be protected when back office users attempt to delete them (e.g. a "settings" node that the website cannot function without).
+If you are trying to delete a subtree of nodes, the whole tree will be checked recursively and deletion will be prevented if any node within the tree is protected.
+You can add as many rules as necessary.
+
+```
+  "NodeProtect": {
+      "Settings": {
+        "PropertyAlias": "donotdelete"
+      },
+      "Rules": [
+        {
+          "DocTypeAlias": "mydoctypealias,anotherdoctypealias",
+          "DocumentGuids": "1d1529e8-3199-403f-bf3e-965bbb945d07",
+          "CustomMessage": "A custom message",
+          "CustomMessageCategory": "Custom category"
+        }
+      ]
+    }
+  }
+```
+
+A rule has the following attributes:
+
+- **DocTypeAlias**: The document type alias that you want to protect. You can enter one or more (comma separated) aliases.
+- **DocumentGuids**: The GUID of a specific document you want to protect. You can enter one or more (comma separated) guids.
+- **customMessage**: Overrides the standard message.
+- **customMessageCategory** Overrides the standard category literal.
+
+There is also one more global attribute on "Settings":
+
+**propertyAlias**: The alias of the property (a true/false datatype) expected to be found in a document that will protect it if it's checked. This is checked along with any rules. Although it's easy for someone to set it to false, it can prevent accidental deletions on important nodes.
+
+If a user attempts to delete a node that contains a protected node as a descendant, then deletion will also be aborted.
+
 # Hiding not created nodes in the back office 
 
 This one was originally published as a Gist and explained here: https://www.dot-see.com/blog/hiding-unpublished-variants-from-the-content-tree/
