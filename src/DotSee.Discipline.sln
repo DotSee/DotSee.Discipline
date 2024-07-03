@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotSee.Discipline", "DotSee
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UmbracoV10", "UmbracoV10\UmbracoV10.csproj", "{E137483B-33E9-4799-93C3-78BB1CDA9BD3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotSee.Discipline.Tests", "DotSee.Discipline.Tests\DotSee.Discipline.Tests.csproj", "{243ABA91-4E4B-4BC4-BDEB-AD022214C02E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{E137483B-33E9-4799-93C3-78BB1CDA9BD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E137483B-33E9-4799-93C3-78BB1CDA9BD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E137483B-33E9-4799-93C3-78BB1CDA9BD3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{243ABA91-4E4B-4BC4-BDEB-AD022214C02E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{243ABA91-4E4B-4BC4-BDEB-AD022214C02E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{243ABA91-4E4B-4BC4-BDEB-AD022214C02E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{243ABA91-4E4B-4BC4-BDEB-AD022214C02E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

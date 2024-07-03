@@ -129,7 +129,6 @@ namespace DotSee.Discipline.NodeRestrict
             ////If rule doctypes do not match, skip this rule
             if (!isMatchChild || !isMatchParent) { return null; }
 
-
             //If we're checking for children regardless of doctype, then getting a page size equal to 
             //the max nodes limit is enough to check. Otherwise, get everything so we can filter
             var maxNodes = rule.ChildDocType.Equals("*") ? int.MaxValue : rule.MaxNodes;
@@ -152,7 +151,6 @@ namespace DotSee.Discipline.NodeRestrict
             switch (rule.ChildDocType)
             {
                 case "*":
-
                     return _sql.Query<IContent>()
                         .Where(x => x.Published);
                 default:
