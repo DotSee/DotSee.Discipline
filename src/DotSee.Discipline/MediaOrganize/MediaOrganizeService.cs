@@ -105,20 +105,23 @@ namespace DotSee.Discipline.MediaOrganize
         /// <returns>Null if the rule does not apply to the node, or a Result object if it does.</returns>
         private Result CheckRule(Rule rule, IContent node, string culture = null)
         {
+            if (!IsInPath(node, rule))
+            {
+                return null;
+            }
+
             List<IMedia> media = new List<IMedia>();
 
-            if (node.Key.ToString().Equals(rule.DocumentGuid, comparisonType: StringComparison.OrdinalIgnoreCase))
+            //foreach (var child in _cs.GetPagedDescendants(node.Id, 0, int.MaxValue, out long totalRecords))
+            //{
+            foreach (var img in GetImagesFromSerializedNode(node))
             {
-                foreach (var child in _cs.GetPagedDescendants(node.Id, 0, int.MaxValue, out long totalRecords))
-                {
-                    foreach (var img in GetImagesFromSerializedNode(child))
-                    {
-                        if (img == string.Empty) { continue; }
-                        var g = new Guid(img);
-                        media.Add(_mediaService.GetById(g));
-                    } //var images = GetImagesFromSerializedNode(child);
-                }
-            }
+                if (img == string.Empty) { continue; }
+                var g = new Guid(img);
+                media.Add(_mediaService.GetById(g));
+            } //var images = GetImagesFromSerializedNode(child);
+              //}
+
             return Result.GetResult(1, rule);
         }
 
@@ -138,6 +141,23 @@ namespace DotSee.Discipline.MediaOrganize
                 yield return img;
             }
         }
+
+        private bool IsInPath(IContent node, Rule rule)
+        {
+            if (node.Key.ToString().Equals(rule.DocumentGuid, comparisonType: StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+            foreach (var parent in _cs.GetAncestors(node.Id))
+            {
+                if (parent.Key.ToString().Equals(rule.DocumentGuid, comparisonType: StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         //public void ClearRules()
         //{
         //    _rules.RemoveAll<Rule>(x => true);
