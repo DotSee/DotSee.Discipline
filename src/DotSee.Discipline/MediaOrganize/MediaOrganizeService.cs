@@ -1,9 +1,14 @@
 ﻿using DotSee.Discipline.Interfaces;
+using Newtonsoft.Json;
+using Serilog;
+using System.Text.RegularExpressions;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
 
 namespace DotSee.Discipline.MediaOrganize
 {
+
+
     /// <summary>
     /// Creates new nodes under a newly created node, according to a set of rules
     /// </summary>
@@ -14,7 +19,10 @@ namespace DotSee.Discipline.MediaOrganize
 
         private readonly IContentService _cs;
         private readonly IRuleProviderService<IEnumerable<Rule>> _ruleProviderService;
+        private readonly IContentTypeService _contentTypeService;
+        private readonly IMediaService _mediaService;
         private List<Rule> _rules;
+        private readonly ILogger _logger;
 
         #endregion
 
@@ -22,11 +30,17 @@ namespace DotSee.Discipline.MediaOrganize
 
         public MediaOrganizeService(
             IContentService contentService
+            , IContentTypeService contentTypeService
+            , IMediaService mediaService
+            , ILogger logger
             , IRuleProviderService<IEnumerable<Rule>> ruleProviderService
             )
         {
             _cs = contentService;
+            _logger = logger;
             _ruleProviderService = ruleProviderService;
+            _contentTypeService = contentTypeService;
+            _mediaService = mediaService;
             ///Get rules from the config file. Any rules programmatically declared later on will be added too.
 
             _rules = _ruleProviderService.Rules.ToList();
@@ -91,10 +105,44 @@ namespace DotSee.Discipline.MediaOrganize
         /// <returns>Null if the rule does not apply to the node, or a Result object if it does.</returns>
         private Result CheckRule(Rule rule, IContent node, string culture = null)
         {
+            List<IMedia> media = new List<IMedia>();
 
+            if (node.Key.ToString().Equals(rule.DocumentGuid, comparisonType: StringComparison.OrdinalIgnoreCase))
+            {
+                foreach (var child in _cs.GetPagedDescendants(node.Id, 0, int.MaxValue, out long totalRecords))
+                {
+                    foreach (var img in GetImagesFromSerializedNode(child))
+                    {
+                        if (img == string.Empty) { continue; }
+                        var g = new Guid(img);
+                        media.Add(_mediaService.GetById(g));
+                    } //var images = GetImagesFromSerializedNode(child);
+                }
+            }
             return Result.GetResult(1, rule);
         }
 
+        private IEnumerable<string> GetImagesFromSerializedNode(IContent node)
+        {
+
+            var s = JsonConvert.SerializeObject(node);
+            Regex r = new Regex("\\\\\"mediaKey\\\\\":\\\\\"(.*?)\\\\\"");
+
+            var matches = r.Matches(s);
+
+            if (matches.Count == 0) { yield return string.Empty; }
+
+            foreach (Match m in r.Matches(s))
+            {
+                var img = m.Groups[1].Value;
+                yield return img;
+            }
+        }
+        //public void ClearRules()
+        //{
+        //    _rules.RemoveAll<Rule>(x => true);
+        //    _rulesLoaded = false;
+        //}
         #endregion
     }
 }
