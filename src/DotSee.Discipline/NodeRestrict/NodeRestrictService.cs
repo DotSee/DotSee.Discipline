@@ -68,7 +68,7 @@ namespace DotSee.Discipline.NodeRestrict
 
             Result result = null;
 
-            if (node.AvailableCultures.Any())
+            if (node.AvailableCultures.Any() && node.EditedCultures.Any())
             {
                 culture = node.EditedCultures.First().ToString();
             }

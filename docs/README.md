@@ -212,7 +212,8 @@ You can also use wildcards at the start and/or the end of the document type alia
       "Rules": [ "dog*", "*cat", "*mouse* ]
 ```
 
-This means that all document type aliases ending with "dog", all document types starting with "cat" and all those containing "mouse" will have their URL segments hidden when Umbraco creates URLs for nodes that contain them in the path.
+This means that all document type aliases starting with "dog", all document types ending with "cat" and all those containing "mouse" will have their URL segments hidden when Umbraco creates URLs for nodes that contain them in the path.
+
 
 ## Other Notes
 
