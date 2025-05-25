@@ -1,8 +1,5 @@
 ﻿using DotSee.Discipline.Interfaces;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Infrastructure.Persistence;
@@ -111,7 +108,6 @@ namespace DotSee.Discipline.AutoNode
         /// <param name="node">The newly created node we need to apply rules for</param>
         public virtual bool Run(IContent node, string culture = "")
         {
-
             if (_rules != null && _rules.Count() > 0)
             {
                 _rulesLoaded = true;
@@ -225,10 +221,18 @@ namespace DotSee.Discipline.AutoNode
         /// <param name="culture">The culture name, or empty string for non-variants</param>
         private bool CreateNewNodeCultureAware(IContent node, Rule rule, string culture)
         {
+
+
+
             if (_contentTypeService.Get(rule.DocTypeAliasToCreate) == null)
             {
                 _logger.Error(string.Format(MessageConstants.ErrorNodeAliasNotFound, rule.DocTypeAliasToCreate));
                 return false;
+            }
+
+            if (!_contentTypeService.Get(rule.DocTypeAliasToCreate).VariesByCulture())
+            {
+                culture = "";
             }
 
             //Get the node name that is supposed to be given to the new node.

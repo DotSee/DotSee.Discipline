@@ -26,6 +26,9 @@ namespace DotSee.Discipline.AutoNode
                 {
                     foreach (var culture in node.PublishedCultures)
                     {
+                        //This is the PARENT node's culture, so we assume that generally the child node
+                        //will be a variant as well (which is not always the case). 
+                        //See the service for handling variant parents with invariant children.
                         _autoNodeService.Run(node, culture);
                     }
                 }
