@@ -3,6 +3,7 @@ using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Persistence.Querying;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Infrastructure.Persistence;
+using Umbraco.Extensions;
 
 namespace DotSee.Discipline.NodeRestrict
 {
@@ -144,7 +145,7 @@ namespace DotSee.Discipline.NodeRestrict
             IEnumerable<IContent> children = new List<IContent>();
             var filter = GetFilter(rule, culture);
             children = _cs.GetPagedChildren(node.ParentId, 0, maxNodes, out totalChildren, filter)
-                .Where(x => culture == null ? x.Published : x.Published && x.AvailableCultures.Contains(culture));
+                .Where(x => culture == null ? x.Published : x.Published && CheckPublishedAndCulture(x, culture));
 
             if (rule.ParentDocType != "*")
             {
@@ -154,6 +155,27 @@ namespace DotSee.Discipline.NodeRestrict
 
             return Result.GetResult(children.Count(), rule);
         }
+
+        private bool CheckPublishedAndCulture(IContent node, string culture)
+        {
+            //Only include published nodes.
+            if (!node.Published) { return false; }
+
+            //Check if node is variant or invariant. Invariant nodes should count anyway.
+            //Variant nodes only count if they're in the right culture.
+            if (
+                    _contentTypeService.Get(node.ContentTypeId).VariesByCulture()
+                    && node.AvailableCultures.Any()
+                    && node.EditedCultures.Any())
+            {
+                return node.AvailableCultures.Contains(culture);
+            }
+            else
+            {
+                return true;
+            }
+        }
+
         private IQuery<IContent> GetFilter(Rule rule, string culture)
         {
             switch (rule.ChildDocType)
