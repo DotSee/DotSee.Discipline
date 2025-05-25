@@ -70,7 +70,14 @@ namespace DotSee.Discipline.NodeRestrict
 
             if (node.AvailableCultures.Any() && node.EditedCultures.Any())
             {
-                culture = node.EditedCultures.First().ToString();
+                if (node.EditedCultures.Any())
+                {
+                    culture = node.EditedCultures.First().ToString();
+                }
+                else
+                {
+                    culture = node.AvailableCultures.First().ToString();
+                }
             }
 
             //Check if the document's parent has the (optional) "special" property that defines the 
