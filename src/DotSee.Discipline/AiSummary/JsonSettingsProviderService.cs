@@ -4,7 +4,7 @@ using Serilog;
 
 namespace DotSee.Discipline.AiSummary
 {
-    public class JsonSettingsProviderService : ISettings<AiSummarySettings>
+    public class JsonSettingsProviderService : ISettings<AiSummarySettings>, ISettingsProviderService
     {
 
         private AiSummarySettings _settings;

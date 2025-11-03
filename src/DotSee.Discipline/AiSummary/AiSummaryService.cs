@@ -1,4 +1,5 @@
 ﻿using DotSee.Discipline.Interfaces;
+using Serilog;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
 
@@ -13,6 +14,7 @@ namespace DotSee.Discipline.AiSummary
         private readonly IContentTypeService _contentTypeService;
         private AiSummarySettings _settings;
         private readonly JsonSettingsProviderService _settingsProviderService;
+        private ILogger _logger;
 
         #endregion
 
@@ -21,13 +23,14 @@ namespace DotSee.Discipline.AiSummary
         public AiSummaryService(
             IContentService contentService,
             IContentTypeService contentTypeService,
-            JsonSettingsProviderService settingsProviderService)
+            JsonSettingsProviderService settingsProviderService,
+            ILogger logger)
         {
             _cs = contentService;
             _contentTypeService = contentTypeService;
-            settingsProviderService = _settingsProviderService;
-            _settings = ((ISettings<AiSummarySettings>)settingsProviderService).Settings;
             _settingsProviderService = settingsProviderService;
+            _settings = ((ISettings<AiSummarySettings>)_settingsProviderService).Settings;
+            _logger = logger;
         }
 
         #endregion
@@ -39,7 +42,7 @@ namespace DotSee.Discipline.AiSummary
             string culture = null;
 
             bool result = false;
-
+            _logger.Information("AiSummaryService ran for ID {NodeId} with Name {NodeName}", node.Id, node.Name);
             return (result);
         }
 

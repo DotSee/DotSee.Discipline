@@ -10,6 +10,7 @@ namespace DotSee.Discipline.AiSummary
         public void Compose(IUmbracoBuilder builder)
         {
             builder.Services.AddSingleton<AiSummaryService>();
+            builder.Services.AddSingleton<JsonSettingsProviderService>();
             builder.AddNotificationHandler<ContentPublishingNotification, ContentPublishingHandler>();
         }
     }
