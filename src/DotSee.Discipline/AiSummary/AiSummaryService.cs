@@ -53,6 +53,11 @@ namespace DotSee.Discipline.AiSummary
             //}
 
             bool result = false;
+            if (node.HasProperty("aiSummary")) 
+            {  
+                node.SetValue("aiSummary", singleString.StripHtml(), culture); 
+            } 
+
             _logger.Information("AiSummaryService ran for ID {NodeId} with Name {NodeName}, value: {SingleString}", node.Id, node.Name, singleString.StripHtml());
             return (result);
         }
