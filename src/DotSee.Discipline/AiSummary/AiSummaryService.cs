@@ -1,5 +1,6 @@
 ﻿using DotSee.Discipline.Interfaces;
 using NUglify.JavaScript.Syntax;
+using OpenAI.Chat;
 using Serilog;
 using System.Text.Json;
 using Umbraco.Cms.Core.Models;
@@ -53,10 +54,19 @@ namespace DotSee.Discipline.AiSummary
             //    bool isprimitive = pinfo.PropertyType.IsPrimitive;
             //}
 
+            ChatClient client = new(model: "gpt-5-nano", apiKey: _settings.OpenAiKey);
+
+            var res = client.CompleteChatAsync (
+            "gpt-5-nano",
+            "Based on the following text, write a short SEO-optimized description suitable for Open Graph meta tags. Maximum 150 characters. Make it clear, engaging, and summarise the main value. Do not add anything that isn't in the text. Here is the text: " + singleString.StripHtml()
+             );
+
+            Console.WriteLine(res.Result);
+
             bool result = false;
             if (node.HasProperty(_settings.PropertyAlias)) 
             {  
-                node.SetValue(_settings.PropertyAlias, singleString.StripHtml(), culture); 
+                node.SetValue(_settings.PropertyAlias, res.Result.Value.Content[0].Text, culture); 
             } 
 
             _logger.Information("AiSummaryService ran for ID {NodeId} with Name {NodeName}, value: {SingleString}", node.Id, node.Name, singleString.StripHtml());
