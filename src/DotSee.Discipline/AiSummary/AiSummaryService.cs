@@ -1,4 +1,5 @@
 ﻿using DotSee.Discipline.Interfaces;
+using NUglify.JavaScript.Syntax;
 using Serilog;
 using System.Text.Json;
 using Umbraco.Cms.Core.Models;
@@ -53,9 +54,9 @@ namespace DotSee.Discipline.AiSummary
             //}
 
             bool result = false;
-            if (node.HasProperty("aiSummary")) 
+            if (node.HasProperty(_settings.PropertyAlias)) 
             {  
-                node.SetValue("aiSummary", singleString.StripHtml(), culture); 
+                node.SetValue(_settings.PropertyAlias, singleString.StripHtml(), culture); 
             } 
 
             _logger.Information("AiSummaryService ran for ID {NodeId} with Name {NodeName}, value: {SingleString}", node.Id, node.Name, singleString.StripHtml());
@@ -105,9 +106,12 @@ namespace DotSee.Discipline.AiSummary
         {
             var results = new List<string>();
 
-            foreach (var prop in content.Properties)
+            foreach (
+                    var prop in content.Properties
+                    .Where(x=>!x.Alias.Equals(_settings.PropertyAlias, StringComparison.InvariantCultureIgnoreCase))
+                    )
             {
-                if (!IsTextProperty(prop.PropertyType.PropertyEditorAlias))
+                if (!IsTextProperty(prop.PropertyType.PropertyEditorAlias) && !IsComplexProperty(prop.PropertyType.PropertyEditorAlias))
                 {
                     continue;
                 }
@@ -152,10 +156,21 @@ namespace DotSee.Discipline.AiSummary
         {
             var list = new List<string>();
 
+            //It may seem silly, but it'll block all umb:// links and also numeric values since they're of smaller lenghts. 
             switch (element.ValueKind)
             {
                 case JsonValueKind.String:
-                    list.Add(element.GetString());
+                    var s = element.GetString().Trim();
+                    
+                    if (s.IsNullOrWhiteSpace()) break;
+                    if (s.Length < 50) break;
+                    
+                    //Just to make sure no rogue links without other content get through
+                    if (s.StartsWith("http://", StringComparison.InvariantCultureIgnoreCase) && !s.Contains(" ")) break;
+                    if (s.StartsWith("https://", StringComparison.InvariantCultureIgnoreCase) && !s.Contains(" ")) break;
+                    if (s.StartsWith("mailto://", StringComparison.InvariantCultureIgnoreCase) && !s.Contains(" ")) break;
+                    
+                    list.Add(s);
                     break;
 
                 case JsonValueKind.Object:

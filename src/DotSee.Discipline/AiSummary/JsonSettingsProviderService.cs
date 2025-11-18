@@ -36,7 +36,7 @@ namespace DotSee.Discipline.AiSummary
 
             try
             {
-                _configuration.GetSection("DotSee.Discipline:AiSummary:Settings").Bind(r);
+                _configuration.GetSection("DotSee.Discipline:AiSummary").Bind(r);
             }
             catch (Exception ex)
             {
