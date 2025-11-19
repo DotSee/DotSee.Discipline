@@ -44,18 +44,36 @@ namespace DotSee.Discipline.AiSummary
 
         public bool Run(IContent node)
         {
+            bool result = false;
+
             //Check if node type is allowed. If no doctypes have been specified, allow all.
-            if (_settings.DocTypesList!= null && _settings.DocTypesList.Any() && !_settings.DocTypesList.Contains(node.ContentType.Alias))
+            if (
+                _settings.DocTypesList!= null 
+                && _settings.DocTypesList.Any() 
+                && !_settings.DocTypesList.Contains(node.ContentType.Alias))
+            {
+                return false;
+            }
+
+            //Check if property to update exists in current node.
+            if (node.HasProperty(_settings.PropertyAlias))
             {
                 return false;
             }
 
             string culture = node.EditedCultures.First();
-
+            
             //Get all candidate string values from the document.
             var allStrings = GetAllStringValues(node, culture);
+
+            if (allStrings==null || !allStrings.Any()) 
+            {
+                return false;
+            }       
+
             var singleString = string.Join("", allStrings);
 
+            //Magic.
             ChatClient client = new(model: _settings.Model, apiKey: _settings.OpenAiKey);
 
             var res = client.CompleteChatAsync (
@@ -63,12 +81,8 @@ namespace DotSee.Discipline.AiSummary
             $"{_settings.Tone} Based on the following text, write a short SEO-optimized description suitable for Open Graph meta tags. Maximum {_settings.MaxChars.ToString()} characters. Make it clear, engaging, and summarise the main value. Do not add anything that isn't in the text. Here is the text: " + singleString.StripHtml()
              );
 
-            bool result = false;
-            if (node.HasProperty(_settings.PropertyAlias)) 
-            {  
-                node.SetValue(_settings.PropertyAlias, res.Result.Value.Content[0].Text, culture); 
-            } 
-
+            node.SetValue(_settings.PropertyAlias, res.Result.Value.Content[0].Text, culture); 
+             
             _logger.Information("AiSummaryService ran for ID {NodeId} with Name {NodeName}, value: {SingleString}", node.Id, node.Name, singleString.StripHtml());
             return (result);
         }
@@ -79,12 +93,13 @@ namespace DotSee.Discipline.AiSummary
 
         private static bool IsAllowedPropertyType(string propertyEditorAlias)
         {
-            if (propertyEditorAlias.Contains("TinyMCE", StringComparison.InvariantCultureIgnoreCase) ||
-                propertyEditorAlias.Contains("TextBox", StringComparison.InvariantCultureIgnoreCase) ||
-                propertyEditorAlias.Contains("TextArea", StringComparison.InvariantCultureIgnoreCase) ||
-                propertyEditorAlias.Contains("TextString", StringComparison.InvariantCultureIgnoreCase) ||
-                propertyEditorAlias.Contains("BlockList", StringComparison.InvariantCultureIgnoreCase) ||
-                propertyEditorAlias.Contains("BlockGrid", StringComparison.InvariantCultureIgnoreCase))
+            if (
+                propertyEditorAlias.Contains("TinyMCE", StringComparison.InvariantCultureIgnoreCase) 
+                || propertyEditorAlias.Contains("TextBox", StringComparison.InvariantCultureIgnoreCase)
+                || propertyEditorAlias.Contains("TextArea", StringComparison.InvariantCultureIgnoreCase)
+                || propertyEditorAlias.Contains("TextString", StringComparison.InvariantCultureIgnoreCase)
+                || propertyEditorAlias.Contains("BlockList", StringComparison.InvariantCultureIgnoreCase)
+                || propertyEditorAlias.Contains("BlockGrid", StringComparison.InvariantCultureIgnoreCase))
             {
                 return true;
             }
@@ -156,6 +171,7 @@ namespace DotSee.Discipline.AiSummary
                 case JsonValueKind.String:
                     var s = element.GetString().Trim();
                     
+                    //Stop if empty or very small.
                     if (s.IsNullOrWhiteSpace()) break;
                     if (s.Length < 50) break;
                     
@@ -180,7 +196,6 @@ namespace DotSee.Discipline.AiSummary
 
             return list;
         }
-
 
         #endregion
     }
