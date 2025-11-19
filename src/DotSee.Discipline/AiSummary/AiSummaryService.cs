@@ -6,6 +6,7 @@ using System.Text.Json;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Extensions;
+using static Umbraco.Cms.Core.Collections.TopoGraph;
 
 namespace DotSee.Discipline.AiSummary
 {
@@ -43,25 +44,24 @@ namespace DotSee.Discipline.AiSummary
 
         public bool Run(IContent node)
         {
+            //Check if node type is allowed. If no doctypes have been specified, allow all.
+            if (_settings.DocTypesList!= null && _settings.DocTypesList.Any() && !_settings.DocTypesList.Contains(node.ContentType.Alias))
+            {
+                return false;
+            }
+
             string culture = node.EditedCultures.First();
 
+            //Get all candidate string values from the document.
             var allStrings = GetAllStringValues(node, culture);
             var singleString = string.Join("", allStrings);
 
-            //foreach (var p in node.Properties)
-            //{
-            //    var pinfo = _contentTypeService.GetPropertyInfo(p=> p);
-            //    bool isprimitive = pinfo.PropertyType.IsPrimitive;
-            //}
-
-            ChatClient client = new(model: "gpt-5-nano", apiKey: _settings.OpenAiKey);
+            ChatClient client = new(model: _settings.Model, apiKey: _settings.OpenAiKey);
 
             var res = client.CompleteChatAsync (
-            "gpt-5-nano",
-            "Based on the following text, write a short SEO-optimized description suitable for Open Graph meta tags. Maximum 150 characters. Make it clear, engaging, and summarise the main value. Do not add anything that isn't in the text. Here is the text: " + singleString.StripHtml()
+            _settings.Model,
+            $"{_settings.Tone} Based on the following text, write a short SEO-optimized description suitable for Open Graph meta tags. Maximum {_settings.MaxChars.ToString()} characters. Make it clear, engaging, and summarise the main value. Do not add anything that isn't in the text. Here is the text: " + singleString.StripHtml()
              );
-
-            Console.WriteLine(res.Result);
 
             bool result = false;
             if (node.HasProperty(_settings.PropertyAlias)) 
@@ -77,39 +77,18 @@ namespace DotSee.Discipline.AiSummary
 
         #region Private Methods
 
-        private static bool IsTextProperty(string propertyEditorAlias)
+        private static bool IsAllowedPropertyType(string propertyEditorAlias)
         {
             if (propertyEditorAlias.Contains("TinyMCE", StringComparison.InvariantCultureIgnoreCase) ||
                 propertyEditorAlias.Contains("TextBox", StringComparison.InvariantCultureIgnoreCase) ||
                 propertyEditorAlias.Contains("TextArea", StringComparison.InvariantCultureIgnoreCase) ||
-                propertyEditorAlias.Contains("TextString", StringComparison.InvariantCultureIgnoreCase))
-            {
-                return true;
-            }
-            return false;
-        }
-
-        private static bool IsComplexProperty(string propertyEditorAlias)
-        {
-            if (propertyEditorAlias.Contains("BlockList", StringComparison.InvariantCultureIgnoreCase) ||
+                propertyEditorAlias.Contains("TextString", StringComparison.InvariantCultureIgnoreCase) ||
+                propertyEditorAlias.Contains("BlockList", StringComparison.InvariantCultureIgnoreCase) ||
                 propertyEditorAlias.Contains("BlockGrid", StringComparison.InvariantCultureIgnoreCase))
             {
                 return true;
             }
             return false;
-        }
-
-        private void GetAllComplexValues(IContent content, string culture = null)
-        {
-            foreach (var prop in content.Properties)
-            {
-                if (!IsComplexProperty(prop.PropertyType.PropertyEditorAlias))
-                {
-                    continue;
-                }
-
-                // Handle complex property value extraction here
-            }
         }
 
         private IEnumerable<string> GetAllStringValues(IContent content, string culture = null)
@@ -118,10 +97,15 @@ namespace DotSee.Discipline.AiSummary
 
             foreach (
                     var prop in content.Properties
-                    .Where(x=>!x.Alias.Equals(_settings.PropertyAlias, StringComparison.InvariantCultureIgnoreCase))
+                    .Where(
+                        x=>
+                        !x.Alias.Equals(_settings.PropertyAlias, StringComparison.InvariantCultureIgnoreCase)
+                        && (!(_settings.ExcludePropertiesList.Any() && _settings.ExcludePropertiesList.Contains(x.Alias)))
+                        )
+
                     )
             {
-                if (!IsTextProperty(prop.PropertyType.PropertyEditorAlias) && !IsComplexProperty(prop.PropertyType.PropertyEditorAlias))
+                if (!IsAllowedPropertyType(prop.PropertyType.PropertyEditorAlias))
                 {
                     continue;
                 }
