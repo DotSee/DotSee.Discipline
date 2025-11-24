@@ -4,19 +4,19 @@ using Umbraco.Cms.Core.Notifications;
 
 namespace DotSee.Discipline.AiSummary
 {
-    public class ContentPublishingHandler : INotificationHandler<ContentPublishingNotification>
+    public class ContentSavingHandler : INotificationHandler<ContentSavingNotification>
     {
         private readonly AiSummaryService _svc;
 
-        public ContentPublishingHandler(AiSummaryService svc)
+        public ContentSavingHandler(AiSummaryService svc)
         {
             _svc = svc;
         }
-        public void Handle(ContentPublishingNotification notification)
+        public void Handle(ContentSavingNotification notification)
         {
             bool result = false;
 
-            foreach (IContent node in notification.PublishedEntities)
+            foreach (IContent node in notification.SavedEntities)
             {
                 //This is where the magic happens. Unicorns. Free burgers. 
                 result = _svc.Run(node);

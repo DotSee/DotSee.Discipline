@@ -45,6 +45,7 @@ namespace DotSee.Discipline.AiSummary
         public bool Run(IContent node)
         {
             bool result = false;
+            string culture = node.EditedCultures.First();
 
             //Check if node type is allowed. If no doctypes have been specified, allow all.
             if (
@@ -56,12 +57,16 @@ namespace DotSee.Discipline.AiSummary
             }
 
             //Check if property to update exists in current node.
-            if (node.HasProperty(_settings.PropertyAlias))
+            if (!node.HasProperty(_settings.PropertyAlias))
             {
                 return false;
             }
 
-            string culture = node.EditedCultures.First();
+            //Do not update if content already in
+            if (!node.GetValue(_settings.PropertyAlias, culture).ToString().IsNullOrWhiteSpace())
+            {
+                return false;
+            }
             
             //Get all candidate string values from the document.
             var allStrings = GetAllStringValues(node, culture);

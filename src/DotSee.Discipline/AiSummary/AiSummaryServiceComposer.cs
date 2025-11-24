@@ -11,7 +11,7 @@ namespace DotSee.Discipline.AiSummary
         {
             builder.Services.AddSingleton<AiSummaryService>();
             builder.Services.AddSingleton<JsonSettingsProviderService>();
-            builder.AddNotificationHandler<ContentPublishingNotification, ContentPublishingHandler>();
+            builder.AddNotificationHandler<ContentSavingNotification, ContentSavingHandler>();
         }
     }
 }
