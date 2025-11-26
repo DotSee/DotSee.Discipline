@@ -20,9 +20,7 @@ namespace DotSee.Discipline.AiSummary
             {
                 //This is where the magic happens. Unicorns. Free burgers. 
                 result = _svc.Run(node);
-
             }
-
             //Not applied, as you were.
             if (result == false) { return; }
         }

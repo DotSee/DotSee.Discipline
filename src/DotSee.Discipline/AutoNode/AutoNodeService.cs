@@ -221,9 +221,6 @@ namespace DotSee.Discipline.AutoNode
         /// <param name="culture">The culture name, or empty string for non-variants</param>
         private bool CreateNewNodeCultureAware(IContent node, Rule rule, string culture)
         {
-
-
-
             if (_contentTypeService.Get(rule.DocTypeAliasToCreate) == null)
             {
                 _logger.Error(string.Format(MessageConstants.ErrorNodeAliasNotFound, rule.DocTypeAliasToCreate));

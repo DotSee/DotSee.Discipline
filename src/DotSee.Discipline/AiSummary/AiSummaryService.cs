@@ -24,7 +24,6 @@ namespace DotSee.Discipline.AiSummary
         #endregion
 
         #region Constructors
-
         public AiSummaryService(
             IContentService contentService,
             IContentTypeService contentTypeService,
@@ -44,7 +43,6 @@ namespace DotSee.Discipline.AiSummary
 
         public bool Run(IContent node)
         {
-            bool result = false;
             string culture = node.EditedCultures.First();
 
             //Check if node type is allowed. If no doctypes have been specified, allow all.
@@ -78,18 +76,27 @@ namespace DotSee.Discipline.AiSummary
 
             var singleString = string.Join("", allStrings);
 
-            //Magic.
-            ChatClient client = new(model: _settings.Model, apiKey: _settings.OpenAiKey);
+            try
+            {
+                //Magic.
+                ChatClient client = new(model: _settings.Model, apiKey: _settings.OpenAiKey);
 
-            var res = client.CompleteChatAsync (
-            _settings.Model,
-            $"{_settings.Tone} Based on the following text, write a short SEO-optimized description suitable for Open Graph meta tags. Maximum {_settings.MaxChars.ToString()} characters. Make it clear, engaging, and summarise the main value. Do not add anything that isn't in the text. Here is the text: " + singleString.StripHtml()
-             );
+                var res = client.CompleteChatAsync(
+                _settings.Model,
+                $"{_settings.Tone} Based on the following text, write a short SEO-optimized description suitable for Open Graph meta tags. Maximum {_settings.MaxChars.ToString()} characters. Make it clear, engaging, and summarise the main value. Do not add anything that isn't in the text. Here is the text: " + singleString.StripHtml()
+                 );
 
-            node.SetValue(_settings.PropertyAlias, res.Result.Value.Content[0].Text, culture); 
-             
-            _logger.Information("AiSummaryService ran for ID {NodeId} with Name {NodeName}, value: {SingleString}", node.Id, node.Name, singleString.StripHtml());
-            return (result);
+                node.SetValue(_settings.PropertyAlias, res.Result.Value.Content[0].Text, culture);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "AiSummaryService failed for ID {NodeId} with Name {NodeName}. Exception: {ExceptionMessage}", node.Id, node.Name, ex.Message);
+                return false;
+            }   
+
+            _logger.Information("AiSummaryService ran for ID {NodeId} with Name {NodeName}", node.Id, node.Name);
+            return true;
         }
 
         #endregion
