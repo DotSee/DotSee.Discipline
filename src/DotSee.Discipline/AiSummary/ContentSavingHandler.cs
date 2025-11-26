@@ -14,15 +14,11 @@ namespace DotSee.Discipline.AiSummary
         }
         public void Handle(ContentSavingNotification notification)
         {
-            bool result = false;
-
             foreach (IContent node in notification.SavedEntities)
             {
                 //This is where the magic happens. Unicorns. Free burgers. 
-                result = _svc.Run(node);
+                _svc.Run(node);
             }
-            //Not applied, as you were.
-            if (result == false) { return; }
         }
     }
 }

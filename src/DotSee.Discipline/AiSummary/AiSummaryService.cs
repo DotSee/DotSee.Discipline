@@ -41,14 +41,12 @@ namespace DotSee.Discipline.AiSummary
 
         #region Public Methods
 
-        public bool Run(IContent node)
+        public virtual bool Run(IContent node)
         {
-            string culture = node.EditedCultures.First();
-
             //Check if node type is allowed. If no doctypes have been specified, allow all.
             if (
-                _settings.DocTypesList!= null 
-                && _settings.DocTypesList.Any() 
+                _settings.DocTypesList != null
+                && _settings.DocTypesList.Any()
                 && !_settings.DocTypesList.Contains(node.ContentType.Alias))
             {
                 return false;
@@ -60,40 +58,57 @@ namespace DotSee.Discipline.AiSummary
                 return false;
             }
 
-            //Do not update if content already in
-            if (!node.GetValue(_settings.PropertyAlias, culture).ToString().IsNullOrWhiteSpace())
-            {
+            bool hasToggleProperty = node.HasProperty(_settings.TogglePropertyAlias);
+
+            if (hasToggleProperty && (node.GetValue(_settings.TogglePropertyAlias)?.ToString()?.ToLower() ?? "false") == "false")            {
                 return false;
             }
-            
-            //Get all candidate string values from the document.
-            var allStrings = GetAllStringValues(node, culture);
 
-            if (allStrings==null || !allStrings.Any()) 
+            foreach (string culture in node.EditedCultures)
             {
-                return false;
-            }       
 
-            var singleString = string.Join("", allStrings);
+                //Do not update if content already in
+                var currentValue = node.GetValue(_settings.PropertyAlias, culture);
+                if (currentValue != null && !currentValue.ToString().Trim().IsNullOrWhiteSpace())
+                {
+                    continue;
+                }
 
-            try
-            {
-                //Magic.
-                ChatClient client = new(model: _settings.Model, apiKey: _settings.OpenAiKey);
+                //Get all candidate string values from the document.
+                var allStrings = GetAllStringValues(node, culture);
 
-                var res = client.CompleteChatAsync(
-                _settings.Model,
-                $"{_settings.Tone} Based on the following text, write a short SEO-optimized description suitable for Open Graph meta tags. Maximum {_settings.MaxChars.ToString()} characters. Make it clear, engaging, and summarise the main value. Do not add anything that isn't in the text. Here is the text: " + singleString.StripHtml()
-                 );
+                if (allStrings == null || !allStrings.Any())
+                {
+                    continue;
+                }
 
-                node.SetValue(_settings.PropertyAlias, res.Result.Value.Content[0].Text, culture);
+                var singleString = string.Join("", allStrings);
 
+                try
+                {
+                    //Magic.
+                    //ChatClient client = new(model: _settings.Model, apiKey: _settings.OpenAiKey);
+
+                    //var res = client.CompleteChatAsync(
+                    //_settings.Model,
+                    //$"{_settings.Tone} Based on the following text, write a short SEO-optimized description suitable for Open Graph meta tags. Maximum {_settings.MaxChars.ToString()} characters. Make it clear, engaging, and summarise the main value. Do not add anything that isn't in the text. Here is the text: " + singleString.StripHtml()
+                    // );
+
+                    //node.SetValue(_settings.PropertyAlias, res.Result.Value.Content[0].Text, culture);
+                    node.SetValue(_settings.PropertyAlias, "value from AI", culture);
+
+                    if (hasToggleProperty) 
+                    { 
+                        node.SetValue(_settings.TogglePropertyAlias, false);
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex, "AiSummaryService failed for ID {NodeId} with Name {NodeName}. Exception: {ExceptionMessage}", node.Id, node.Name, ex.Message);
+                    return false;
+                }
             }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "AiSummaryService failed for ID {NodeId} with Name {NodeName}. Exception: {ExceptionMessage}", node.Id, node.Name, ex.Message);
-                return false;
-            }   
 
             _logger.Information("AiSummaryService ran for ID {NodeId} with Name {NodeName}", node.Id, node.Name);
             return true;
