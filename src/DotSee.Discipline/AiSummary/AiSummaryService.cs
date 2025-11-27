@@ -1,12 +1,9 @@
 ﻿using DotSee.Discipline.Interfaces;
-using NUglify.JavaScript.Syntax;
-using OpenAI.Chat;
 using Serilog;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Umbraco.Cms.Core.Models;
-using Umbraco.Cms.Core.Services;
 using Umbraco.Extensions;
-using static Umbraco.Cms.Core.Collections.TopoGraph;
 
 namespace DotSee.Discipline.AiSummary
 {
@@ -15,8 +12,6 @@ namespace DotSee.Discipline.AiSummary
 
         #region Private Members
 
-        private IContentService _cs;
-        private readonly IContentTypeService _contentTypeService;
         private AiSummarySettings _settings;
         private readonly JsonSettingsProviderService _settingsProviderService;
         private ILogger _logger;
@@ -25,13 +20,9 @@ namespace DotSee.Discipline.AiSummary
 
         #region Constructors
         public AiSummaryService(
-            IContentService contentService,
-            IContentTypeService contentTypeService,
             JsonSettingsProviderService settingsProviderService,
             ILogger logger)
         {
-            _cs = contentService;
-            _contentTypeService = contentTypeService;
             _settingsProviderService = settingsProviderService;
             _settings = ((ISettings<AiSummarySettings>)_settingsProviderService).Settings;
             _logger = logger;
@@ -43,33 +34,25 @@ namespace DotSee.Discipline.AiSummary
 
         public virtual bool Run(IContent node)
         {
-            //Check if node type is allowed. If no doctypes have been specified, allow all.
-            if (
-                _settings.DocTypesList != null
-                && _settings.DocTypesList.Any()
-                && !_settings.DocTypesList.Contains(node.ContentType.Alias))
+            //Make all the necessary checks to decide if we should continue. 
+            //If so, return an object with other useful info to use further down the line.
+            ServiceCheckResults checkResults = ShouldContinue(node);
+
+            if (!checkResults.ShouldContinue)
             {
-                return false;
-            }
-
-            //Check if property to update exists in current node.
-            if (!node.HasProperty(_settings.PropertyAlias))
-            {
-                return false;
-            }
-
-            bool hasToggleProperty = node.HasProperty(_settings.TogglePropertyAlias);
-
-            if (hasToggleProperty && (node.GetValue(_settings.TogglePropertyAlias)?.ToString()?.ToLower() ?? "false") == "false")            {
                 return false;
             }
 
             foreach (string culture in node.EditedCultures)
             {
+                //Do not update if content already in and no toggle property is set.
+                //Toggle property set to true will force the update, even with content already in.
+                var currentValue = checkResults.IsComplexProperty
+                    ? GetBlockPropertyValue(GetJsonFromNode(node, culture), _settings.PropertyAlias.Split('.')[1])
+                    : node.GetValue(_settings.PropertyAlias, culture);
 
-                //Do not update if content already in
-                var currentValue = node.GetValue(_settings.PropertyAlias, culture);
-                if (currentValue != null && !currentValue.ToString().Trim().IsNullOrWhiteSpace())
+
+                if (!checkResults.HasToggleProperty && currentValue != null && !currentValue.ToString().Trim().IsNullOrWhiteSpace())
                 {
                     continue;
                 }
@@ -95,10 +78,24 @@ namespace DotSee.Discipline.AiSummary
                     // );
 
                     //node.SetValue(_settings.PropertyAlias, res.Result.Value.Content[0].Text, culture);
-                    node.SetValue(_settings.PropertyAlias, "value from AI", culture);
 
-                    if (hasToggleProperty) 
-                    { 
+                    if (checkResults.IsComplexProperty)
+                    {
+                        JsonNode bl = AddSummaryToBlockProperty(node, culture, "value from AI block");
+                        if (bl == null)
+                        {
+                            continue;
+                        }
+                        node.SetValue(_settings.PropertyAlias.Split('.')[0], bl.ToString(), culture);
+                    }
+                    else
+                    {
+                        node.SetValue(_settings.PropertyAlias, "value from AI", culture);
+                    }
+
+                    //If you've reached this far there's a toggle property and it was set to true, set it to false
+                    if (checkResults.HasToggleProperty)
+                    {
                         node.SetValue(_settings.TogglePropertyAlias, false);
                     }
 
@@ -118,10 +115,93 @@ namespace DotSee.Discipline.AiSummary
 
         #region Private Methods
 
+        private JsonNode AddSummaryToBlockProperty(IContent node, string culture, string summary)
+        {
+            JsonNode bl = GetJsonFromNode(node, culture);
+            if (bl == null)
+            {
+                return null;
+            }
+
+            // Look for contentData array
+            var contentData = bl["contentData"] as JsonArray;
+            if (contentData == null)
+            {
+                return null;
+            }
+
+            ReplaceProperty(bl, _settings.PropertyAlias.Split('.')[1], summary);
+            return bl;
+
+        }
+
+        private JsonNode GetJsonFromNode(IContent node, string culture)
+        {
+            JsonNode bl = null;
+            var blockList = node.GetValue(_settings.PropertyAlias.Split('.')[0], culture);
+            if (blockList == null)
+            {
+                return null;
+            }
+            else
+            {
+                bl = JsonNode.Parse(blockList.ToString())!;
+            }
+            return bl;
+        }
+
+
+        private ServiceCheckResults ShouldContinue(IContent node)
+        {
+            ServiceCheckResults result = new ServiceCheckResults();
+            result.ShouldContinue = true;
+
+            //Check if node type is allowed. If no doctypes have been specified, allow all.
+            if (
+                _settings.DocTypesList != null
+                && _settings.DocTypesList.Any()
+                && !_settings.DocTypesList.Contains(node.ContentType.Alias))
+            {
+                result.ShouldContinue = false;
+                return result;
+            }
+
+            //Check if it is a complex property (blocklist) - if so check if it exists
+            if (_settings.PropertyAlias.Count(x => x == '.') == 1)
+            {
+                var aliases = _settings.PropertyAlias.Split('.');
+                if (!node.HasProperty(aliases[0]))
+                {
+                    result.ShouldContinue = false;
+                    return result;
+                }
+                result.IsComplexProperty = true;
+            }
+
+            //If not a complex property, check if property to update exists in current node.
+            if (!result.IsComplexProperty && !node.HasProperty(_settings.PropertyAlias))
+            {
+                result.ShouldContinue = false;
+                return result;
+            }
+
+            //Check if toggle property exists in current node and whether is has been set to true.
+            bool hasToggleProperty = node.HasProperty(_settings.TogglePropertyAlias);
+            result.HasToggleProperty = hasToggleProperty;
+
+            if (hasToggleProperty && (node.GetValue(_settings.TogglePropertyAlias)?.ToString()?.ToLower() ?? "0") == "0")
+            {
+                result.ShouldContinue = false;
+                return result;
+            }
+
+            return result;
+        }
+
         private static bool IsAllowedPropertyType(string propertyEditorAlias)
         {
             if (
-                propertyEditorAlias.Contains("TinyMCE", StringComparison.InvariantCultureIgnoreCase) 
+                propertyEditorAlias.Contains("TinyMCE", StringComparison.InvariantCultureIgnoreCase)
                 || propertyEditorAlias.Contains("TextBox", StringComparison.InvariantCultureIgnoreCase)
                 || propertyEditorAlias.Contains("TextArea", StringComparison.InvariantCultureIgnoreCase)
                 || propertyEditorAlias.Contains("TextString", StringComparison.InvariantCultureIgnoreCase)
@@ -140,7 +220,7 @@ namespace DotSee.Discipline.AiSummary
             foreach (
                     var prop in content.Properties
                     .Where(
-                        x=>
+                        x =>
                         !x.Alias.Equals(_settings.PropertyAlias, StringComparison.InvariantCultureIgnoreCase)
                         && (!(_settings.ExcludePropertiesList.Any() && _settings.ExcludePropertiesList.Contains(x.Alias)))
                         )
@@ -197,16 +277,16 @@ namespace DotSee.Discipline.AiSummary
             {
                 case JsonValueKind.String:
                     var s = element.GetString().Trim();
-                    
+
                     //Stop if empty or very small.
                     if (s.IsNullOrWhiteSpace()) break;
                     if (s.Length < 50) break;
-                    
+
                     //Just to make sure no rogue links without other content get through
                     if (s.StartsWith("http://", StringComparison.InvariantCultureIgnoreCase) && !s.Contains(" ")) break;
                     if (s.StartsWith("https://", StringComparison.InvariantCultureIgnoreCase) && !s.Contains(" ")) break;
                     if (s.StartsWith("mailto://", StringComparison.InvariantCultureIgnoreCase) && !s.Contains(" ")) break;
-                    
+
                     list.Add(s);
                     break;
 
@@ -224,6 +304,66 @@ namespace DotSee.Discipline.AiSummary
             return list;
         }
 
+
+        private static void ReplaceProperty(JsonNode? node, string propAlias, string newValue)
+        {
+            if (node is JsonObject obj)
+            {
+                foreach (var prop in obj.ToList())
+                {
+                    if (prop.Key == propAlias)
+                    {
+                        obj[propAlias] = newValue;
+                        return;
+                    }
+
+                    ReplaceProperty(prop.Value, propAlias, newValue);
+                }
+            }
+            else if (node is JsonArray arr)
+            {
+                foreach (var item in arr)
+                {
+                    ReplaceProperty(item, propAlias, newValue);
+                }
+            }
+        }
+
+        private static string GetBlockPropertyValue(JsonNode? node, string propAlias)
+        {
+
+            if (node is JsonObject obj)
+            {
+                foreach (var prop in obj.ToList())
+                {
+                    if (prop.Key == propAlias)
+                    {
+                        return obj[propAlias]?.ToString();
+
+                    }
+                    var retVal = GetBlockPropertyValue(prop.Value, propAlias);
+                    if (retVal != null)
+                    {
+                        return retVal;
+                    }
+
+                }
+            }
+            else if (node is JsonArray arr)
+            {
+                foreach (var item in arr)
+                {
+                    var retVal = GetBlockPropertyValue(item, propAlias);
+                    if (retVal != null)
+                    {
+                        return retVal;
+                    }
+
+                }
+            }
+            return null;
+
+        }
         #endregion
     }
 }
