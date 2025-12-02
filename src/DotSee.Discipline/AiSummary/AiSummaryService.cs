@@ -45,13 +45,13 @@ namespace DotSee.Discipline.AiSummary
 
             foreach (string culture in node.EditedCultures)
             {
-                //Do not update if content already in and no toggle property is set.
-                //Toggle property set to true will force the update, even with content already in.
+                //Get the current value of the property to update.
                 var currentValue = checkResults.IsComplexProperty
                     ? GetBlockPropertyValue(GetJsonFromNode(node, culture), _settings.PropertyAlias.Split('.')[1])
                     : node.GetValue(_settings.PropertyAlias, culture);
 
-
+                //Do not update if content already in and no toggle property is set.
+                //Toggle property set to true will force the update, even with content already in.
                 if (!checkResults.HasToggleProperty && currentValue != null && !currentValue.ToString().Trim().IsNullOrWhiteSpace())
                 {
                     continue;
@@ -67,21 +67,22 @@ namespace DotSee.Discipline.AiSummary
 
                 var singleString = string.Join("", allStrings);
 
+                //Do the thing.
                 try
                 {
-                    //Magic.
-                    //ChatClient client = new(model: _settings.Model, apiKey: _settings.OpenAiKey);
+                    var gen = new AiSummaryGenerator();
+                    string aiResult = gen.Generate(
+                        apiKey: _settings.ApiKey,
+                        aiModel: _settings.Model,
+                        tone: _settings.Tone,
+                        maxChars: _settings.MaxChars,
+                        content: singleString.StripHtml()
+                        );
 
-                    //var res = client.CompleteChatAsync(
-                    //_settings.Model,
-                    //$"{_settings.Tone} Based on the following text, write a short SEO-optimized description suitable for Open Graph meta tags. Maximum {_settings.MaxChars.ToString()} characters. Make it clear, engaging, and summarise the main value. Do not add anything that isn't in the text. Here is the text: " + singleString.StripHtml()
-                    // );
-
-                    //node.SetValue(_settings.PropertyAlias, res.Result.Value.Content[0].Text, culture);
 
                     if (checkResults.IsComplexProperty)
                     {
-                        JsonNode bl = AddSummaryToBlockProperty(node, culture, "value from AI block");
+                        JsonNode bl = AddSummaryToBlockProperty(node, culture, aiResult);
                         if (bl == null)
                         {
                             continue;
@@ -90,7 +91,7 @@ namespace DotSee.Discipline.AiSummary
                     }
                     else
                     {
-                        node.SetValue(_settings.PropertyAlias, "value from AI", culture);
+                        node.SetValue(_settings.PropertyAlias, aiResult, culture);
                     }
 
                     //If you've reached this far there's a toggle property and it was set to true, set it to false
