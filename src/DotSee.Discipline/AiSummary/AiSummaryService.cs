@@ -43,69 +43,24 @@ namespace DotSee.Discipline.AiSummary
                 return false;
             }
 
-            foreach (string culture in node.EditedCultures)
+            try
             {
-                //Get the current value of the property to update.
-                var currentValue = checkResults.IsComplexProperty
-                    ? GetBlockPropertyValue(GetJsonFromNode(node, culture), _settings.PropertyAlias.Split('.')[1])
-                    : node.GetValue(_settings.PropertyAlias, culture);
-
-                //Do not update if content already in and no toggle property is set.
-                //Toggle property set to true will force the update, even with content already in.
-                if (!checkResults.HasToggleProperty && currentValue != null && !currentValue.ToString().Trim().IsNullOrWhiteSpace())
+                if (node.AvailableCultures == null || node.AvailableCultures?.Count() == 0)
                 {
-                    continue;
+                    DoRun(node, checkResults, null);
                 }
-
-                //Get all candidate string values from the document.
-                var allStrings = GetAllStringValues(node, culture);
-
-                if (allStrings == null || !allStrings.Any())
+                else
                 {
-                    continue;
-                }
-
-                var singleString = string.Join("", allStrings);
-
-                //Do the thing.
-                try
-                {
-                    var gen = new AiSummaryGenerator();
-                    string aiResult = gen.Generate(
-                        apiKey: _settings.ApiKey,
-                        aiModel: _settings.Model,
-                        tone: _settings.Tone,
-                        maxChars: _settings.MaxChars,
-                        content: singleString.StripHtml()
-                        );
-
-
-                    if (checkResults.IsComplexProperty)
+                    foreach (string culture in node.EditedCultures)
                     {
-                        JsonNode bl = AddSummaryToBlockProperty(node, culture, aiResult);
-                        if (bl == null)
-                        {
-                            continue;
-                        }
-                        node.SetValue(_settings.PropertyAlias.Split('.')[0], bl.ToString(), culture);
+                        DoRun(node, checkResults, culture);
                     }
-                    else
-                    {
-                        node.SetValue(_settings.PropertyAlias, aiResult, culture);
-                    }
-
-                    //If you've reached this far there's a toggle property and it was set to true, set it to false
-                    if (checkResults.HasToggleProperty)
-                    {
-                        node.SetValue(_settings.TogglePropertyAlias, false);
-                    }
-
                 }
-                catch (Exception ex)
-                {
-                    _logger.Error(ex, "AiSummaryService failed for ID {NodeId} with Name {NodeName}. Exception: {ExceptionMessage}", node.Id, node.Name, ex.Message);
-                    return false;
-                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "AiSummaryService failed for ID {NodeId} with Name {NodeName}. Exception: {ExceptionMessage}", node.Id, node.Name, ex.Message);
+                return false;
             }
 
             _logger.Information("AiSummaryService ran for ID {NodeId} with Name {NodeName}", node.Id, node.Name);
@@ -115,6 +70,61 @@ namespace DotSee.Discipline.AiSummary
         #endregion
 
         #region Private Methods
+        private void DoRun(IContent node, ServiceCheckResults checkResults, string culture)
+        {
+            //Get the current value of the property to update.
+            var currentValue = checkResults.IsComplexProperty
+                ? GetBlockPropertyValue(GetJsonFromNode(node, culture), _settings.PropertyAlias.Split('.')[1])
+                : node.GetValue(_settings.PropertyAlias, culture);
+
+            //Do not update if content already in and no toggle property is set.
+            //Toggle property set to true will force the update, even with content already in.
+            if (!checkResults.HasToggleProperty && currentValue != null && !currentValue.ToString().Trim().IsNullOrWhiteSpace())
+            {
+                return;
+            }
+
+            //Get all candidate string values from the document.
+            var allStrings = GetAllStringValues(node, culture);
+
+            if (allStrings == null || !allStrings.Any())
+            {
+                return;
+            }
+
+            var singleString = string.Join("", allStrings);
+
+            //Do the thing.
+            var gen = new AiSummaryGenerator();
+            string aiResult = gen.Generate(
+                apiKey: _settings.ApiKey,
+                aiModel: _settings.Model,
+                tone: _settings.Tone,
+                maxChars: _settings.MaxChars,
+                content: singleString.StripHtml()
+                );
+
+
+            if (checkResults.IsComplexProperty)
+            {
+                JsonNode bl = AddSummaryToBlockProperty(node, culture, aiResult);
+                if (bl == null)
+                {
+                    return;
+                }
+                node.SetValue(_settings.PropertyAlias.Split('.')[0], bl.ToString(), culture);
+            }
+            else
+            {
+                node.SetValue(_settings.PropertyAlias, aiResult, culture);
+            }
+
+            //If you've reached this far there's a toggle property and it was set to true, set it to false
+            if (checkResults.HasToggleProperty)
+            {
+                node.SetValue(_settings.TogglePropertyAlias, false);
+            }
+        }
 
         private JsonNode AddSummaryToBlockProperty(IContent node, string culture, string summary)
         {
