@@ -68,19 +68,6 @@ namespace DotSee.Discipline.AiSummary
             return true;
         }
 
-        public static ISummaryGenerator GetGenerator(string llm)
-        {
-            switch (llm.ToLower())
-            {
-                case "openai":
-                    return new OpenAiSummaryGenerator();
-                case "gemini":
-                    return new GeminiSummaryGenerator();
-                default:
-                    throw new NotImplementedException($"The specified LLM '{llm}' is not implemented.");
-            }
-        }
-
         #endregion
 
         #region Private Methods
@@ -108,7 +95,9 @@ namespace DotSee.Discipline.AiSummary
 
             var singleString = string.Join("", allStrings);
 
+
             //Do the thing.
+            SetDefaults();
             var gen = GetGenerator(_settings.Llm);
             string aiResult = gen.Generate(
                 apiKey: _settings.ApiKey,
@@ -137,6 +126,39 @@ namespace DotSee.Discipline.AiSummary
             if (checkResults.HasToggleProperty)
             {
                 node.SetValue(_settings.TogglePropertyAlias, false);
+            }
+        }
+
+        private void SetDefaults()
+        {
+            if (string.IsNullOrEmpty(_settings.Llm))
+            {
+                _settings.Llm = "openai";
+            }
+            if (string.IsNullOrEmpty(_settings.Model))
+            {
+                switch (_settings.Llm)
+                {
+                    case "openai":
+                        _settings.Model = "gpt-5-nano";
+                        break;
+                    case "gemini":
+                        _settings.Model = "gemini-2.5-Flash";
+                        break;
+                }
+            }
+        }
+
+        private static ISummaryGenerator GetGenerator(string llm)
+        {
+            switch (llm.ToLower())
+            {
+                case "openai":
+                    return new OpenAiSummaryGenerator();
+                case "gemini":
+                    return new GeminiSummaryGenerator();
+                default:
+                    throw new NotImplementedException($"The specified LLM '{llm}' is not implemented.");
             }
         }
 
