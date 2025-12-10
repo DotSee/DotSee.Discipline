@@ -1,4 +1,5 @@
-﻿using DotSee.Discipline.Interfaces;
+﻿using DotSee.Discipline.AiSummary.Generators;
+using DotSee.Discipline.Interfaces;
 using Serilog;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -67,6 +68,19 @@ namespace DotSee.Discipline.AiSummary
             return true;
         }
 
+        public static ISummaryGenerator GetGenerator(string llm)
+        {
+            switch (llm.ToLower())
+            {
+                case "openai":
+                    return new OpenAiSummaryGenerator();
+                case "gemini":
+                    return new GeminiSummaryGenerator();
+                default:
+                    throw new NotImplementedException($"The specified LLM '{llm}' is not implemented.");
+            }
+        }
+
         #endregion
 
         #region Private Methods
@@ -95,7 +109,7 @@ namespace DotSee.Discipline.AiSummary
             var singleString = string.Join("", allStrings);
 
             //Do the thing.
-            var gen = new AiSummaryGenerator();
+            var gen = GetGenerator(_settings.Llm);
             string aiResult = gen.Generate(
                 apiKey: _settings.ApiKey,
                 aiModel: _settings.Model,

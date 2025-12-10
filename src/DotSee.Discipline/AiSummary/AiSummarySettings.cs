@@ -5,6 +5,7 @@
         private List<string> _docTypesList = new();
         private List<string> _excludePropertiesList = new();
 
+        public string Llm { get; set; }
         public string PropertyAlias { get; set; }
         public string ApiKey { get; set; }
         public string TogglePropertyAlias { get; set; }

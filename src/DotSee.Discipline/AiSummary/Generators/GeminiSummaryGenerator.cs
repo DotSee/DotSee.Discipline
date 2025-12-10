@@ -1,9 +1,9 @@
-﻿using OpenAI.Chat;
+﻿using Google.GenAI;
 using System.Text;
 
-namespace DotSee.Discipline.AiSummary
+namespace DotSee.Discipline.AiSummary.Generators
 {
-    public class AiSummaryGenerator
+    public class GeminiSummaryGenerator : ISummaryGenerator
     {
         public string Generate(string apiKey, string aiModel, string tone, int maxChars, string content)
         {
@@ -18,11 +18,11 @@ namespace DotSee.Discipline.AiSummary
             promptBuilder.AppendLine($"Make it clear, engaging, and summarise the main value. Do not add anything that isn't in the text.");
             promptBuilder.AppendLine($"Here is the text: {content}");
 
-            ChatClient client = new(model: aiModel, apiKey: apiKey);
+            var client = new Client(apiKey: apiKey);
 
-            var res = client.CompleteChatAsync(aiModel, promptBuilder.ToString());
+            var res = client.Models.GenerateContentAsync(model: aiModel, contents: promptBuilder.ToString());
 
-            return (res.Result.Value.Content[0].Text);
+            return (res.Result.Candidates[0].Content.Parts[0].Text);
         }
     }
 }
