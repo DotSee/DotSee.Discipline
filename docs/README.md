@@ -52,7 +52,7 @@ You need to have an API key for either service and specify it in the configurati
     },
 ```
 
-**llm**: The large language model to use. Possible values are "OpenAI" and "Gemini
+**llm**: The large language model to use. Possible values are "OpenAI" and "Gemini".
 **ApiKey** : Your API key for the selected service
 **Model**: The model to use. For OpenAI, you can use "gpt-3.5-turbo", "gpt-4" or any other model you have access to. For Gemini, you can use "gemini-1.5", "gemini-2.5-flash" or any other model you have access to.    
 **MaxChars**: The maximum number of characters for the generated summary.

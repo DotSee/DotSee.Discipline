@@ -21,7 +21,7 @@ namespace DotSee.Discipline.AiSummary
         {
             get
             {
-                return (_settings ?? GetSettings());
+                return _settings ??= GetSettings();
             }
         }
 
