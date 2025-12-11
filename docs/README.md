@@ -1,8 +1,12 @@
-﻿This is a plugin for Umbraco V10+ combining the functionality of the following legacy V8 plugins:
+﻿This is a plugin for Umbraco V10 and V13 combining the functionality of the following legacy V8 plugins:
 - **AutoNode**: Automatically create new nodes upon publishing a node, based on rules
 - **NodeRestrict**: Restrict number of nodes to be created under a node, based on rules
 - **VirtualNodes**: Hide the url segment of a specific node based on doctype
 - **HideNotCreatedVariants**: Toggle show/hide of non-created variants for languages in the back office
+
+It also adds the following functions:
+- **NodeProtect**: Protect nodes from deletion based on rules
+- **AISummaries**: Generate AI-based summaries for content nodes in the back office (requires OpenAI or Gemini API key)
 
 # General Notes
 In your appSettings.json, create a new root level entry as follows:
@@ -17,6 +21,47 @@ In your appSettings.json, create a new root level entry as follows:
 
 and then use the configuration for any of the functions you need to use. 
 All functionality is disabled by default, so if you do not include configuration for a specific functionality it won't kick in at all.
+
+# Creating AI-based summaries for content nodes in the back office
+
+This functionality allows for generating AI-based, SEO optimized summaries for content nodes in the Umbraco back office, using either OpenAI or Gemini APIs.
+
+The way it works is that it reads all text properties (including RTEs and properties in blocks) from the content node and then generates a summary using the selected AI service.
+
+The field the summary is written to is also configurable and can be a document property or a block property.
+
+It can work with specific doctypes if needed, and you can also exclude specific property aliases from the content used to generate the summary.
+
+You can apply summaries on non-empty summary fields on save automatically, or combine it with a switch in the back office to choose when to generate a summary.
+
+You need to have an API key for either service and specify it in the configuration.
+
+## Configuration
+
+```
+   "AiSummary": {
+      "Llm":  "Gemini",
+      "ApiKey": "XXXXXXXXXXXX",
+      "Model": "gemini-2.5-flash",
+      "MaxChars": 250,
+      "Tone": "Be professional but witty. Do not exaggerate.",
+      "DocTypes": "someDoctypeAlias,anotherDocTypeAlias",
+      "ExcludeProperties": "somePropertyAlias,someOtherPropertyAlias",
+      "PropertyAlias": "aiSummary",
+      "TogglePropertyAlias": "doAi"
+    },
+```
+
+**llm**: The large language model to use. Possible values are "OpenAI" and "Gemini".
+**ApiKey** : Your API key for the selected service
+**Model**: The model to use. For OpenAI, you can use "gpt-3.5-turbo", "gpt-4" or any other model you have access to. For Gemini, you can use "gemini-1.5", "gemini-2.5-flash" or any other model you have access to.    
+**MaxChars**: The maximum number of characters for the generated summary.
+**Tone**: Instructions for the AI on the tone to use for the summary.
+**DocTypes**: Comma-separated list of document type aliases to apply the summary generation to. Leave empty to apply to all document types.
+**ExcludeProperties**: Comma-separated list of property aliases to exclude from the content used to generate the summary.
+**PropertyAlias**: The alias of the property where the generated summary will be stored.
+**TogglePropertyAlias**: (optional) The alias of a true/false property that will act as a toggle for summary generation. If specified, the summary will only be generated if this property is set to true. The property gets automatically set to false afterwards.
+
 
 # Restricting creation of new nodes in the Umbraco back office (formerly NodeRestrict)
 

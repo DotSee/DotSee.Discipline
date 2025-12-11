@@ -1,6 +1,4 @@
-﻿
-
-namespace DotSee.Discipline.NodeRestrict
+﻿namespace DotSee.Discipline.NodeRestrict
 {
     /// <summary>
     /// Holds the result after checking a rule against a node
@@ -11,7 +9,7 @@ namespace DotSee.Discipline.NodeRestrict
         /// The count of nodes found at the time of checking. Applies to child node doctypes defined by the rule
         /// </summary>
         public int NodeCount { get; private set; }
-        
+
         /// <summary>
         /// The rule that was checked
         /// </summary>
@@ -39,8 +37,9 @@ namespace DotSee.Discipline.NodeRestrict
         /// <param name="nodeCount">The count of nodes found at the time of checking. Applies to child node doctypes defined by the rule</param>
         /// <param name="rule">The rule that was checked</param>
         /// <returns></returns>
-        public static Result GetResult(int nodeCount, Rule rule) {
-            return new Result(nodeCount,rule);
+        public static Result GetResult(int nodeCount, Rule rule)
+        {
+            return new Result(nodeCount, rule);
         }
     }
 
