@@ -16,7 +16,7 @@
         public Rule Rule { get; private set; }
 
         /// <summary>
-        /// Returns true if the max number of `allowed nodes (as defined by the rule) has been reached.
+        /// Returns true if the max number of allowed nodes (as defined by the rule) has been reached.
         /// </summary>
         public bool LimitReached { get { return (NodeCount >= Rule.MaxNodes); } }
 
