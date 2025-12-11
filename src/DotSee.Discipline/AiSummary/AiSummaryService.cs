@@ -1,5 +1,6 @@
 ﻿using DotSee.Discipline.AiSummary.Generators;
 using DotSee.Discipline.Interfaces;
+using NPoco;
 using Serilog;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -96,14 +97,16 @@ namespace DotSee.Discipline.AiSummary
             var singleString = string.Join("", allStrings);
 
 
-            //Do the thing.
-            SetDefaults();
-            var gen = GetGenerator(_settings.Llm);
+            //Do the thing with a copy of the shared settings to avoid race conditions on concurrent saves
+            //since we're changing settings via SetDefaults.
+            var settings = SetDefaults();
+
+            var gen = GetGenerator(settings.Llm);
             string aiResult = gen.Generate(
-                apiKey: _settings.ApiKey,
-                aiModel: _settings.Model,
-                tone: _settings.Tone,
-                maxChars: _settings.MaxChars,
+                apiKey: settings.ApiKey,
+                aiModel: settings.Model,
+                tone: settings.Tone,
+                maxChars: settings.MaxChars,
                 content: singleString.StripHtml()
                 );
 
@@ -129,24 +132,28 @@ namespace DotSee.Discipline.AiSummary
             }
         }
 
-        private void SetDefaults()
+        private AiSummarySettings SetDefaults()
         {
+            //Get a copy of settings to avoid having race conditions with concurrent saves.
+            var _settingsCopy = _settings.Copy();
+
             if (string.IsNullOrEmpty(_settings.Llm))
             {
-                _settings.Llm = "openai";
+                _settingsCopy.Llm = "openai";
             }
             if (string.IsNullOrEmpty(_settings.Model))
             {
                 switch (_settings.Llm.ToLower())
                 {
                     case "openai":
-                        _settings.Model = "gpt-5-nano";
+                        _settingsCopy.Model = "gpt-5-nano";
                         break;
                     case "gemini":
-                        _settings.Model = "gemini-2.5-flash";
+                        _settingsCopy.Model = "gemini-2.5-flash";
                         break;
                 }
             }
+            return _settingsCopy;
         }
 
         private static ISummaryGenerator GetGenerator(string llm)
