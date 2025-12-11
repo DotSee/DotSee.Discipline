@@ -178,7 +178,23 @@ namespace DotSee.Discipline.AiSummary
             }
 
             // Look for contentData array
-            var contentData = bl["contentData"] as JsonArray;
+            JsonArray contentData = null;
+
+            //Try in blocks
+            try
+            {
+                contentData = bl["contentData"] as JsonArray;
+            }
+            catch
+            {
+                //Fallback to NC (just for V13)
+                try
+                {
+                    contentData = bl as JsonArray;
+                }
+                catch { }
+            }
+
             if (contentData == null)
             {
                 return null;
