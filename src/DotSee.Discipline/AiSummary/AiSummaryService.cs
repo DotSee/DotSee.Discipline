@@ -137,13 +137,13 @@ namespace DotSee.Discipline.AiSummary
             }
             if (string.IsNullOrEmpty(_settings.Model))
             {
-                switch (_settings.Llm)
+                switch (_settings.Llm.ToLower())
                 {
                     case "openai":
                         _settings.Model = "gpt-5-nano";
                         break;
                     case "gemini":
-                        _settings.Model = "gemini-2.5-Flash";
+                        _settings.Model = "gemini-2.5-flash";
                         break;
                 }
             }
@@ -203,11 +203,23 @@ namespace DotSee.Discipline.AiSummary
             ServiceCheckResults result = new ServiceCheckResults();
             result.ShouldContinue = true;
 
+            if (string.IsNullOrEmpty(_settings.ApiKey))
+            {
+                result.ShouldContinue = false;
+                return result;
+            }
+
             //Check if node type is allowed. If no doctypes have been specified, allow all.
             if (
                 _settings.DocTypesList != null
                 && _settings.DocTypesList.Any()
                 && !_settings.DocTypesList.Contains(node.ContentType.Alias))
+            {
+                result.ShouldContinue = false;
+                return result;
+            }
+
+            if (string.IsNullOrEmpty(_settings.PropertyAlias))
             {
                 result.ShouldContinue = false;
                 return result;
@@ -233,7 +245,7 @@ namespace DotSee.Discipline.AiSummary
             }
 
             //Check if toggle property exists in current node and whether is has been set to true.
-            bool hasToggleProperty = node.HasProperty(_settings.TogglePropertyAlias);
+            bool hasToggleProperty = node.HasProperty(_settings.TogglePropertyAlias ?? "");
             result.HasToggleProperty = hasToggleProperty;
 
             if (hasToggleProperty && (node.GetValue(_settings.TogglePropertyAlias)?.ToString()?.ToLower() ?? "0") == "0")

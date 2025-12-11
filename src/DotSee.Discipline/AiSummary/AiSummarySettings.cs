@@ -11,7 +11,7 @@
         public string TogglePropertyAlias { get; set; }
         public string DocTypes { get; set; }
         public string ExcludeProperties { get; set; }
-        public string Model { get; set; } = "gpt-5-nano";
+        public string Model { get; set; }
         public int MaxChars { get; set; } = 150;
         public string Tone { get; set; } = "Use a professional tone.";
         public List<string> DocTypesList
