@@ -42,7 +42,7 @@ namespace DotSee.Discipline.AiSummary
 
             if (!checkResults.ShouldContinue)
             {
-                return false;
+                return true;
             }
 
             try
