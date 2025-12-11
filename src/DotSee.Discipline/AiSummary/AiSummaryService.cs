@@ -143,10 +143,10 @@ namespace DotSee.Discipline.AiSummary
             }
             if (string.IsNullOrEmpty(_settings.Model))
             {
-                switch (_settings.Llm.ToLower())
+                switch (_settingsCopy.Llm.ToLower())
                 {
                     case "openai":
-                        _settingsCopy.Model = "gpt-5-nano";
+                        _settingsCopy.Model = "gpt-4o-mini";
                         break;
                     case "gemini":
                         _settingsCopy.Model = "gemini-2.5-flash";
@@ -342,7 +342,7 @@ namespace DotSee.Discipline.AiSummary
             switch (element.ValueKind)
             {
                 case JsonValueKind.String:
-                    var s = element.GetString().Trim();
+                    var s = element.GetString()?.Trim();
 
                     //Stop if empty or very small.
                     if (s.IsNullOrWhiteSpace()) break;
