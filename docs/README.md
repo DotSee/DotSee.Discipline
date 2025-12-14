@@ -62,6 +62,7 @@ You need to have an API key for either service and specify it in the configurati
 **PropertyAlias**: The alias of the property where the generated summary will be stored.
 **TogglePropertyAlias**: (optional) The alias of a true/false property that will act as a toggle for summary generation. If specified, the summary will only be generated if this property is set to true. The property gets automatically set to false afterwards.
 
+Note: The "toggle" property should always be invariant.
 
 # Restricting creation of new nodes in the Umbraco back office (formerly NodeRestrict)
 
