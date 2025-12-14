@@ -18,9 +18,11 @@
         {
             get
             {
-                if (_docTypesList.Count == 0 && DocTypes != null)
+                if (_docTypesList.Count == 0 && !string.IsNullOrWhiteSpace(DocTypes))
                 {
-                    _docTypesList = DocTypes.Split(',').ToList();
+                    _docTypesList = DocTypes.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(x => x.Trim())
+                        .ToList();
                 }
                 return _docTypesList;
             }

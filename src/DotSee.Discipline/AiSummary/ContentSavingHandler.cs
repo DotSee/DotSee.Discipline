@@ -17,10 +17,10 @@ namespace DotSee.Discipline.AiSummary
             foreach (IContent node in notification.SavedEntities)
             {
                 //This is where the magic happens. Unicorns. Free burgers. 
-                bool succcess = _svc.Run(node);
-                if (!succcess)
+                bool success = _svc.Run(node);
+                if (!success)
                 {
-                    notification.Messages.Add(new EventMessage(category: "AI Summary", "Something went wrong. AI summay was not updated. Please check your logs.", EventMessageType.Warning));
+                    notification.Messages.Add(new EventMessage(category: "AI Summary", "Something went wrong. AI summary was not updated. Please check your logs.", EventMessageType.Warning));
                 }
             }
         }
