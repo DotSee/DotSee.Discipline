@@ -16,6 +16,7 @@ namespace DotSee.Discipline.AiSummary.Generators
             promptBuilder.AppendLine($"Maximum {maxChars.ToString()} characters.");
             promptBuilder.AppendLine($"Do not use icons. Do not use emojis. Do not use hashtags. Do not use em dashes. Do not use bullet points. Do not use numbered lists. Just text.");
             promptBuilder.AppendLine($"Make it clear, engaging, and summarise the main value. Do not add anything that isn't in the text.");
+            promptBuilder.AppendLine($"Take all text under consideration.");
             promptBuilder.AppendLine($"Here is the text: {content}");
 
             var client = new Client(apiKey: apiKey);

@@ -48,7 +48,7 @@ namespace DotSee.Discipline.AiSummary
             return list;
         }
 
-        private static void ReplaceProperty(JsonNode? node, string propAlias, string newValue)
+        public static void ReplaceProperty(JsonNode? node, string propAlias, string newValue)
         {
             bool replaced = false;
             if (node is JsonObject obj)

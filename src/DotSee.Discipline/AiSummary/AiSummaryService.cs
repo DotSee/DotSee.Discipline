@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using NPoco;
 using Serilog;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.Blocks;
 using Umbraco.Cms.Core.Serialization;
@@ -76,7 +77,6 @@ namespace DotSee.Discipline.AiSummary
             _logger.Information("AiSummaryService ran for ID {NodeId} with Name {NodeName}", node.Id, node.Name);
             return true;
         }
-
         #endregion
 
         #region Private Methods
@@ -126,7 +126,28 @@ namespace DotSee.Discipline.AiSummary
 
             if (checkResults.IsComplexProperty)
             {
-                AddSummaryToBlockProperty(node, culture, aiResult);
+
+                try
+                {
+                    var bl = AddSummaryToBlockProperty(node, culture, aiResult);
+                    node.SetValue(_settings.PropertyAlias.Split('.')[0], bl, culture);
+                }
+                catch
+                {
+                    _logger.Warning("AiSummaryService could not update block property for ID {NodeId} with Name {NodeName}. Falling back to nested content", node.Id, node.Name);
+
+                    //This is extremely ugly, but it's here only for v13 and for the case that it's an NC property
+                    //instead of a blocklist. 
+                    try
+                    {
+                        var bl = AddSummaryToNcProperty(node, culture, aiResult);
+                        node.SetValue(_settings.PropertyAlias.Split('.')[0], bl, culture);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Error("AiSummaryService could not update complex property (with fallback to nested content) for ID {NodeId} with Name {NodeName}. Exception message: {message}", node.Id, node.Name, ex.Message);
+                    }
+                }
             }
             else
             {
@@ -176,7 +197,7 @@ namespace DotSee.Discipline.AiSummary
                     throw new NotImplementedException($"The specified LLM '{llm}' is not implemented.");
             }
         }
-        private void AddSummaryToBlockProperty(IContent node, string culture, string summary)
+        private string AddSummaryToBlockProperty(IContent node, string culture, string summary)
         {
             string[] aliases = _settings.PropertyAlias.Split('.');
 
@@ -210,12 +231,11 @@ namespace DotSee.Discipline.AiSummary
 
                     var updatedJson = _jsonSerializer.Serialize(blockValue);
 
-                    node.SetValue(blockListPropertyAlias, updatedJson, culture);
-
                     //Job done, exit everything.
-                    return;
+                    return updatedJson;
                 }
             }
+            return null;
         }
 
         public string? GetElementTypeAlias(BlockItemData block)
@@ -239,42 +259,35 @@ namespace DotSee.Discipline.AiSummary
         //var blockContent = blockItem.Content as IContent;
         // blockContent.SetValue(blockAiSummaryPropertyAlias, summary, culture);
 
-        //private JsonNode AddSummaryToBlockProperty(IContent node, string culture, string summary)
-        //{
-        //    JsonNode bl = GetJsonFromNode(node, culture);
-        //    if (bl == null)
-        //    {
-        //        return null;
-        //    }
+        private JsonNode AddSummaryToNcProperty(IContent node, string culture, string summary)
+        {
+            JsonNode bl = JsonHelper.GetJsonFromNode(node, _settings.PropertyAlias.Split('.')[0], culture);
+            if (bl == null)
+            {
+                return null;
+            }
 
-        //    // Look for contentData array
-        //    JsonArray contentData = null;
-
-        //    //Try in blocks
-        //    try
-        //    {
-        //        contentData = bl["contentData"] as JsonArray;
-        //    }
-        //    catch
-        //    {
-        //        //Fallback to NC (V13 specific)
-        //        try
-        //        {
-        //            contentData = bl as JsonArray;
-        //        }
-        //        catch { }
-        //    }
-
-        //    if (contentData == null)
-        //    {
-        //        return null;
-        //    }
-
-        //    ReplaceProperty(contentData, _settings.PropertyAlias.Split('.')[1], summary);
-        //    return bl;
-        //}
+            // Look for contentData array
+            JsonArray contentData = null;
 
 
+            //Fallback to NC (V13 specific)
+            try
+            {
+                contentData = bl as JsonArray;
+            }
+            catch { }
+
+
+            if (contentData == null)
+            {
+                return null;
+            }
+
+            JsonHelper.ReplaceProperty(contentData, _settings.PropertyAlias.Split('.')[2], summary);
+
+            return bl;
+        }
 
         private ServiceCheckResults ShouldContinue(IContent node)
         {
