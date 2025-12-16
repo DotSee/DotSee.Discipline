@@ -1,33 +1,42 @@
 ﻿using DotSee.Discipline.AiSummary.Generators;
 using DotSee.Discipline.Interfaces;
+using Newtonsoft.Json.Linq;
 using NPoco;
 using Serilog;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Models.Blocks;
+using Umbraco.Cms.Core.Serialization;
+using Umbraco.Cms.Core.Services;
 using Umbraco.Extensions;
 
 namespace DotSee.Discipline.AiSummary
 {
     public class AiSummaryService
     {
-
         #region Private Members
 
         private AiSummarySettings _settings;
         private readonly JsonSettingsProviderService _settingsProviderService;
         private ILogger _logger;
+        private readonly IJsonSerializer _jsonSerializer;
+        private readonly IContentTypeService _contentTypeService;
 
         #endregion
 
         #region Constructors
         public AiSummaryService(
             JsonSettingsProviderService settingsProviderService,
-            ILogger logger)
+            ILogger logger,
+            IJsonSerializer jsonSerializer,
+            IContentTypeService contentTypeService)
         {
             _settingsProviderService = settingsProviderService;
             _settings = ((ISettings<AiSummarySettings>)_settingsProviderService).Settings;
             _logger = logger;
+            _jsonSerializer = jsonSerializer;
+            _contentTypeService = contentTypeService;
         }
 
         #endregion
@@ -74,6 +83,12 @@ namespace DotSee.Discipline.AiSummary
         #region Private Methods
         private void DoRun(IContent node, ServiceCheckResults checkResults, string culture)
         {
+            //Check if toggle property exists in current node and whether is has been set to true.
+            if (checkResults.HasToggleProperty && (node.GetValue(_settings.TogglePropertyAlias, culture)?.ToString()?.ToLower() ?? "0") == "0")
+            {
+                return;
+            }
+
             //Get the current value of the property to update.
             var currentValue = checkResults.IsComplexProperty
                 ? GetBlockPropertyValue(GetJsonFromNode(node, culture), _settings.PropertyAlias.Split('.')[1])
@@ -110,15 +125,9 @@ namespace DotSee.Discipline.AiSummary
                 content: singleString.StripHtml()
                 );
 
-
             if (checkResults.IsComplexProperty)
             {
-                JsonNode bl = AddSummaryToBlockProperty(node, culture, aiResult);
-                if (bl == null)
-                {
-                    return;
-                }
-                node.SetValue(_settings.PropertyAlias.Split('.')[0], bl.ToString(), culture);
+                AddSummaryToBlockProperty(node, culture, aiResult);
             }
             else
             {
@@ -128,7 +137,7 @@ namespace DotSee.Discipline.AiSummary
             //If you've reached this far there's a toggle property and it was set to true, set it to false
             if (checkResults.HasToggleProperty)
             {
-                node.SetValue(_settings.TogglePropertyAlias, false);
+                node.SetValue(_settings.TogglePropertyAlias, false, culture);
             }
         }
 
@@ -168,42 +177,103 @@ namespace DotSee.Discipline.AiSummary
                     throw new NotImplementedException($"The specified LLM '{llm}' is not implemented.");
             }
         }
-
-        private JsonNode AddSummaryToBlockProperty(IContent node, string culture, string summary)
+        private void AddSummaryToBlockProperty(IContent node, string culture, string summary)
         {
-            JsonNode bl = GetJsonFromNode(node, culture);
-            if (bl == null)
-            {
-                return null;
-            }
+            string[] aliases = _settings.PropertyAlias.Split('.');
 
-            // Look for contentData array
-            JsonArray contentData = null;
+            var blockListPropertyAlias = aliases[0];
+            var elementTypeAlias = aliases[1];
+            var blockAiSummaryPropertyAlias = aliases[2];
 
-            //Try in blocks
-            try
+            var blockModelRaw = node.GetValue(blockListPropertyAlias, culture);
+            var blockValue = _jsonSerializer.Deserialize<BlockValue>(blockModelRaw.ToString());
+
+            foreach (var layoutEntry in blockValue.Layout.Values)
             {
-                contentData = bl["contentData"] as JsonArray;
-            }
-            catch
-            {
-                //Fallback to NC (just for V13)
-                try
+                if (layoutEntry is not JArray layoutArray) continue;
+
+                foreach (var li in layoutArray.OfType<JObject>())
                 {
-                    contentData = bl as JsonArray;
+                    var contentUdiStr = li["contentUdi"]?.Value<string>();
+                    if (string.IsNullOrWhiteSpace(contentUdiStr)) continue;
+
+                    var block = blockValue.ContentData.FirstOrDefault(x => x.Udi?.ToString() == contentUdiStr);
+                    if (block is null) continue;
+
+                    //The content type alias is NOT in the JSON, so we need to get it from the block 
+                    //using the content type service.
+                    var blockTypeAlias = GetElementTypeAlias(block);
+                    if (blockTypeAlias != elementTypeAlias && (blockTypeAlias != elementTypeAlias)) continue;
+
+                    // IMPORTANT: if summary wasn't present (because empty), just add it
+                    block.RawPropertyValues ??= new();
+                    block.RawPropertyValues[blockAiSummaryPropertyAlias] = summary;
+
+                    var updatedJson = _jsonSerializer.Serialize(blockValue);
+
+                    node.SetValue(blockListPropertyAlias, updatedJson, culture);
+
+                    //Job done, exit everything.
+                    return;
                 }
-                catch { }
             }
-
-            if (contentData == null)
-            {
-                return null;
-            }
-
-            ReplaceProperty(bl, _settings.PropertyAlias.Split('.')[1], summary);
-            return bl;
-
         }
+
+        public string? GetElementTypeAlias(BlockItemData block)
+        {
+            if (block.ContentTypeKey == Guid.Empty) return null;
+
+            var ct = _contentTypeService.Get(block.ContentTypeKey);
+            return ct?.Alias;
+        }
+
+        //foreach (var block in blockModelList)
+        //{
+        //    var a = block.Content.ContentType.Alias;
+        //}
+        //var blockItem = blockModel.FirstOrDefault(x => x.Content.HasProperty(blockAiSummaryPropertyAlias));
+        //if (blockItem == null)
+        //{
+        //    return;
+        //}
+
+        //var blockContent = blockItem.Content as IContent;
+        // blockContent.SetValue(blockAiSummaryPropertyAlias, summary, culture);
+
+        //private JsonNode AddSummaryToBlockProperty(IContent node, string culture, string summary)
+        //{
+        //    JsonNode bl = GetJsonFromNode(node, culture);
+        //    if (bl == null)
+        //    {
+        //        return null;
+        //    }
+
+        //    // Look for contentData array
+        //    JsonArray contentData = null;
+
+        //    //Try in blocks
+        //    try
+        //    {
+        //        contentData = bl["contentData"] as JsonArray;
+        //    }
+        //    catch
+        //    {
+        //        //Fallback to NC (V13 specific)
+        //        try
+        //        {
+        //            contentData = bl as JsonArray;
+        //        }
+        //        catch { }
+        //    }
+
+        //    if (contentData == null)
+        //    {
+        //        return null;
+        //    }
+
+        //    ReplaceProperty(contentData, _settings.PropertyAlias.Split('.')[1], summary);
+        //    return bl;
+        //}
 
         private JsonNode GetJsonFromNode(IContent node, string culture)
         {
@@ -219,7 +289,6 @@ namespace DotSee.Discipline.AiSummary
             }
             return bl;
         }
-
 
         private ServiceCheckResults ShouldContinue(IContent node)
         {
@@ -242,6 +311,7 @@ namespace DotSee.Discipline.AiSummary
                 return result;
             }
 
+            //Check if property to update has been specified
             if (string.IsNullOrEmpty(_settings.PropertyAlias))
             {
                 result.ShouldContinue = false;
@@ -249,7 +319,7 @@ namespace DotSee.Discipline.AiSummary
             }
 
             //Check if it is a complex property (blocklist) - if so check if it exists
-            if (_settings.PropertyAlias.Count(x => x == '.') == 1)
+            if (_settings.PropertyAlias.Count(x => x == '.') == 2)
             {
                 var aliases = _settings.PropertyAlias.Split('.');
                 if (!node.HasProperty(aliases[0]))
@@ -267,19 +337,13 @@ namespace DotSee.Discipline.AiSummary
                 return result;
             }
 
-            //Check if toggle property exists in current node and whether is has been set to true.
-            bool hasToggleProperty = node.HasProperty(_settings.TogglePropertyAlias ?? "");
-            result.HasToggleProperty = hasToggleProperty;
-
-            if (hasToggleProperty && (node.GetValue(_settings.TogglePropertyAlias)?.ToString()?.ToLower() ?? "0") == "0")
-            {
-                result.ShouldContinue = false;
-                return result;
-            }
+            //Check if toggle property exists in current node.
+            result.HasToggleProperty = node.HasProperty(_settings.TogglePropertyAlias ?? "");
 
             return result;
         }
 
+        //Check if property editor alias is allowed. This is V13 specific.
         private static bool IsAllowedPropertyType(string propertyEditorAlias)
         {
             if (
@@ -313,10 +377,12 @@ namespace DotSee.Discipline.AiSummary
                 {
                     continue;
                 }
-                var value = prop.GetValue(culture);
 
+                var value = prop.GetValue(culture);
                 if (value == null)
+                {
                     continue;
+                }
 
                 if (value is string str)
                 {
@@ -386,9 +452,9 @@ namespace DotSee.Discipline.AiSummary
             return list;
         }
 
-
         private static void ReplaceProperty(JsonNode? node, string propAlias, string newValue)
         {
+            bool replaced = false;
             if (node is JsonObject obj)
             {
                 foreach (var prop in obj.ToList())
@@ -396,11 +462,22 @@ namespace DotSee.Discipline.AiSummary
                     if (prop.Key == propAlias)
                     {
                         obj[propAlias] = newValue;
+                        replaced = true;
                         return;
                     }
 
                     ReplaceProperty(prop.Value, propAlias, newValue);
                 }
+
+                //Property was not found (block item was saved without it being filled), so add it. 
+                //This can add a property to a block that doesn't have it, so be careful.
+                if (!replaced)
+                {
+                    obj.Add(propAlias, newValue);
+                    replaced = true;
+                    return;
+                }
+
             }
             else if (node is JsonArray arr)
             {

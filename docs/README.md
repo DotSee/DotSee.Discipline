@@ -62,7 +62,11 @@ You need to have an API key for either service and specify it in the configurati
 **PropertyAlias**: The alias of the property where the generated summary will be stored.
 **TogglePropertyAlias**: (optional) The alias of a true/false property that will act as a toggle for summary generation. If specified, the summary will only be generated if this property is set to true. The property gets automatically set to false afterwards.
 
-Note: The "toggle" property should always be invariant.
+Note: The PropertyAlias property can take two kind of values:
+- A simple property alias (e.g. "aiSummary"): In this case, the "aiSummary" field is a property of the document itself.
+- A block property alias in the format "blockListAlias.elementAlias.propertyAlias" (e.g. "contentBlocks.textBlock.aiSummary"): In this case, the "aiSummary" field is a property of the first "textBlock" block within a block list property having the alias "contentBlocks" in this example.
+
+So if you specify the value of PropertyAlias as "contentBlocks.textBlock.aiSummary", the plugin will look for a block list property with alias "contentBlocks", then look for the first block of type "textBlock" within it, and finally set the value of the "aiSummary" property of that block.
 
 # Restricting creation of new nodes in the Umbraco back office (formerly NodeRestrict)
 
