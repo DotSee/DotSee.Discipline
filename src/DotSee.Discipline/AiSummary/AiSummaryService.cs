@@ -4,7 +4,6 @@ using Newtonsoft.Json.Linq;
 using NPoco;
 using Serilog;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.Blocks;
 using Umbraco.Cms.Core.Serialization;
@@ -91,7 +90,7 @@ namespace DotSee.Discipline.AiSummary
 
             //Get the current value of the property to update.
             var currentValue = checkResults.IsComplexProperty
-                ? GetBlockPropertyValue(GetJsonFromNode(node, culture), _settings.PropertyAlias.Split('.')[1])
+                ? JsonHelper.GetBlockPropertyValue(JsonHelper.GetJsonFromNode(node, _settings.PropertyAlias.Split('.')[0], culture), _settings.PropertyAlias.Split('.')[2])
                 : node.GetValue(_settings.PropertyAlias, culture);
 
             //Do not update if content already in and no toggle property is set.
@@ -275,20 +274,7 @@ namespace DotSee.Discipline.AiSummary
         //    return bl;
         //}
 
-        private JsonNode GetJsonFromNode(IContent node, string culture)
-        {
-            JsonNode bl = null;
-            var blockList = node.GetValue(_settings.PropertyAlias.Split('.')[0], culture);
-            if (blockList == null)
-            {
-                return null;
-            }
-            else
-            {
-                bl = JsonNode.Parse(blockList.ToString())!;
-            }
-            return bl;
-        }
+
 
         private ServiceCheckResults ShouldContinue(IContent node)
         {
@@ -387,12 +373,12 @@ namespace DotSee.Discipline.AiSummary
                 if (value is string str)
                 {
                     // Try to detect if it's JSON
-                    if (LooksLikeJson(str))
+                    if (JsonHelper.LooksLikeJson(str))
                     {
                         try
                         {
                             var json = JsonDocument.Parse(str);
-                            results.AddRange(GetStringsFromJson(json.RootElement));
+                            results.AddRange(JsonHelper.GetStringsFromJson(json.RootElement));
                         }
                         catch
                         {
@@ -410,119 +396,7 @@ namespace DotSee.Discipline.AiSummary
             return results;
         }
 
-        private static bool LooksLikeJson(string s)
-        {
-            s = s.Trim();
-            return (s.StartsWith("{") && s.EndsWith("}")) || (s.StartsWith("[") && s.EndsWith("]"));
-        }
 
-        private static IEnumerable<string> GetStringsFromJson(JsonElement element)
-        {
-            var list = new List<string>();
-
-            //It may seem silly, but it'll block all umb:// links and also numeric values since they're of smaller lenghts. 
-            switch (element.ValueKind)
-            {
-                case JsonValueKind.String:
-                    var s = element.GetString()?.Trim();
-
-                    //Stop if empty or very small.
-                    if (s.IsNullOrWhiteSpace()) break;
-                    if (s.Length < 50) break;
-
-                    //Just to make sure no rogue links without other content get through
-                    if (s.StartsWith("http://", StringComparison.InvariantCultureIgnoreCase) && !s.Contains(" ")) break;
-                    if (s.StartsWith("https://", StringComparison.InvariantCultureIgnoreCase) && !s.Contains(" ")) break;
-                    if (s.StartsWith("mailto://", StringComparison.InvariantCultureIgnoreCase) && !s.Contains(" ")) break;
-
-                    list.Add(s);
-                    break;
-
-                case JsonValueKind.Object:
-                    foreach (var property in element.EnumerateObject())
-                        list.AddRange(GetStringsFromJson(property.Value));
-                    break;
-
-                case JsonValueKind.Array:
-                    foreach (var item in element.EnumerateArray())
-                        list.AddRange(GetStringsFromJson(item));
-                    break;
-            }
-
-            return list;
-        }
-
-        private static void ReplaceProperty(JsonNode? node, string propAlias, string newValue)
-        {
-            bool replaced = false;
-            if (node is JsonObject obj)
-            {
-                foreach (var prop in obj.ToList())
-                {
-                    if (prop.Key == propAlias)
-                    {
-                        obj[propAlias] = newValue;
-                        replaced = true;
-                        return;
-                    }
-
-                    ReplaceProperty(prop.Value, propAlias, newValue);
-                }
-
-                //Property was not found (block item was saved without it being filled), so add it. 
-                //This can add a property to a block that doesn't have it, so be careful.
-                if (!replaced)
-                {
-                    obj.Add(propAlias, newValue);
-                    replaced = true;
-                    return;
-                }
-
-            }
-            else if (node is JsonArray arr)
-            {
-                foreach (var item in arr)
-                {
-                    ReplaceProperty(item, propAlias, newValue);
-                }
-            }
-        }
-
-        private static string GetBlockPropertyValue(JsonNode? node, string propAlias)
-        {
-
-            if (node is JsonObject obj)
-            {
-                foreach (var prop in obj.ToList())
-                {
-                    if (prop.Key == propAlias)
-                    {
-                        return obj[propAlias]?.ToString();
-
-                    }
-                    var retVal = GetBlockPropertyValue(prop.Value, propAlias);
-                    if (retVal != null)
-                    {
-                        return retVal;
-                    }
-
-                }
-            }
-            else if (node is JsonArray arr)
-            {
-                foreach (var item in arr)
-                {
-                    var retVal = GetBlockPropertyValue(item, propAlias);
-                    if (retVal != null)
-                    {
-                        return retVal;
-                    }
-
-                }
-            }
-            return null;
-
-        }
         #endregion
     }
 }
