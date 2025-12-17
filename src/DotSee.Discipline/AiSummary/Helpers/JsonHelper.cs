@@ -3,7 +3,7 @@ using System.Text.Json.Nodes;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Extensions;
 
-namespace DotSee.Discipline.AiSummary
+namespace DotSee.Discipline.AiSummary.Helpers
 {
     public static class JsonHelper
     {
@@ -86,7 +86,6 @@ namespace DotSee.Discipline.AiSummary
 
         public static string GetBlockPropertyValue(JsonNode? node, string propAlias)
         {
-
             if (node is JsonObject obj)
             {
                 foreach (var prop in obj.ToList())

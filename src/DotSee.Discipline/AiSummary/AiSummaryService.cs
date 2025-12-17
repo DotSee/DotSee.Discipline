@@ -1,4 +1,6 @@
-﻿using DotSee.Discipline.AiSummary.Generators;
+﻿using DotSee.Discipline.AiSummary.Exceptions;
+using DotSee.Discipline.AiSummary.Generators;
+using DotSee.Discipline.AiSummary.Helpers;
 using DotSee.Discipline.Interfaces;
 using Newtonsoft.Json.Linq;
 using NPoco;
@@ -38,12 +40,11 @@ namespace DotSee.Discipline.AiSummary
             _jsonSerializer = jsonSerializer;
             _contentTypeService = contentTypeService;
         }
-
         #endregion
 
         #region Public Methods
 
-        public virtual bool Run(IContent node)
+        public virtual void Run(IContent node)
         {
             //Make all the necessary checks to decide if we should continue. 
             //If so, return an object with other useful info to use further down the line.
@@ -51,7 +52,7 @@ namespace DotSee.Discipline.AiSummary
 
             if (!checkResults.ShouldContinue)
             {
-                return true;
+                return;
             }
 
             try
@@ -71,11 +72,12 @@ namespace DotSee.Discipline.AiSummary
             catch (Exception ex)
             {
                 _logger.Error(ex, "AiSummaryService failed for ID {NodeId} with Name {NodeName}. Exception: {ExceptionMessage}", node.Id, node.Name, ex.Message);
-                return false;
+                throw;
             }
 
             _logger.Information("AiSummaryService ran for ID {NodeId} with Name {NodeName}", node.Id, node.Name);
-            return true;
+
+            return;
         }
         #endregion
 
@@ -89,6 +91,8 @@ namespace DotSee.Discipline.AiSummary
             }
 
             //Get the current value of the property to update.
+            //If it's a block or nested content, it will return null if either the property value is null
+            //or the property does not exist at all. We'll handle that on attempting to write to the property later.
             var currentValue = checkResults.IsComplexProperty
                 ? JsonHelper.GetBlockPropertyValue(JsonHelper.GetJsonFromNode(node, _settings.PropertyAlias.Split('.')[0], culture), _settings.PropertyAlias.Split('.')[2])
                 : node.GetValue(_settings.PropertyAlias, culture);
@@ -100,12 +104,69 @@ namespace DotSee.Discipline.AiSummary
                 return;
             }
 
+            bool propertyUpdated = false;
+            if (checkResults.IsComplexProperty)
+            {
+                try
+                {
+                    var bl = AddSummaryToBlockProperty(node, culture);
+                    if (bl != null)
+                    {
+                        node.SetValue(_settings.PropertyAlias.Split('.')[0], bl, culture);
+                        propertyUpdated = true;
+                    }
+                }
+                catch
+                {
+                    _logger.Warning("AiSummaryService could not update block property for ID {NodeId} with Name {NodeName}. Falling back to nested content", node.Id, node.Name);
+
+                    //This is extremely ugly, but it's here only for v13 and for the case that it's an NC property
+                    //instead of a blocklist. 
+                    try
+                    {
+                        var bl = AddSummaryToNcProperty(node, culture);
+                        if (bl != null)
+                        {
+                            node.SetValue(_settings.PropertyAlias.Split('.')[0], bl, culture);
+                            propertyUpdated = true;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Error("AiSummaryService could not update complex property (with fallback to nested content) for ID {NodeId} with Name {NodeName}. Exception message: {message}", node.Id, node.Name, ex.Message);
+                    }
+                }
+            }
+            else
+            {
+                //Get the AI summary as close to the update operation as possible to avoid wasting tokens
+                //if a problem is encountered.
+                var aiResult = GetAiResults(node, culture);
+                node.SetValue(_settings.PropertyAlias, aiResult, culture);
+                propertyUpdated = true;
+            }
+
+            //If you've reached this far there's a toggle property and it was set to true, set it to false
+            if (checkResults.HasToggleProperty)
+            {
+                node.SetValue(_settings.TogglePropertyAlias, false, culture);
+            }
+
+            if (!propertyUpdated)
+            {
+                throw new PropertyNotUpdatedException($"Property '{_settings.PropertyAlias}' was not updated with AI Summary value. Possible reason is that property does not exist.");
+            }
+            return;
+        }
+
+        private string GetAiResults(IContent node, string culture)
+        {
             //Get all candidate string values from the document.
             var allStrings = GetAllStringValues(node, culture);
 
             if (allStrings == null || !allStrings.Any())
             {
-                return;
+                return null;
             }
 
             var singleString = string.Join("", allStrings);
@@ -124,41 +185,7 @@ namespace DotSee.Discipline.AiSummary
                 content: singleString.StripHtml()
                 );
 
-            if (checkResults.IsComplexProperty)
-            {
-
-                try
-                {
-                    var bl = AddSummaryToBlockProperty(node, culture, aiResult);
-                    node.SetValue(_settings.PropertyAlias.Split('.')[0], bl, culture);
-                }
-                catch
-                {
-                    _logger.Warning("AiSummaryService could not update block property for ID {NodeId} with Name {NodeName}. Falling back to nested content", node.Id, node.Name);
-
-                    //This is extremely ugly, but it's here only for v13 and for the case that it's an NC property
-                    //instead of a blocklist. 
-                    try
-                    {
-                        var bl = AddSummaryToNcProperty(node, culture, aiResult);
-                        node.SetValue(_settings.PropertyAlias.Split('.')[0], bl, culture);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.Error("AiSummaryService could not update complex property (with fallback to nested content) for ID {NodeId} with Name {NodeName}. Exception message: {message}", node.Id, node.Name, ex.Message);
-                    }
-                }
-            }
-            else
-            {
-                node.SetValue(_settings.PropertyAlias, aiResult, culture);
-            }
-
-            //If you've reached this far there's a toggle property and it was set to true, set it to false
-            if (checkResults.HasToggleProperty)
-            {
-                node.SetValue(_settings.TogglePropertyAlias, false, culture);
-            }
+            return aiResult;
         }
 
         private AiSummarySettings SetDefaults()
@@ -197,7 +224,7 @@ namespace DotSee.Discipline.AiSummary
                     throw new NotImplementedException($"The specified LLM '{llm}' is not implemented.");
             }
         }
-        private string AddSummaryToBlockProperty(IContent node, string culture, string summary)
+        private string AddSummaryToBlockProperty(IContent node, string culture)
         {
             string[] aliases = _settings.PropertyAlias.Split('.');
 
@@ -220,10 +247,20 @@ namespace DotSee.Discipline.AiSummary
                     var block = blockValue.ContentData.FirstOrDefault(x => x.Udi?.ToString() == contentUdiStr);
                     if (block is null) continue;
 
-                    //The content type alias is NOT in the JSON, so we need to get it from the block 
+                    //The content type alias is NOT stored in the JSON, so we need to get it from the block 
                     //using the content type service.
                     var blockTypeAlias = GetElementTypeAlias(block);
                     if (blockTypeAlias != elementTypeAlias && (blockTypeAlias != elementTypeAlias)) continue;
+
+                    //Check if property exists
+                    var blockDef = _contentTypeService.Get(blockTypeAlias);
+                    var propExists = blockDef.PropertyTypeExists(blockAiSummaryPropertyAlias);
+
+                    if (!propExists) continue;
+
+                    //Get the AI summary as close to the update operation as possible to avoid wasting tokens
+                    //if a problem is encountered.
+                    string summary = GetAiResults(node, culture);
 
                     // IMPORTANT: if summary wasn't present (because empty), just add it
                     block.RawPropertyValues ??= new();
@@ -246,20 +283,7 @@ namespace DotSee.Discipline.AiSummary
             return ct?.Alias;
         }
 
-        //foreach (var block in blockModelList)
-        //{
-        //    var a = block.Content.ContentType.Alias;
-        //}
-        //var blockItem = blockModel.FirstOrDefault(x => x.Content.HasProperty(blockAiSummaryPropertyAlias));
-        //if (blockItem == null)
-        //{
-        //    return;
-        //}
-
-        //var blockContent = blockItem.Content as IContent;
-        // blockContent.SetValue(blockAiSummaryPropertyAlias, summary, culture);
-
-        private JsonNode AddSummaryToNcProperty(IContent node, string culture, string summary)
+        private JsonNode AddSummaryToNcProperty(IContent node, string culture)
         {
             JsonNode bl = JsonHelper.GetJsonFromNode(node, _settings.PropertyAlias.Split('.')[0], culture);
             if (bl == null)
@@ -283,6 +307,10 @@ namespace DotSee.Discipline.AiSummary
             {
                 return null;
             }
+
+            //Get the AI summary as close to the update operation as possible to avoid wasting tokens
+            //if a problem is encountered.
+            string summary = GetAiResults(node, culture);
 
             JsonHelper.ReplaceProperty(contentData, _settings.PropertyAlias.Split('.')[2], summary);
 
@@ -369,7 +397,6 @@ namespace DotSee.Discipline.AiSummary
                         !x.Alias.Equals(_settings.PropertyAlias, StringComparison.InvariantCultureIgnoreCase)
                         && (!(_settings.ExcludePropertiesList.Any() && _settings.ExcludePropertiesList.Contains(x.Alias)))
                         )
-
                     )
             {
                 if (!IsAllowedPropertyType(prop.PropertyType.PropertyEditorAlias))
