@@ -24,20 +24,18 @@ namespace DotSee.Discipline.AiSummary.Generators
             {
                 SystemInstruction = new Content
                 {
-                    Parts =
-                        new List<Part>
+                    Parts = new List<Part>
+                    {
+                        new Part
                         {
-                            new Part
-                            {
-                                Text =
-                                @"Always respond in the SAME language as the input text.
-                                Never translate unless the user explicitly asks for translation.
-                                Identify the primary language of the text after the 'Here is the text:' part and create a summary in that language. Do not output a response for identification."
-                            }
+                            Text =
+                            @"Always respond in the SAME language as the input text.
+                            Never translate unless the user explicitly asks for translation.
+                            Identify the primary language of the text after the 'Here is the text:' part and create a summary in that language. Do not output a response for identification."
                         }
+                    }
                 }
             };
-
 
             var client = new Client(apiKey: apiKey);
 
