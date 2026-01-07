@@ -48,7 +48,7 @@ namespace DotSee.Discipline.AiSummary.Helpers
             return list;
         }
 
-        public static void ReplaceProperty(JsonNode? node, string propAlias, string newValue)
+        public static bool ReplaceProperty(JsonNode? node, string propAlias, string newValue)
         {
             bool replaced = false;
             if (node is JsonObject obj)
@@ -59,10 +59,11 @@ namespace DotSee.Discipline.AiSummary.Helpers
                     {
                         obj[propAlias] = newValue;
                         replaced = true;
-                        return;
+                        return true;
                     }
 
-                    ReplaceProperty(prop.Value, propAlias, newValue);
+                    replaced = ReplaceProperty(prop.Value, propAlias, newValue);
+                    if (replaced) return true;
                 }
 
                 //Property was not found (block item was saved without it being filled), so add it. 
@@ -71,7 +72,7 @@ namespace DotSee.Discipline.AiSummary.Helpers
                 {
                     obj.Add(propAlias, newValue);
                     replaced = true;
-                    return;
+                    return true;
                 }
 
             }
@@ -79,9 +80,11 @@ namespace DotSee.Discipline.AiSummary.Helpers
             {
                 foreach (var item in arr)
                 {
-                    ReplaceProperty(item, propAlias, newValue);
+                    replaced = ReplaceProperty(item, propAlias, newValue);
+                    if (replaced) return true;
                 }
             }
+            return replaced;
         }
 
         public static string GetBlockPropertyValue(JsonNode? node, string propAlias)
