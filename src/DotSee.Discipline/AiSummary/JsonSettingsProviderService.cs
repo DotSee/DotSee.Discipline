@@ -43,6 +43,7 @@ namespace DotSee.Discipline.AiSummary
                 _logger.Error(ex, MessageConstants.ErrorLoadConfig);
                 return null;
             }
+            _logger.Information(string.Format(MessageConstants.InfoLoadConfigComplete));
             return r;
         }
     }
