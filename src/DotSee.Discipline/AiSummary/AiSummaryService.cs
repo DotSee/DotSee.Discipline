@@ -146,16 +146,18 @@ namespace DotSee.Discipline.AiSummary
                 propertyUpdated = true;
             }
 
+            if (!propertyUpdated)
+            {
+                throw new PropertyNotUpdatedException($"Property '{_settings.PropertyAlias}' was not updated with AI Summary value. Possible reason is that property does not exist.");
+            }
+
             //If you've reached this far there's a toggle property and it was set to true, set it to false
             if (checkResults.HasToggleProperty)
             {
                 node.SetValue(_settings.TogglePropertyAlias, false, culture);
             }
 
-            if (!propertyUpdated)
-            {
-                throw new PropertyNotUpdatedException($"Property '{_settings.PropertyAlias}' was not updated with AI Summary value. Possible reason is that property does not exist.");
-            }
+            return;
             return;
         }
 
@@ -250,7 +252,7 @@ namespace DotSee.Discipline.AiSummary
                     //The content type alias is NOT stored in the JSON, so we need to get it from the block 
                     //using the content type service.
                     var blockTypeAlias = GetElementTypeAlias(block);
-                    if (blockTypeAlias != elementTypeAlias && (blockTypeAlias != elementTypeAlias)) continue;
+                    if (blockTypeAlias != elementTypeAlias) continue;
 
                     //Check if property exists
                     var blockDef = _contentTypeService.Get(blockTypeAlias);
