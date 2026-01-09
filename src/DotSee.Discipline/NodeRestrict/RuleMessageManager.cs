@@ -1,6 +1,4 @@
-﻿
-
-using Umbraco.Cms.Core.Services;
+﻿using Umbraco.Cms.Core.Services;
 
 namespace DotSee.Discipline.NodeRestrict
 {
@@ -9,7 +7,6 @@ namespace DotSee.Discipline.NodeRestrict
     /// </summary>
     public class RuleMessageManager
     {
-      
         private Rule _rule;
         private string _parentDocTypeName;
         private string _childDocTypeName;
@@ -29,14 +26,14 @@ namespace DotSee.Discipline.NodeRestrict
         public string GetMessage()
         {
             //Custom message overrides everything
-            if (!string.IsNullOrEmpty(_rule.CustomMessage)) {return (_rule.CustomMessage);}
+            if (!string.IsNullOrEmpty(_rule.CustomMessage)) { return (_rule.CustomMessage); }
 
             //Return a standard message if this rule is created on the fly based on a special document property value
             if (_rule.FromProperty)
             {
                 return (string.Format("Node saved but not published. Max allowed children: {0}.", _rule.MaxNodes.ToString()));
             }
-            
+
             //This is the message that is returned when a rule is in the config file, and no custom message has been defined.
             return string.Format(
                 "Node saved but not published. Max allowed children {1} directly under {2}: {0}."
@@ -68,7 +65,7 @@ namespace DotSee.Discipline.NodeRestrict
             //Return a standard message if this rule is created on the fly based on a special document property value
             if (_rule.FromProperty)
             {
-                return (string.Format("Restrictions for this node are in place. You have published {0} out {1} allowed child nodes.", (currentNodeCount+1).ToString(), _rule.MaxNodes.ToString()));
+                return (string.Format("Restrictions for this node are in place. You have published {0} out {1} allowed child nodes.", (currentNodeCount + 1).ToString(), _rule.MaxNodes.ToString()));
             }
 
             //This is the message that is returned when a rule is in the config file, and no custom message has been defined.
@@ -79,7 +76,7 @@ namespace DotSee.Discipline.NodeRestrict
                 , _rule.ParentDocType.Equals("*") ? "any node" : string.Format("nodes of type \"{0}\"", _parentDocTypeName)
                 , _rule.ChildDocType.Equals("*") ? "Any node" : string.Format("Nodes of type \"{0}\"", _childDocTypeName)
                 );
-            
+
         }
         /// <summary>
         /// Returns the literal for the warning message category

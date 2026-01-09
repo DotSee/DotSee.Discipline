@@ -49,7 +49,7 @@ namespace DotSee.Discipline.NodeProtect
         /// Applies all rules on publishing a node. 
         /// </summary>
         /// <param name="node">The newly created node we need to apply rules for</param>
-        public Result Run(IContent node)
+        public virtual Result Run(IContent node)
         {
 
             Result result = null;
