@@ -71,47 +71,35 @@ namespace DotSee.Discipline.NodeRestrict
 
             if (node.AvailableCultures.Any() && node.EditedCultures.Any())
             {
-                if (node.EditedCultures.Any())
-                {
-                    culture = node.EditedCultures.First().ToString();
-                }
-                else
-                {
-                    culture = node.AvailableCultures.First().ToString();
-                }
+                culture = node.EditedCultures.First();
             }
 
             //Check if the document's parent has the (optional) "special" property that defines the 
             //maximum number of children. If it does, then this overrides any other rules in effect.
-            //Swallow any exceptions here. If it's there, it's there. If it's not, don't bother.
             var propertyAlias = _settings.PropertyAlias;
-            try
+            if (!string.IsNullOrEmpty(propertyAlias) && parent.HasProperty(propertyAlias))
             {
-                if (
-                    parent.HasProperty(propertyAlias)
-                    && parent.Properties[propertyAlias] != null
-                    && parent.GetValue<int>(propertyAlias, culture) > 0
-                    )
+                var maxChildren = parent.GetValue<int>(propertyAlias, culture);
+                if (maxChildren > 0)
                 {
                     //Create a rule on the fly and apply it for all children of the parent node.
-                    Rule customRule = new Rule(parent.ContentType.Alias, "*", parent.GetValue<int>(propertyAlias, culture), true, _settings.ShowWarnings);
-                    return CheckRule(customRule, node, culture);
+                    Rule customRule = new Rule(parent.ContentType.Alias, "*", maxChildren, true, _settings.ShowWarnings);
+                    return CheckRule(customRule, node, parent, culture);
                 }
             }
-            catch { }
 
             //If this part is reached, then we haven't found a "special" property at the parent node
             //and we are going to check the rules loaded from the config file.
             foreach (Rule rule in _rules)
             {
                 //Check if rule applies
-                result = CheckRule(rule, node, culture);
+                result = CheckRule(rule, node, parent, culture);
 
                 //Stop at the first rule that applies. 
                 if (result != null) { break; }
             }
 
-            return (result);
+            return result;
         }
 
         #endregion
@@ -123,34 +111,37 @@ namespace DotSee.Discipline.NodeRestrict
         /// </summary>
         /// <param name="rule">The rule</param>
         /// <param name="node">The node to check against the rule</param>
+        /// <param name="parent">The parent node</param>
+        /// <param name="culture">The culture</param>
         /// <returns>Null if the rule does not apply to the node, or a Result object if it does.</returns>
-        private Result CheckRule(Rule rule, IContent node, string culture = null)
+        private Result CheckRule(Rule rule, IContent node, IContent parent, string culture = null)
         {
-            IContent parent = _cs.GetById(node.ParentId);
             //If maxnodes not at least equal 1 then skip this rule.
             if (rule.MaxNodes <= 0) { return null; }
-            long totalChildren = 0;
 
             ////See if doctypes for parent and child node match our current scenario
-            bool isMatchParent = parent.ContentType.Alias.ToLower().Equals(rule.ParentDocType.ToLower()) || rule.ParentDocType.Equals("*");
-            bool isMatchChild = rule.ChildDocType.ToLower().Equals(node.ContentType.Alias.ToLower()) || rule.ChildDocType.Equals("*");
+            bool isMatchParent = rule.ParentDocType.Equals("*") || parent.ContentType.Alias.Equals(rule.ParentDocType, StringComparison.OrdinalIgnoreCase);
+            bool isMatchChild = rule.ChildDocType.Equals("*") || node.ContentType.Alias.Equals(rule.ChildDocType, StringComparison.OrdinalIgnoreCase);
+
             ////If rule doctypes do not match, skip this rule
             if (!isMatchChild || !isMatchParent) { return null; }
 
-
             //If we're checking for children regardless of doctype, then getting a page size equal to 
             //the max nodes limit is enough to check. Otherwise, get everything so we can filter
-            var maxNodes = rule.ChildDocType.Equals("*") ? int.MaxValue : rule.MaxNodes;
+            var maxNodes = rule.ChildDocType.Equals("*") ? rule.MaxNodes : int.MaxValue;
 
-            IEnumerable<IContent> children = new List<IContent>();
+            long totalChildren;
             var filter = GetFilter(rule, culture);
-            children = _cs.GetPagedChildren(node.ParentId, 0, maxNodes, out totalChildren, filter)
+            var children = _cs.GetPagedChildren(parent.Id, 0, maxNodes, out totalChildren, filter)
                 .Where(x => culture == null ? x.Published : x.Published && CheckPublishedAndCulture(x, culture));
 
-            if (rule.ParentDocType != "*")
+            if (!rule.ParentDocType.Equals("*"))
             {
-                var _parentTypeToSearch = _contentTypeService.Get(rule.ParentDocType);
-                children = children.Where(x => _cs.GetById(x.ParentId).ContentTypeId == _parentTypeToSearch.Id);
+                var parentTypeToSearch = _contentTypeService.Get(rule.ParentDocType);
+                if (parentTypeToSearch != null)
+                {
+                    children = children.Where(x => parent.ContentTypeId == parentTypeToSearch.Id);
+                }
             }
 
             return Result.GetResult(children.Count(), rule);
@@ -164,7 +155,7 @@ namespace DotSee.Discipline.NodeRestrict
             //Check if node is variant or invariant. Invariant nodes should count anyway.
             //Variant nodes only count if they're in the right culture.
             if (
-                    _contentTypeService.Get(node.ContentTypeId).VariesByCulture()
+                    node.ContentType.VariesByCulture()
                     && node.AvailableCultures.Any()
                     && node.EditedCultures.Any())
             {

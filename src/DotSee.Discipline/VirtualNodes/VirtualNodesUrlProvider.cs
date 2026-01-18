@@ -39,8 +39,8 @@ namespace DotSee.Discipline.VirtualNodes
             }
             using (var umb = _umbContextFactory.EnsureUmbracoContext())
             {
-                var _urlInfo = hasVirtualNodeInPath ? ConstructUrl(umb.UmbracoContext, content.Id, current, mode, content, culture) : null;
-                return _urlInfo;
+                var urlInfo = hasVirtualNodeInPath ? ConstructUrl(umb.UmbracoContext, content.Id, current, mode, content, culture) : null;
+                return urlInfo;
             }
         }
 
@@ -60,15 +60,12 @@ namespace DotSee.Discipline.VirtualNodes
             //DO NOT USE THIS - RECURSES: string url = content.Url;
             //https://our.umbraco.org/forum/developers/extending-umbraco/73533-custom-url-provider-stackoverflowerror
             //https://our.umbraco.org/forum/developers/extending-umbraco/66741-iurlprovider-cannot-evaluate-expression-because-the-current-thread-is-in-a-stack-overflow-state
-            string url = null;
-            try
-            {
-                url = base.GetUrl(content, mode, culture, current).Text;
-            }
-            catch (NullReferenceException ex)
+            var baseUrl = base.GetUrl(content, mode, culture, current);
+            if (baseUrl == null || string.IsNullOrEmpty(baseUrl.Text))
             {
                 return null;
             }
+            string url = baseUrl.Text;
             //If we come from an absolute URL, strip the host part and keep it so that we can append
             //it again when returing the URL. 
             string hostPart = "";
@@ -80,14 +77,7 @@ namespace DotSee.Discipline.VirtualNodes
             }
 
             //Strip leading and trailing slashes 
-            if ((url.EndsWith("/")))
-            {
-                url = url.Substring(0, url.Length - 1);
-            }
-            if ((url.StartsWith("/")))
-            {
-                url = url.Substring(1, url.Length - 1);
-            }
+            url = url.Trim('/');
 
             //Now split the url. We should have as many elements as those in pathIds.
             string[] urlParts = url.Split('/').Reverse().ToArray();
@@ -102,7 +92,19 @@ namespace DotSee.Discipline.VirtualNodes
                     cnt++;
                     continue;
                 }
-                IPublishedContent currItem = umbracoContext.Content.GetById(int.Parse(pathIds[cnt]));
+                if (!int.TryParse(pathIds[cnt], out var pathId))
+                {
+                    cnt++;
+                    continue;
+                }
+
+                IPublishedContent currItem = umbracoContext.Content.GetById(pathId);
+
+                if (currItem == null)
+                {
+                    cnt++;
+                    continue;
+                }
 
                 //Omit any virtual node unless it's leaf level (we still need this otherwise it will be pointing to parent's URL)
                 if (currItem.IsVirtualNode(_virtualNodesRuleManager) && cnt > 0)
@@ -127,10 +129,10 @@ namespace DotSee.Discipline.VirtualNodes
             }
 
             finalUrl = string.Concat(hostPart, finalUrl);
-            var _urlInfo = new UrlInfo(finalUrl, true, culture);
+            var urlInfo = new UrlInfo(finalUrl, true, culture);
 
             //Voila.
-            return _urlInfo;
+            return urlInfo;
         }
     }
 }

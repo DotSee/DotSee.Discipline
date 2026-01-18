@@ -67,21 +67,29 @@ namespace DotSee.Discipline.NodeProtect
             }
 
             //Checks for current node not successfull, check all children.
-            foreach (var subnode in _cs.GetPagedDescendants(node.Id, 0, int.MaxValue, out long total))
+            const int pageSize = 500;
+            var page = 0;
+            long total;
+
+            do
             {
-                if (result != null) { break; }
-
-                foreach (Rule rule in _rules)
+                var descendants = _cs.GetPagedDescendants(node.Id, page, pageSize, out total);
+                foreach (var subnode in descendants)
                 {
-                    //Check if rule applies
-                    result = CheckRule(rule, subnode);
+                    foreach (Rule rule in _rules)
+                    {
+                        //Check if rule applies
+                        result = CheckRule(rule, subnode);
 
-                    //Stop at the first rule that applies. 
-                    if (result != null) { break; }
+                        //Stop at the first rule that applies.
+                        if (result != null) { return result; }
+                    }
                 }
-            }
+                page++;
+            } while (page * pageSize < total);
+
             //Return the result or null if no result has been found
-            return (result);
+            return result;
         }
 
         #endregion
@@ -100,21 +108,14 @@ namespace DotSee.Discipline.NodeProtect
 
             //Check if the document has the (optional) "special" property that defines 
             //whether it should be allowed to be deleted.
-            //Swallow any exceptions here. If it's there, it's there. If it's not, don't bother.
-            try
+            if (!string.IsNullOrEmpty(propertyAlias) && node.HasProperty(propertyAlias))
             {
-                if (
-                    propertyAlias != null
-                    && node.HasProperty(propertyAlias)
-                    && node.Properties[propertyAlias] != null
-                    && node.GetValue<bool>(propertyAlias)
-                    )
+                if (node.GetValue<bool>(propertyAlias))
                 {
                     Rule customRule = new Rule("", node.Key.ToString());
                     return Result.GetResult(customRule, node);
                 }
             }
-            catch { }
 
             bool guidsDefined = !string.IsNullOrEmpty(rule.DocumentGuids);
             bool doctypesDefined = !string.IsNullOrEmpty(rule.DocTypeAlias);
@@ -122,27 +123,21 @@ namespace DotSee.Discipline.NodeProtect
             //If nothing has been defined, rule will not apply
             if (!guidsDefined && !doctypesDefined) { return null; }
 
-            var doctypes = rule.DocTypeAlias?.Split(',');
-            var guids = rule.DocumentGuids?.Split(",");
-
             if (doctypesDefined)
             {
-                var currContentType = node.ContentType.Alias.ToLowerInvariant();
-                foreach (string item in doctypes)
+                var doctypes = rule.DocTypeAlias.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                if (doctypes.Any(x => x.Trim().Equals(node.ContentType.Alias, StringComparison.OrdinalIgnoreCase)))
                 {
-                    if (item.ToLowerInvariant().Equals(currContentType))
-                    {
-                        return Result.GetResult(rule, node);
-                    }
+                    return Result.GetResult(rule, node);
                 }
             }
 
             if (guidsDefined)
             {
-                var currGuid = node.Key.ToString().ToLower();
+                var guids = rule.DocumentGuids.Split(',', StringSplitOptions.RemoveEmptyEntries);
                 foreach (string item in guids)
                 {
-                    if (item.ToLower().Equals(currGuid))
+                    if (Guid.TryParse(item.Trim(), out var guid) && guid == node.Key)
                     {
                         return Result.GetResult(rule, node);
                     }

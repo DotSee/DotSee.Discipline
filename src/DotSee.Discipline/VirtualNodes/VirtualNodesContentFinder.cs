@@ -12,6 +12,7 @@ namespace DotSee.Discipline.VirtualNodes
         private readonly IMemoryCache _memCache;
         private readonly IUmbracoContextAccessor _contextAccessor;
         private readonly ILogger _logger;
+        private static readonly object _lock = new object();
 
         public VirtualNodesContentFinder(IMemoryCache memCache, IUmbracoContextAccessor contextAccessor, ILogger logger)
         {
@@ -36,13 +37,12 @@ namespace DotSee.Discipline.VirtualNodes
             string path = request.AbsolutePathDecoded;
 
             // Ignore cache if backoffice save/publish
-            if (!_umb.OriginalRequestUrl.AbsolutePath.ToLower().Contains("/umbraco/backoffice/umbracoapi/content/postsave"))
+            if (!_umb.OriginalRequestUrl.AbsolutePath.Contains("/umbraco/backoffice/umbracoapi/content/postsave", StringComparison.OrdinalIgnoreCase))
             {
                 //If found in the cached dictionary, get the node id from there
-                if (cachedVirtualNodeUrls != null && cachedVirtualNodeUrls.ContainsKey(path))
+                if (cachedVirtualNodeUrls != null && cachedVirtualNodeUrls.TryGetValue(path, out var nodeId))
                 {
                     //That's all folks
-                    int nodeId = cachedVirtualNodeUrls[path];
                     request.SetPublishedContent(_umb.Content?.GetById(nodeId));
                     return Task.FromResult(true);
                 }
@@ -55,37 +55,41 @@ namespace DotSee.Discipline.VirtualNodes
             {
                 item = rootNodes
                 ?.DescendantsOrSelf<IPublishedContent>(request.Culture)
-                ?.Where(x => x.Url(request.Culture) == (path + "/") || x.Url(request.Culture) == path)
-                .FirstOrDefault();
+                ?.FirstOrDefault(x =>
+                {
+                    var url = x.Url(request.Culture);
+                    return url == path || url == (path + "/");
+                });
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, string.Format("Could not get content for URL '{0}'", request.Uri.ToString()));
+                _logger.Error(ex, $"Could not get content for URL '{request.Uri}'");
             }
 
             //If item is found, return it after adding it to the cache so we don't have to go through the same process again.
-            if (cachedVirtualNodeUrls == null) { cachedVirtualNodeUrls = new Dictionary<string, int>(); }
-
-            //If we have found a node that corresponds to the URL given
             if (item != null)
             {
-                //This check is redundant, but better to be on the safe side.
-                if (!cachedVirtualNodeUrls.ContainsKey(path))
+                lock (_lock)
                 {
-                    //Add the new path and id to the dictionary so that we don't have to go through the tree again next time.
-                    cachedVirtualNodeUrls.Add(path, item.Id);
-                }
-                else if (cachedVirtualNodeUrls[path] != item.Id)
-                {
-                    // Update dictionary if path is a different node
-                    cachedVirtualNodeUrls[path] = item.Id;
-                }
+                    cachedVirtualNodeUrls = _memCache.Get<Dictionary<string, int>>("cachedVirtualNodes") ?? new Dictionary<string, int>();
 
-                //Update cache
-                _memCache.Set("cachedVirtualNodes", cachedVirtualNodeUrls, new MemoryCacheEntryOptions
-                {
-                    Priority = CacheItemPriority.High
-                });
+                    if (!cachedVirtualNodeUrls.ContainsKey(path))
+                    {
+                        //Add the new path and id to the dictionary so that we don't have to go through the tree again next time.
+                        cachedVirtualNodeUrls.Add(path, item.Id);
+                    }
+                    else if (cachedVirtualNodeUrls[path] != item.Id)
+                    {
+                        // Update dictionary if path is a different node
+                        cachedVirtualNodeUrls[path] = item.Id;
+                    }
+
+                    //Update cache
+                    _memCache.Set("cachedVirtualNodes", cachedVirtualNodeUrls, new MemoryCacheEntryOptions
+                    {
+                        Priority = CacheItemPriority.High
+                    });
+                }
 
                 //That's all folks
                 request.SetPublishedContent(item);

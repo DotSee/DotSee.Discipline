@@ -97,7 +97,7 @@ namespace DotSee.Discipline.AutoNode
         /// </summary>
         public void ClearRules()
         {
-            _rules.RemoveAll<Rule>(x => true);
+            _rules.Clear();
             _rulesLoaded = false;
         }
 
@@ -108,7 +108,7 @@ namespace DotSee.Discipline.AutoNode
         /// <param name="node">The newly created node we need to apply rules for</param>
         public virtual bool Run(IContent node, string culture = "")
         {
-            if (_rules != null && _rules.Count() > 0)
+            if (_rules != null && _rules.Count > 0)
             {
                 _rulesLoaded = true;
             }
@@ -122,7 +122,7 @@ namespace DotSee.Discipline.AutoNode
                 _rulesLoaded = true;
             }
 
-            if (_rules == null || _rules.Count() == 0)
+            if (_rules == null || _rules.Count == 0)
             {
                 return false;
             }
@@ -160,11 +160,11 @@ namespace DotSee.Discipline.AutoNode
         /// <param name="culture">The culture name, or empty string for non-variants</param>
         private bool CreateOrPublishNode(IContent node, Rule rule, bool hasChildren, string culture = "")
         {
-            string message = string.Format(MessageConstants.InfoTryCreateNode, rule.DocTypeAliasToCreate, node.Id.ToString(), node.ContentType.Alias.ToString());
+            string message = string.Format(MessageConstants.InfoTryCreateNode, rule.DocTypeAliasToCreate, node.Id, node.ContentType.Alias);
             LogVerboseInfo(message);
 
             //If rule says only if no children and there are children, abort process
-            if ((bool)rule.OnlyCreateIfNoChildren && hasChildren)
+            if (rule.OnlyCreateIfNoChildren == true && hasChildren)
             {
                 LogVerboseInfo(MessageConstants.InfoAbortCreateNodeRuleRestrictions);
                 return false;
@@ -203,10 +203,10 @@ namespace DotSee.Discipline.AutoNode
             //Republish the node if there are no pending changes
             if (!existingNode.Edited)
             {
-                var result = _contentService.SaveAndPublish(existingNode, (string.IsNullOrEmpty(culture) ? "*" : culture));
+                var result = _contentService.SaveAndPublish(existingNode, string.IsNullOrEmpty(culture) ? "*" : culture);
                 if (!result.Success)
                 {
-                    _logger.Error(String.Format(MessageConstants.ErrorRepublishNoSuccess, existingNode.Name, node.Name));
+                    _logger.Error(string.Format(MessageConstants.ErrorRepublishNoSuccess, existingNode.Name, node.Name));
                 }
                 return false;
             }
@@ -253,7 +253,7 @@ namespace DotSee.Discipline.AutoNode
                     else
                     {
                         //Stop here, we don't want any other action like sort or logging to take place. 
-                        LogVerboseInfo(String.Format(MessageConstants.InfoNotRepublishingExistingNode, existingNode.Name));
+                        LogVerboseInfo(string.Format(MessageConstants.InfoNotRepublishingExistingNode, existingNode.Name));
                         return true;
                     }
                 }
@@ -281,7 +281,7 @@ namespace DotSee.Discipline.AutoNode
                     bool success = false;
 
                     //Keep new node unpublished only for non-variants. Variants come up with strange errors here!
-                    if ((bool)rule.KeepNewNodeUnpublished && string.IsNullOrEmpty(culture))
+                    if (rule.KeepNewNodeUnpublished == true && string.IsNullOrEmpty(culture))
                     {
                         var result = _contentService.Save(content);
                         success = result.Success;
@@ -298,18 +298,18 @@ namespace DotSee.Discipline.AutoNode
 
                     if (!success)
                     {
-                        _logger.Error(String.Format(MessageConstants.ErrorCreateNode, assignedNodeName, node.Name));
+                        _logger.Error(string.Format(MessageConstants.ErrorCreateNode, assignedNodeName, node.Name));
                         return false;
                     }
                 }
 
                 // Bring the new node first if rule dictates so
-                if ((bool)rule.BringNewNodeFirst)
+                if (rule.BringNewNodeFirst == true)
                 {
                     BringNodeFirst(node, existingNode);
                 }
 
-                LogVerboseInfo(String.Format(MessageConstants.InfoCreateNodeSuccess, assignedNodeName, node.Name));
+                LogVerboseInfo(string.Format(MessageConstants.InfoCreateNodeSuccess, assignedNodeName, node.Name));
 
             }
             catch (Exception ex)
@@ -340,7 +340,7 @@ namespace DotSee.Discipline.AutoNode
             }
 
             //Only sort when more than 1
-            if (sortedNodes != Enumerable.Empty<IContent>())
+            if (sortedNodes.Any())
             {
                 var result = _contentService.Sort(sortedNodes.Select(x => x.Id));
                 if (!result.Success)
@@ -373,7 +373,7 @@ namespace DotSee.Discipline.AutoNode
             var contentTypeId = _contentTypeService.GetAllContentTypeIds(new string[] { rule.DocTypeAliasToCreate }).FirstOrDefault();
             if (contentTypeId <= 0) { return null; }
             var bps = _contentService.GetBlueprintsForContentTypes(contentTypeId);
-            if (bps == null || bps.Count() == 0) { return null; }
+            if (bps == null || !bps.Any()) { return null; }
             var bp = bps.Where(x => x.Name == rule.Blueprint).FirstOrDefault();
             return bp;
         }
@@ -402,7 +402,7 @@ namespace DotSee.Discipline.AutoNode
 
             if (_contentService.HasChildren(parentNode.Id))
             {
-                var dontCreateIfExistsWithDifferentName = !(bool)rule.CreateIfExistsWithDifferentName;
+                var dontCreateIfExistsWithDifferentName = rule.CreateIfExistsWithDifferentName == false;
 
                 existingNode = _contentService.GetPagedChildren(parentNode.Id, 0, 1, out totalRecords
                     , filter: query.Where

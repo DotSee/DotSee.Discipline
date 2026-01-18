@@ -21,13 +21,13 @@ namespace DotSee.Discipline.VariantsHider
 
         public void Handle(MenuRenderingNotification notification)
         {
-            if (notification.TreeAlias == "content" && _configuration.GetSection("DotSee.Discipline:VariantsHider:Enabled")?.Value?.ToLower() == "true")
+            if (notification.TreeAlias == "content" && _configuration.GetValue<bool>("DotSee.Discipline:VariantsHider:Enabled"))
             {
                 if (string.IsNullOrEmpty(notification.NodeId) || notification.NodeId.Equals(Constants.System.RecycleBinContentString)) { return; }
 
                 if (notification.NodeId == "-1")
                 {
-                    string caption = _configuration.GetSection("DotSee.Discipline:VariantsHider:Caption")?.Value;
+                    string caption = _configuration.GetValue<string>("DotSee.Discipline:VariantsHider:Caption");
 
                     if (string.IsNullOrEmpty(caption))
                     {
@@ -38,7 +38,7 @@ namespace DotSee.Discipline.VariantsHider
                     toggleMenuItem.Icon = "axis-rotation";
                     toggleMenuItem.SeparatorBefore = true;
                     toggleMenuItem.ExecuteJsMethod("HideShowTreeNodes()");
-                    notification.Menu.Items.Insert(notification.Menu.Items.Count, toggleMenuItem);
+                    notification.Menu.Items.Add(toggleMenuItem);
                 }
             }
         }
