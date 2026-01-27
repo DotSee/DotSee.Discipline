@@ -1,8 +1,5 @@
-﻿using DotSee.Discipline.Interfaces;
+using DotSee.Discipline.Interfaces;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Infrastructure.Persistence;
@@ -79,7 +76,7 @@ namespace DotSee.Discipline.AutoNode
             _contentTypeService = contentTypeService;
             _ruleProviderService = ruleProviderService;
             _sqlContext = sqlContext;
-            _rules = ruleProviderService.Rules.ToList();
+            _rules = ruleProviderService.Rules?.ToList() ?? new List<Rule>();
         }
 
         #endregion Constructors
@@ -117,9 +114,9 @@ namespace DotSee.Discipline.AutoNode
                 _rulesLoaded = true;
             }
 
-            if (!_rulesLoaded && _ruleProviderService != null)
+            if (!_rulesLoaded && _ruleProviderService?.Rules != null)
             {
-                foreach (Rule r in (_ruleProviderService.Rules))
+                foreach (Rule r in _ruleProviderService.Rules)
                 {
                     _rules.Add(r);
                 }
@@ -207,7 +204,7 @@ namespace DotSee.Discipline.AutoNode
             //Republish the node if there are no pending changes
             if (!existingNode.Edited)
             {
-                var result = _contentService.SaveAndPublish(existingNode, (string.IsNullOrEmpty(culture) ? "*" : culture));
+                var result = _contentService.Publish(existingNode, (string.IsNullOrEmpty(culture) ? "*" : culture).Split(','));
                 if (!result.Success)
                 {
                     _logger.Error(String.Format(MessageConstants.ErrorRepublishNoSuccess, existingNode.Name, node.Name));
@@ -289,8 +286,8 @@ namespace DotSee.Discipline.AutoNode
                     {
                         //Publish the new node
                         var result = (string.IsNullOrEmpty(culture))
-                            ? _contentService.SaveAndPublish(content, culture: null)
-                            : _contentService.SaveAndPublish(content, culture: culture);
+                            ? _contentService.Publish(content, cultures: null)
+                            : _contentService.Publish(content, cultures: culture.Split(','));
 
                         success = result.Success;
                     }

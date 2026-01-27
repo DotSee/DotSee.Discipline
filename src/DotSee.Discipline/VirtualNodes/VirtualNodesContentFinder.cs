@@ -1,24 +1,26 @@
-﻿using Umbraco.Cms.Core.Models.PublishedContent;
-using Umbraco.Cms.Core.Routing;
 using Microsoft.Extensions.Caching.Memory;
+using Serilog;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Models.PublishedContent;
+using Umbraco.Cms.Core.Routing;
 using Umbraco.Cms.Core.Web;
 using Umbraco.Extensions;
-using Serilog;
 
 namespace DotSee.Discipline.VirtualNodes
 {
     public class VirtualNodesContentFinder : IContentFinder
-{
+    {
         private readonly IMemoryCache _memCache;
         private readonly IUmbracoContextAccessor _contextAccessor;
+        private readonly IPublishedContentQuery _publishedContentQuery;
         private readonly ILogger _logger;
 
-        public VirtualNodesContentFinder(IMemoryCache memCache,IUmbracoContextAccessor contextAccessor, ILogger logger)
+        public VirtualNodesContentFinder(IMemoryCache memCache, IUmbracoContextAccessor contextAccessor, IPublishedContentQuery publishedContentQuery, ILogger logger)
         {
-            
             _memCache = memCache;
             _contextAccessor = contextAccessor;
-            _logger = logger;   
+            _publishedContentQuery = publishedContentQuery;
+            _logger = logger;
         }
 
         public Task<bool> TryFindContent(IPublishedRequestBuilder request)
@@ -28,7 +30,7 @@ namespace DotSee.Discipline.VirtualNodes
             {
                 return Task.FromResult(false);
             }
-            
+
             //Get a cached dictionary of urls and node ids
             var cachedVirtualNodeUrls = _memCache.Get<Dictionary<string, int>>("cachedVirtualNodes");
 
@@ -46,18 +48,18 @@ namespace DotSee.Discipline.VirtualNodes
 
             //If not found on the cached dictionary, traverse nodes and find the node that corresponds to the URL
             IPublishedContent item = null;
-            var rootNodes = _umb.Content?.GetAtRoot(request.Culture);
-                try
-                {
-                    item = rootNodes
-                    ?.DescendantsOrSelf<IPublishedContent>(request.Culture)
-                    ?.Where(x => x.Url(request.Culture) == (path + "/") || x.Url(request.Culture) == path)
-                    .FirstOrDefault();
-                }
-                catch (Exception ex)
-                {
-                    _logger.Error(ex, string.Format("Could not get content for URL '{0}'", request.Uri.ToString()));
-                }
+            var rootNodes = _publishedContentQuery.ContentAtRoot();
+            try
+            {
+                item = rootNodes
+                ?.DescendantsOrSelf<IPublishedContent>(request.Culture)
+                ?.Where(x => x.Url(request.Culture) == (path + "/") || x.Url(request.Culture) == path)
+                .FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, string.Format("Could not get content for URL '{0}'", request.Uri.ToString()));
+            }
 
             //If item is found, return it after adding it to the cache so we don't have to go through the same process again.
             if (cachedVirtualNodeUrls == null) { cachedVirtualNodeUrls = new Dictionary<string, int>(); }
@@ -73,9 +75,9 @@ namespace DotSee.Discipline.VirtualNodes
                 }
 
                 //Update cache
-                _memCache.Set("cachedVirtualNodes",  cachedVirtualNodeUrls, new MemoryCacheEntryOptions
+                _memCache.Set("cachedVirtualNodes", cachedVirtualNodeUrls, new MemoryCacheEntryOptions
                 {
-                    Priority = CacheItemPriority.High                   
+                    Priority = CacheItemPriority.High
                 });
 
                 //That's all folks
