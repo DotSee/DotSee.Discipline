@@ -37,13 +37,17 @@ namespace DotSee.Discipline.VirtualNodes
             //Get the request path
             string path = request.AbsolutePathDecoded;
 
-            //If found in the cached dictionary, get the node id from there
-            if (cachedVirtualNodeUrls != null && cachedVirtualNodeUrls.ContainsKey(path))
+            // Ignore cache if backoffice save/publish
+            if (!_umb.OriginalRequestUrl.AbsolutePath.ToLower().Contains("/umbraco/backoffice/umbracoapi/content/postsave"))
             {
-                //That's all folks
-                int nodeId = cachedVirtualNodeUrls[path];
-                request.SetPublishedContent(_umb.Content?.GetById(nodeId));
-                return Task.FromResult(true);
+                //If found in the cached dictionary, get the node id from there
+                if (cachedVirtualNodeUrls != null && cachedVirtualNodeUrls.ContainsKey(path))
+                {
+                    //That's all folks
+                    int nodeId = cachedVirtualNodeUrls[path];
+                    request.SetPublishedContent(_umb.Content?.GetById(nodeId));
+                    return Task.FromResult(true);
+                }
             }
 
             //If not found on the cached dictionary, traverse nodes and find the node that corresponds to the URL
@@ -72,6 +76,11 @@ namespace DotSee.Discipline.VirtualNodes
                 {
                     //Add the new path and id to the dictionary so that we don't have to go through the tree again next time.
                     cachedVirtualNodeUrls.Add(path, item.Id);
+                }
+                else if (cachedVirtualNodeUrls[path] != item.Id)
+                {
+                    // Update dictionary if path is a different node
+                    cachedVirtualNodeUrls[path] = item.Id;
                 }
 
                 //Update cache

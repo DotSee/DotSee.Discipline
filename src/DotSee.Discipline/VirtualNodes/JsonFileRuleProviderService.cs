@@ -7,10 +7,9 @@ using Umbraco.Cms.Core.Configuration.Models;
 
 namespace DotSee.Discipline.VirtualNodes
 {
-    public class JsonFileRuleProviderService :ISettings<GlobalSettings>, IRuleProviderService< IEnumerable<String>>
+    public class JsonFileRuleProviderService : ISettings<GlobalSettings>, IRuleProviderService<IEnumerable<String>>
     {
 
-      
         private IEnumerable<String> _rules;
         private readonly ILogger _logger;
         private readonly IConfiguration _configuration;
@@ -21,8 +20,6 @@ namespace DotSee.Discipline.VirtualNodes
             _configuration = configuration;
             Settings = globalSettings.Value;
         }
-
-      
 
         public IEnumerable<String> Rules
         {
@@ -36,11 +33,10 @@ namespace DotSee.Discipline.VirtualNodes
 
         public void ReloadData()
         {
-          
+
             _rules = null;
         }
 
-       
         private List<String> GetRules()
         {
             List<String> r = new();

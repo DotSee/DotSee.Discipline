@@ -108,7 +108,6 @@ namespace DotSee.Discipline.AutoNode
         /// <param name="node">The newly created node we need to apply rules for</param>
         public virtual bool Run(IContent node, string culture = "")
         {
-
             if (_rules != null && _rules.Count() > 0)
             {
                 _rulesLoaded = true;
@@ -226,6 +225,11 @@ namespace DotSee.Discipline.AutoNode
             {
                 _logger.Error(string.Format(MessageConstants.ErrorNodeAliasNotFound, rule.DocTypeAliasToCreate));
                 return false;
+            }
+
+            if (!_contentTypeService.Get(rule.DocTypeAliasToCreate).VariesByCulture())
+            {
+                culture = "";
             }
 
             //Get the node name that is supposed to be given to the new node.
