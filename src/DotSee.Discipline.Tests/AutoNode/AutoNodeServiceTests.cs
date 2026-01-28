@@ -5,24 +5,27 @@ using Moq;
 using Serilog;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Persistence.Querying;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Infrastructure.Persistence;
 using Umbraco.Extensions;
-using Xunit;
+using NUnit.Framework;
 
 namespace DotSee.Discipline.Tests.AutoNode
 {
+    [TestFixture]
     public class AutoNodeServiceTests
     {
-        private readonly Mock<IContentService> _contentServiceMock;
-        private readonly Mock<IContentTypeService> _contentTypeServiceMock;
-        private readonly Mock<Serilog.ILogger> _loggerMock;
-        private readonly Mock<IRuleProviderService<IEnumerable<Rule>>> _ruleProviderMock;
-        private readonly Mock<ISqlContext> _sqlContextMock;
-        private readonly AutoNodeUtils _autoNodeUtils;
+        private Mock<IContentService> _contentServiceMock;
+        private Mock<IContentTypeService> _contentTypeServiceMock;
+        private Mock<Serilog.ILogger> _loggerMock;
+        private Mock<IRuleProviderService<IEnumerable<Rule>>> _ruleProviderMock;
+        private Mock<ISqlContext> _sqlContextMock;
+        private AutoNodeUtils _autoNodeUtils;
         private long _totalRecords;
 
-        public AutoNodeServiceTests()
+        [SetUp]
+        public void SetUp()
         {
             _contentServiceMock = new Mock<IContentService>();
             _contentTypeServiceMock = new Mock<IContentTypeService>();
@@ -76,7 +79,7 @@ namespace DotSee.Discipline.Tests.AutoNode
                 _autoNodeUtils);
         }
 
-        [Fact]
+        [Test]
         public void Run_WhenNoRules_ReturnsFalse()
         {
             var sut = CreateSut(new List<Rule>());
@@ -84,10 +87,10 @@ namespace DotSee.Discipline.Tests.AutoNode
 
             var result = sut.Run(node);
 
-            Assert.False(result);
+            Assert.That(result, Is.False);
         }
 
-        [Fact]
+        [Test]
         public void Run_WhenRulesIsNullFromProvider_ReturnsFalse()
         {
             _ruleProviderMock.Setup(r => r.Rules).Returns((IEnumerable<Rule>)null);
@@ -102,10 +105,10 @@ namespace DotSee.Discipline.Tests.AutoNode
 
             var result = sut.Run(node);
 
-            Assert.False(result);
+            Assert.That(result, Is.False);
         }
 
-        [Fact]
+        [Test]
         public void Run_WhenNodeContentTypeDoesNotMatchAnyRule_ReturnsTrue()
         {
             var rules = new List<Rule>
@@ -117,11 +120,11 @@ namespace DotSee.Discipline.Tests.AutoNode
 
             var result = sut.Run(node);
 
-            Assert.True(result);
+            Assert.That(result, Is.True);
             _contentServiceMock.Verify(x => x.Create(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>()), Times.Never);
         }
 
-        [Fact]
+        [Test]
         public void Run_WhenRuleMatchesAndOnlyCreateIfNoChildrenTrueAndHasChildren_SkipsCreation()
         {
             var rules = new List<Rule>
@@ -136,11 +139,11 @@ namespace DotSee.Discipline.Tests.AutoNode
 
             var result = sut.Run(node);
 
-            Assert.False(result);
+            Assert.That(result, Is.False);
             _contentServiceMock.Verify(x => x.Create(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>()), Times.Never);
         }
 
-        [Fact]
+        [Test]
         public void RegisterRule_AddsRuleToRulesList()
         {
             var sut = CreateSut(new List<Rule>());
@@ -148,23 +151,23 @@ namespace DotSee.Discipline.Tests.AutoNode
 
             sut.RegisterRule(rule);
 
-            Assert.Single(sut.Rules);
-            Assert.Same(rule, sut.Rules[0]);
+            Assert.That(sut.Rules, Has.Count.EqualTo(1));
+            Assert.That(sut.Rules[0], Is.SameAs(rule));
         }
 
-        [Fact]
+        [Test]
         public void ClearRules_RemovesAllRules()
         {
             var rules = new List<Rule> { new Rule("A", "B", "C") };
             var sut = CreateSut(rules);
-            Assert.Single(sut.Rules);
+            Assert.That(sut.Rules, Has.Count.EqualTo(1));
 
             sut.ClearRules();
 
-            Assert.Empty(sut.Rules);
+            Assert.That(sut.Rules, Is.Empty);
         }
 
-        [Fact]
+        [Test]
         public void Run_WhenDocTypeToCreateDoesNotExist_ReturnsFalseAndLogsError()
         {
             var rules = new List<Rule>
@@ -177,13 +180,13 @@ namespace DotSee.Discipline.Tests.AutoNode
 
             var result = sut.Run(node);
 
-            Assert.False(result);
+            Assert.That(result, Is.False);
             _loggerMock.Verify(
                 x => x.Error(It.IsAny<string>()),
                 Times.Once);
         }
 
-        [Fact]
+        [Test]
         public void Run_WhenRuleMatchesAndNoChildren_CreatesAndPublishesNode()
         {
             // Use DictionaryItemForName "" so AutoNodeUtils returns rule.NodeName without calling dictionary
@@ -202,9 +205,333 @@ namespace DotSee.Discipline.Tests.AutoNode
 
             var result = sut.Run(node);
 
-            Assert.True(result);
+            Assert.That(result, Is.True);
             _contentServiceMock.Verify(x => x.Create("ChildName", It.IsAny<Guid>(), "ChildDoc"), Times.Once);
             _contentServiceMock.Verify(x => x.Publish(It.IsAny<IContent>(), It.IsAny<string[]>()), Times.Once);
+        }
+
+        [Test]
+        public void Run_WhenBlueprintSpecified_UsesCreateContentFromBlueprint()
+        {
+            var rules = new List<Rule>
+            {
+                new Rule("HomePage", "ChildDoc", "ChildName", dictionaryItemForName: "", blueprint: "MyBlueprint")
+            };
+            var contentType = CreateMockContentType(2, "ChildDoc");
+            _contentTypeServiceMock.Setup(x => x.Get("ChildDoc")).Returns(contentType);
+            _contentTypeServiceMock.Setup(x => x.GetAllContentTypeIds(It.IsAny<string[]>())).Returns(new[] { 2 });
+            _contentServiceMock.Setup(x => x.HasChildren(It.IsAny<int>())).Returns(false);
+
+            var blueprintContent = CreateMockNode(50, "ChildDoc");
+            var blueprintMock = new Mock<IContent>();
+            blueprintMock.Setup(b => b.Name).Returns("MyBlueprint");
+            _contentServiceMock.Setup(x => x.GetBlueprintsForContentTypes(2)).Returns(new List<IContent> { blueprintMock.Object });
+
+            var newContent = CreateMockNode(99, "ChildDoc");
+            _contentServiceMock.Setup(x => x.CreateContentFromBlueprint(blueprintMock.Object, "ChildName")).Returns(newContent);
+            var publishResult = new PublishResult(PublishResultType.SuccessPublish, null, newContent);
+            _contentServiceMock.Setup(x => x.Publish(It.IsAny<IContent>(), It.IsAny<string[]>())).Returns(publishResult);
+
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, "HomePage");
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.True);
+            _contentServiceMock.Verify(x => x.CreateContentFromBlueprint(blueprintMock.Object, "ChildName"), Times.Once);
+            _contentServiceMock.Verify(x => x.Create(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Test]
+        public void Run_WhenBlueprintNotFound_FallsBackToRegularCreate()
+        {
+            var rules = new List<Rule>
+            {
+                new Rule("HomePage", "ChildDoc", "ChildName", dictionaryItemForName: "", blueprint: "NonExistentBlueprint")
+            };
+            var contentType = CreateMockContentType(2, "ChildDoc");
+            _contentTypeServiceMock.Setup(x => x.Get("ChildDoc")).Returns(contentType);
+            _contentTypeServiceMock.Setup(x => x.GetAllContentTypeIds(It.IsAny<string[]>())).Returns(new[] { 2 });
+            _contentServiceMock.Setup(x => x.HasChildren(It.IsAny<int>())).Returns(false);
+            _contentServiceMock.Setup(x => x.GetBlueprintsForContentTypes(2)).Returns(new List<IContent>());
+
+            var newContent = CreateMockNode(99, "ChildDoc");
+            _contentServiceMock.Setup(x => x.Create("ChildName", It.IsAny<Guid>(), "ChildDoc")).Returns(newContent);
+            var publishResult = new PublishResult(PublishResultType.SuccessPublish, null, newContent);
+            _contentServiceMock.Setup(x => x.Publish(It.IsAny<IContent>(), It.IsAny<string[]>())).Returns(publishResult);
+
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, "HomePage");
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.True);
+            _contentServiceMock.Verify(x => x.CreateContentFromBlueprint(It.IsAny<IContent>(), It.IsAny<string>()), Times.Never);
+            _contentServiceMock.Verify(x => x.Create("ChildName", It.IsAny<Guid>(), "ChildDoc"), Times.Once);
+        }
+
+        [Test]
+        public void Run_WhenKeepNewNodeUnpublishedTrue_SavesInsteadOfPublishing()
+        {
+            var rules = new List<Rule>
+            {
+                new Rule("HomePage", "ChildDoc", "ChildName", dictionaryItemForName: "", keepNewNodeUnpublished: true)
+            };
+            _contentTypeServiceMock.Setup(x => x.Get("ChildDoc")).Returns(CreateMockContentType(2, "ChildDoc"));
+            _contentServiceMock.Setup(x => x.HasChildren(It.IsAny<int>())).Returns(false);
+            var newContent = CreateMockNode(99, "ChildDoc");
+            _contentServiceMock.Setup(x => x.Create("ChildName", It.IsAny<Guid>(), "ChildDoc")).Returns(newContent);
+            var saveResult = OperationResult.Succeed(null);
+            _contentServiceMock.Setup(x => x.Save(It.IsAny<IContent>(), It.IsAny<int?>(), It.IsAny<ContentScheduleCollection>())).Returns(saveResult);
+
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, "HomePage");
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.True);
+            _contentServiceMock.Verify(x => x.Save(It.IsAny<IContent>(), It.IsAny<int?>(), It.IsAny<ContentScheduleCollection>()), Times.Once);
+            _contentServiceMock.Verify(x => x.Publish(It.IsAny<IContent>(), It.IsAny<string[]>()), Times.Never);
+        }
+
+        [Test]
+        public void Run_WhenBringNewNodeFirstTrue_CallsSort()
+        {
+            var rules = new List<Rule>
+            {
+                new Rule("HomePage", "ChildDoc", "ChildName", bringNodeFirst: true, dictionaryItemForName: "")
+            };
+            _contentTypeServiceMock.Setup(x => x.Get("ChildDoc")).Returns(CreateMockContentType(2, "ChildDoc"));
+            _contentServiceMock.Setup(x => x.HasChildren(It.IsAny<int>())).Returns(false);
+            _contentServiceMock.Setup(x => x.CountChildren(It.IsAny<int>())).Returns(2);
+
+            var newContent = CreateMockNode(99, "ChildDoc");
+            _contentServiceMock.Setup(x => x.Create("ChildName", It.IsAny<Guid>(), "ChildDoc")).Returns(newContent);
+            var publishResult = new PublishResult(PublishResultType.SuccessPublish, null, newContent);
+            _contentServiceMock.Setup(x => x.Publish(It.IsAny<IContent>(), It.IsAny<string[]>())).Returns(publishResult);
+
+            var childNodes = new List<IContent> { CreateMockNode(98, "OtherDoc"), CreateMockNode(99, "ChildDoc") };
+            _contentServiceMock.Setup(x => x.GetPagedChildren(It.IsAny<int>(), 0, It.IsAny<int>(), out _totalRecords))
+                .Returns(childNodes);
+
+            var sortResult = OperationResult.Succeed(null);
+            _contentServiceMock.Setup(x => x.Sort(It.IsAny<IEnumerable<int>>())).Returns(sortResult);
+
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, "HomePage");
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.True);
+            _contentServiceMock.Verify(x => x.Sort(It.IsAny<IEnumerable<int>>()), Times.Once);
+        }
+
+        [Test]
+        public void Run_WhenPublishFails_ReturnsFalseAndLogsError()
+        {
+            var rules = new List<Rule>
+            {
+                new Rule("HomePage", "ChildDoc", "ChildName", dictionaryItemForName: "")
+            };
+            _contentTypeServiceMock.Setup(x => x.Get("ChildDoc")).Returns(CreateMockContentType(2, "ChildDoc"));
+            _contentServiceMock.Setup(x => x.HasChildren(It.IsAny<int>())).Returns(false);
+            var newContent = CreateMockNode(99, "ChildDoc");
+            _contentServiceMock.Setup(x => x.Create("ChildName", It.IsAny<Guid>(), "ChildDoc")).Returns(newContent);
+            var failedPublishResult = new PublishResult(PublishResultType.FailedPublish, null, newContent);
+            _contentServiceMock.Setup(x => x.Publish(It.IsAny<IContent>(), It.IsAny<string[]>())).Returns(failedPublishResult);
+
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, "HomePage");
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.False);
+            _loggerMock.Verify(x => x.Error(It.IsAny<string>()), Times.Once);
+        }
+
+        [Test]
+        public void Run_WhenMultipleMatchingRules_ProcessesAllMatchingRules()
+        {
+            var rules = new List<Rule>
+            {
+                new Rule("HomePage", "ChildDoc1", "Child1", dictionaryItemForName: ""),
+                new Rule("HomePage", "ChildDoc2", "Child2", dictionaryItemForName: ""),
+                new Rule("OtherType", "ChildDoc3", "Child3", dictionaryItemForName: "") // Should not match
+            };
+            _contentTypeServiceMock.Setup(x => x.Get("ChildDoc1")).Returns(CreateMockContentType(2, "ChildDoc1"));
+            _contentTypeServiceMock.Setup(x => x.Get("ChildDoc2")).Returns(CreateMockContentType(3, "ChildDoc2"));
+            _contentServiceMock.Setup(x => x.HasChildren(It.IsAny<int>())).Returns(false);
+
+            var newContent1 = CreateMockNode(99, "ChildDoc1");
+            var newContent2 = CreateMockNode(100, "ChildDoc2");
+            _contentServiceMock.Setup(x => x.Create("Child1", It.IsAny<Guid>(), "ChildDoc1")).Returns(newContent1);
+            _contentServiceMock.Setup(x => x.Create("Child2", It.IsAny<Guid>(), "ChildDoc2")).Returns(newContent2);
+
+            var publishResult1 = new PublishResult(PublishResultType.SuccessPublish, null, newContent1);
+            var publishResult2 = new PublishResult(PublishResultType.SuccessPublish, null, newContent2);
+            _contentServiceMock.SetupSequence(x => x.Publish(It.IsAny<IContent>(), It.IsAny<string[]>()))
+                .Returns(publishResult1)
+                .Returns(publishResult2);
+
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, "HomePage");
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.True);
+            _contentServiceMock.Verify(x => x.Create("Child1", It.IsAny<Guid>(), "ChildDoc1"), Times.Once);
+            _contentServiceMock.Verify(x => x.Create("Child2", It.IsAny<Guid>(), "ChildDoc2"), Times.Once);
+            _contentServiceMock.Verify(x => x.Create("Child3", It.IsAny<Guid>(), "ChildDoc3"), Times.Never);
+        }
+
+        [Test]
+        public void Run_WhenOneRuleFailsAmongMultiple_ReturnsFalse()
+        {
+            var rules = new List<Rule>
+            {
+                new Rule("HomePage", "ChildDoc1", "Child1", dictionaryItemForName: ""),
+                new Rule("HomePage", "ChildDoc2", "Child2", dictionaryItemForName: "")
+            };
+            _contentTypeServiceMock.Setup(x => x.Get("ChildDoc1")).Returns(CreateMockContentType(2, "ChildDoc1"));
+            _contentTypeServiceMock.Setup(x => x.Get("ChildDoc2")).Returns(CreateMockContentType(3, "ChildDoc2"));
+            _contentServiceMock.Setup(x => x.HasChildren(It.IsAny<int>())).Returns(false);
+
+            var newContent1 = CreateMockNode(99, "ChildDoc1");
+            var newContent2 = CreateMockNode(100, "ChildDoc2");
+            _contentServiceMock.Setup(x => x.Create("Child1", It.IsAny<Guid>(), "ChildDoc1")).Returns(newContent1);
+            _contentServiceMock.Setup(x => x.Create("Child2", It.IsAny<Guid>(), "ChildDoc2")).Returns(newContent2);
+
+            var publishResultSuccess = new PublishResult(PublishResultType.SuccessPublish, null, newContent1);
+            var publishResultFail = new PublishResult(PublishResultType.FailedPublish, null, newContent2);
+            _contentServiceMock.SetupSequence(x => x.Publish(It.IsAny<IContent>(), It.IsAny<string[]>()))
+                .Returns(publishResultSuccess)
+                .Returns(publishResultFail);
+
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, "HomePage");
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.False);
+        }
+
+        // NOTE: Testing "existing child node found" scenarios requires integration testing
+        // because GetExistingChildNode uses Query<IContent> with ISqlContext which needs
+        // Umbraco's database mapper infrastructure (IMapperCollection) that cannot be
+        // easily mocked in unit tests. The Query.Where() method uses ModelToSqlExpressionVisitor
+        // which requires proper SQL column mappings for IContent properties.
+
+        [Test]
+        public void Run_WhenOnlyCreateIfNoChildrenFalseAndHasChildren_StillCreatesNode()
+        {
+            var rules = new List<Rule>
+            {
+                new Rule("HomePage", "ChildDoc", "ChildName", dictionaryItemForName: "", onlyCreateIfNoChildren: false)
+            };
+            _contentTypeServiceMock.Setup(x => x.Get("ChildDoc")).Returns(CreateMockContentType(2, "ChildDoc"));
+            _contentServiceMock.Setup(x => x.HasChildren(It.IsAny<int>())).Returns(false);
+            
+            // Setup to show parent has children but rule allows creation
+            _contentServiceMock
+                .Setup(x => x.GetPagedChildren(It.IsAny<int>(), 0, 1, out _totalRecords))
+                .Returns(new List<IContent> { CreateMockNode(2, "OtherType") });
+
+            var newContent = CreateMockNode(99, "ChildDoc");
+            _contentServiceMock.Setup(x => x.Create("ChildName", It.IsAny<Guid>(), "ChildDoc")).Returns(newContent);
+            var publishResult = new PublishResult(PublishResultType.SuccessPublish, null, newContent);
+            _contentServiceMock.Setup(x => x.Publish(It.IsAny<IContent>(), It.IsAny<string[]>())).Returns(publishResult);
+
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, "HomePage");
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.True);
+            _contentServiceMock.Verify(x => x.Create("ChildName", It.IsAny<Guid>(), "ChildDoc"), Times.Once);
+        }
+
+        [Test]
+        public void Run_WhenBlueprintSpecifiedButContentTypeIdNotFound_FallsBackToRegularCreate()
+        {
+            var rules = new List<Rule>
+            {
+                new Rule("HomePage", "ChildDoc", "ChildName", dictionaryItemForName: "", blueprint: "MyBlueprint")
+            };
+            var contentType = CreateMockContentType(2, "ChildDoc");
+            _contentTypeServiceMock.Setup(x => x.Get("ChildDoc")).Returns(contentType);
+            _contentTypeServiceMock.Setup(x => x.GetAllContentTypeIds(It.IsAny<string[]>())).Returns(new int[] { });
+            _contentServiceMock.Setup(x => x.HasChildren(It.IsAny<int>())).Returns(false);
+
+            var newContent = CreateMockNode(99, "ChildDoc");
+            _contentServiceMock.Setup(x => x.Create("ChildName", It.IsAny<Guid>(), "ChildDoc")).Returns(newContent);
+            var publishResult = new PublishResult(PublishResultType.SuccessPublish, null, newContent);
+            _contentServiceMock.Setup(x => x.Publish(It.IsAny<IContent>(), It.IsAny<string[]>())).Returns(publishResult);
+
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, "HomePage");
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.True);
+            _contentServiceMock.Verify(x => x.CreateContentFromBlueprint(It.IsAny<IContent>(), It.IsAny<string>()), Times.Never);
+            _contentServiceMock.Verify(x => x.Create("ChildName", It.IsAny<Guid>(), "ChildDoc"), Times.Once);
+        }
+
+        [Test]
+        public void Run_WhenEmptyBlueprintString_UsesRegularCreate()
+        {
+            var rules = new List<Rule>
+            {
+                new Rule("HomePage", "ChildDoc", "ChildName", dictionaryItemForName: "", blueprint: "")
+            };
+            _contentTypeServiceMock.Setup(x => x.Get("ChildDoc")).Returns(CreateMockContentType(2, "ChildDoc"));
+            _contentServiceMock.Setup(x => x.HasChildren(It.IsAny<int>())).Returns(false);
+
+            var newContent = CreateMockNode(99, "ChildDoc");
+            _contentServiceMock.Setup(x => x.Create("ChildName", It.IsAny<Guid>(), "ChildDoc")).Returns(newContent);
+            var publishResult = new PublishResult(PublishResultType.SuccessPublish, null, newContent);
+            _contentServiceMock.Setup(x => x.Publish(It.IsAny<IContent>(), It.IsAny<string[]>())).Returns(publishResult);
+
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, "HomePage");
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.True);
+            _contentServiceMock.Verify(x => x.GetBlueprintsForContentTypes(It.IsAny<int[]>()), Times.Never);
+            _contentServiceMock.Verify(x => x.Create("ChildName", It.IsAny<Guid>(), "ChildDoc"), Times.Once);
+        }
+
+        [Test]
+        public void Run_WhenSortFails_LogsErrorButStillReturnsTrue()
+        {
+            var rules = new List<Rule>
+            {
+                new Rule("HomePage", "ChildDoc", "ChildName", bringNodeFirst: true, dictionaryItemForName: "")
+            };
+            _contentTypeServiceMock.Setup(x => x.Get("ChildDoc")).Returns(CreateMockContentType(2, "ChildDoc"));
+            _contentServiceMock.Setup(x => x.HasChildren(It.IsAny<int>())).Returns(false);
+            _contentServiceMock.Setup(x => x.CountChildren(It.IsAny<int>())).Returns(2);
+
+            var newContent = CreateMockNode(99, "ChildDoc");
+            _contentServiceMock.Setup(x => x.Create("ChildName", It.IsAny<Guid>(), "ChildDoc")).Returns(newContent);
+            var publishResult = new PublishResult(PublishResultType.SuccessPublish, null, newContent);
+            _contentServiceMock.Setup(x => x.Publish(It.IsAny<IContent>(), It.IsAny<string[]>())).Returns(publishResult);
+
+            var childNodes = new List<IContent> { CreateMockNode(98, "OtherDoc"), CreateMockNode(99, "ChildDoc") };
+            _contentServiceMock.Setup(x => x.GetPagedChildren(It.IsAny<int>(), 0, It.IsAny<int>(), out _totalRecords))
+                .Returns(childNodes);
+
+            var sortResultFailed = new OperationResult(OperationResultType.Failed, null);
+            _contentServiceMock.Setup(x => x.Sort(It.IsAny<IEnumerable<int>>())).Returns(sortResultFailed);
+
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, "HomePage");
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.True);
+            _loggerMock.Verify(x => x.Error(It.IsAny<string>()), Times.Once);
         }
     }
 }
