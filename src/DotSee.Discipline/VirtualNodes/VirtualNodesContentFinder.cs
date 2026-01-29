@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Models.PublishedContent;
@@ -12,14 +13,14 @@ namespace DotSee.Discipline.VirtualNodes
     {
         private readonly IMemoryCache _memCache;
         private readonly IUmbracoContextAccessor _contextAccessor;
-        private readonly IPublishedContentQuery _publishedContentQuery;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger _logger;
 
-        public VirtualNodesContentFinder(IMemoryCache memCache, IUmbracoContextAccessor contextAccessor, IPublishedContentQuery publishedContentQuery, ILogger logger)
+        public VirtualNodesContentFinder(IMemoryCache memCache, IUmbracoContextAccessor contextAccessor, IServiceScopeFactory serviceScopeFactory, ILogger logger)
         {
             _memCache = memCache;
             _contextAccessor = contextAccessor;
-            _publishedContentQuery = publishedContentQuery;
+            _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
         }
 
@@ -52,9 +53,12 @@ namespace DotSee.Discipline.VirtualNodes
 
             //If not found on the cached dictionary, traverse nodes and find the node that corresponds to the URL
             IPublishedContent item = null;
-            var rootNodes = _publishedContentQuery.ContentAtRoot();
             try
             {
+                using var scope = _serviceScopeFactory.CreateScope();
+                var publishedContentQuery = scope.ServiceProvider.GetRequiredService<IPublishedContentQuery>();
+                var rootNodes = publishedContentQuery.ContentAtRoot();
+                
                 item = rootNodes
                 ?.DescendantsOrSelf<IPublishedContent>(request.Culture)
                 ?.Where(x => x.Url(request.Culture) == (path + "/") || x.Url(request.Culture) == path)

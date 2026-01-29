@@ -1,3 +1,6 @@
+// Suppress obsolete warnings for CreateContentFromBlueprint - scheduled for removal in V18
+#pragma warning disable CS0618
+
 using System.Collections.Generic;
 using DotSee.Discipline.AutoNode;
 using DotSee.Discipline.Interfaces;

@@ -264,7 +264,10 @@ namespace DotSee.Discipline.AutoNode
 
                     if (bp != null)
                     {
+                        // TODO: Replace with IContentBlueprintEditingService.GetScaffoldedAsync() when migrating to V18
+#pragma warning disable CS0618 // Type or member is obsolete
                         content = _contentService.CreateContentFromBlueprint(bp, assignedNodeName);
+#pragma warning restore CS0618
                         content.SetParent(node);
                     }
                     else
