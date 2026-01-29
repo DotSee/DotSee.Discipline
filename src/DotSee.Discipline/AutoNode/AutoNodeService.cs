@@ -292,10 +292,13 @@ namespace DotSee.Discipline.AutoNode
                     else
                     {
                         //Publish the new node
-                        var result = (string.IsNullOrEmpty(culture))
-                            ? _contentService.Publish(content, cultures: null)
-                            : _contentService.Publish(content, cultures: culture.Split(','));
+                        // In Umbraco 17+, use "*" for invariant content instead of null
+                        var culturesToPublish = string.IsNullOrEmpty(culture)
+                            ? new[] { "*" }
+                            : culture.Split(',');
 
+                        _contentService.Save(content);
+                        var result = _contentService.Publish(content, cultures: culturesToPublish);
                         success = result.Success;
                     }
 
@@ -373,9 +376,11 @@ namespace DotSee.Discipline.AutoNode
         private IContent GetBlueprint(Rule rule)
         {
             if (string.IsNullOrEmpty(rule.Blueprint)) { return null; }
-            var contentTypeId = _contentTypeService.GetAllContentTypeIds(new string[] { rule.DocTypeAliasToCreate }).FirstOrDefault();
-            if (contentTypeId <= 0) { return null; }
-            var bps = _contentService.GetBlueprintsForContentTypes(contentTypeId);
+
+            var contentType = _contentTypeService.Get(rule.DocTypeAliasToCreate);
+            if (contentType == null) { return null; }
+
+            var bps = _contentService.GetBlueprintsForContentTypes(contentType.Id);
             if (bps == null || bps.Count() == 0) { return null; }
             var bp = bps.Where(x => x.Name == rule.Blueprint).FirstOrDefault();
             return bp;
