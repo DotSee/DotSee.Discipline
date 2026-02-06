@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.Razor">
 
 	<PropertyGroup>
 		<TargetFrameworks>net10.0</TargetFrameworks>
@@ -22,9 +22,14 @@
 		<RepositoryUrl>https://github.com/DotSee/DotSee.Discipline</RepositoryUrl>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<UserSecretsId>6fedb3fb-c2c0-4c33-8d8d-b53894a8eec5</UserSecretsId>
+		<!-- Exclude Client folder entirely from MSBuild processing to avoid long path issues with node_modules -->
+		<DefaultItemExcludes>$(DefaultItemExcludes);Client\**</DefaultItemExcludes>
+		<!-- Required for Razor Class Library static assets -->
+		<AddRazorSupportForMvc>true</AddRazorSupportForMvc>
 	</PropertyGroup>
 
 	<ItemGroup>
+		<!-- Keep old App_Plugins for backwards compatibility (v13) - can be removed if only targeting v17+ -->
 		<Content Include="App_Plugins\DotSee.Discipline.VariantsHider\**\*.*">
 			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 			<CopyToPublishDirectory>Always</CopyToPublishDirectory>
@@ -51,6 +56,7 @@
 	<ItemGroup>
 		<PackageReference Include="Umbraco.Cms.Core" Version="17.1.0" />
 		<PackageReference Include="Umbraco.Cms.Web.Common" Version="17.1.0" />
+		<PackageReference Include="Umbraco.Cms.Api.Common" Version="17.1.0" />
 	</ItemGroup>
 
 
