@@ -23,7 +23,13 @@ namespace DotSee.Discipline.AiSummary
                 //This is where the magic happens. Unicorns. Free burgers. 
                 try
                 {
-                    _svc.Run(node);
+                    // In Umbraco v14+, EditedCultures may be null during save notifications.
+                    // Use notification.IsSavingCulture() to reliably determine which cultures are being saved.
+                    var savingCultures = node.AvailableCultures?
+                        .Where(culture => notification.IsSavingCulture(node, culture))
+                        .ToList();
+
+                    _svc.Run(node, savingCultures);
                 }
                 catch (Exception ex)
                 {

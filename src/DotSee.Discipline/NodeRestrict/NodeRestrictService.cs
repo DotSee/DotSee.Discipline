@@ -1,4 +1,4 @@
-﻿using DotSee.Discipline.Interfaces;
+using DotSee.Discipline.Interfaces;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Persistence.Querying;
 using Umbraco.Cms.Core.Services;
@@ -55,7 +55,14 @@ namespace DotSee.Discipline.NodeRestrict
         /// Applies all rules on publishing a node. 
         /// </summary>
         /// <param name="node">The newly created node we need to apply rules for</param>
-        public virtual Result Run(IContent node)
+        /// <param name="publishingCultures">
+        /// The cultures currently being published, as determined by the notification handler
+        /// (e.g. via notification.IsPublishingCulture()). In Umbraco v14+, IContent.EditedCultures
+        /// may be null during publish notifications, so the handler must resolve publishing cultures
+        /// from the notification object instead.
+        /// Pass null for invariant (non-variant) content.
+        /// </param>
+        public virtual Result Run(IContent node, IEnumerable<string> publishingCultures = null)
         {
             //Get the parent node.
             var parent = _cs.GetById(node.ParentId);
@@ -69,9 +76,16 @@ namespace DotSee.Discipline.NodeRestrict
 
             Result result = null;
 
-            if (node.AvailableCultures.Any() && node.EditedCultures.Any())
+            if (node.AvailableCultures.Any())
             {
-                if (node.EditedCultures.Any())
+                // In Umbraco v14+, EditedCultures may be null during publish notifications.
+                // Prefer publishing cultures passed from the notification handler,
+                // then fall back to AvailableCultures.
+                if (publishingCultures != null && publishingCultures.Any())
+                {
+                    culture = publishingCultures.First();
+                }
+                else if (node.EditedCultures != null && node.EditedCultures.Any())
                 {
                     culture = node.EditedCultures.First().ToString();
                 }
@@ -165,8 +179,7 @@ namespace DotSee.Discipline.NodeRestrict
             //Variant nodes only count if they're in the right culture.
             if (
                     _contentTypeService.Get(node.ContentTypeId).VariesByCulture()
-                    && node.AvailableCultures.Any()
-                    && node.EditedCultures.Any())
+                    && node.AvailableCultures.Any())
             {
                 return node.AvailableCultures.Contains(culture);
             }

@@ -1,4 +1,4 @@
-﻿using DotSee.Discipline.AiSummary.Exceptions;
+using DotSee.Discipline.AiSummary.Exceptions;
 using DotSee.Discipline.AiSummary.Generators;
 using DotSee.Discipline.AiSummary.Helpers;
 using DotSee.Discipline.Interfaces;
@@ -44,7 +44,18 @@ namespace DotSee.Discipline.AiSummary
 
         #region Public Methods
 
-        public virtual void Run(IContent node)
+        /// <summary>
+        /// Applies the AI summary service to the given content node.
+        /// </summary>
+        /// <param name="node">The content node being saved.</param>
+        /// <param name="savingCultures">
+        /// The cultures currently being saved, as determined by the notification handler 
+        /// (e.g. via notification.IsSavingCulture()). In Umbraco v14+, IContent.EditedCultures 
+        /// may be null during save notifications, so the handler must resolve saving cultures 
+        /// from the notification object instead.
+        /// Pass null for invariant (non-variant) content.
+        /// </param>
+        public virtual void Run(IContent node, IEnumerable<string> savingCultures = null)
         {
             //Make all the necessary checks to decide if we should continue. 
             //If so, return an object with other useful info to use further down the line.
@@ -57,13 +68,21 @@ namespace DotSee.Discipline.AiSummary
 
             try
             {
-                if (node.AvailableCultures == null || node.AvailableCultures?.Count() == 0)
+                if (node.AvailableCultures == null || !node.AvailableCultures.Any())
                 {
+                    // Invariant content - process once without a culture
                     DoRun(node, checkResults, null);
                 }
                 else
                 {
-                    foreach (string culture in node.EditedCultures)
+                    // Variant content - determine which cultures to process.
+                    // Prefer the saving cultures passed from the notification handler.
+                    // Fall back to AvailableCultures if no saving cultures were provided.
+                    var culturesToProcess = (savingCultures != null && savingCultures.Any())
+                        ? savingCultures
+                        : node.AvailableCultures;
+
+                    foreach (string culture in culturesToProcess)
                     {
                         DoRun(node, checkResults, culture);
                     }
@@ -376,7 +395,7 @@ namespace DotSee.Discipline.AiSummary
         private static bool IsAllowedPropertyType(string propertyEditorAlias)
         {
             if (
-                propertyEditorAlias.Contains("TinyMCE", StringComparison.InvariantCultureIgnoreCase)
+                propertyEditorAlias.Contains("RichText", StringComparison.InvariantCultureIgnoreCase)
                 || propertyEditorAlias.Contains("TextBox", StringComparison.InvariantCultureIgnoreCase)
                 || propertyEditorAlias.Contains("TextArea", StringComparison.InvariantCultureIgnoreCase)
                 || propertyEditorAlias.Contains("TextString", StringComparison.InvariantCultureIgnoreCase)
