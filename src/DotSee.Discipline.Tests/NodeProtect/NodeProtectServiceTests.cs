@@ -509,6 +509,204 @@ namespace DotSee.Discipline.Tests.NodeProtect
 
         #endregion
 
+        #region Edge Case Tests - Rule Construction
+
+        [Test]
+        public void Rule_DefaultConstructor_AllPropertiesAreNull()
+        {
+            var rule = new Rule();
+
+            Assert.That(rule.DocTypeAlias, Is.Null);
+            Assert.That(rule.DocumentGuids, Is.Null);
+            Assert.That(rule.CustomMessage, Is.Null);
+            Assert.That(rule.CustomMessageCategory, Is.Null);
+        }
+
+        [Test]
+        public void Rule_WithNullDoctype_AndNullGuids_IsEffectivelyEmpty()
+        {
+            var rule = new Rule(null, null);
+
+            Assert.That(rule.DocTypeAlias, Is.Null);
+            Assert.That(rule.DocumentGuids, Is.Null);
+        }
+
+        [Test]
+        public void Rule_WithWhitespaceDoctype_DoesNotMatchAnyNode()
+        {
+            var rules = new List<Rule>
+            {
+                new Rule("   ", "")
+            };
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, "AnyType");
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.Null);
+        }
+
+        [Test]
+        public void Rule_WithInvalidGuidFormat_DoesNotMatch()
+        {
+            var rules = new List<Rule>
+            {
+                new Rule("", "not-a-valid-guid")
+            };
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, "AnyType");
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.Null);
+        }
+
+        [Test]
+        public void Rule_WithCommaOnlyDoctype_DoesNotMatch()
+        {
+            var rules = new List<Rule>
+            {
+                new Rule(",,,", "")
+            };
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, "AnyType");
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.Null);
+        }
+
+        [Test]
+        public void Rule_WithCommaOnlyGuids_DoesNotMatch()
+        {
+            var rules = new List<Rule>
+            {
+                new Rule("", ",,,")
+            };
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, "AnyType");
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.Null);
+        }
+
+        #endregion
+
+        #region Edge Case Tests - GUID with Whitespace
+
+        [Test]
+        public void Run_WhenGuidHasLeadingTrailingSpaces_DoesNotMatch()
+        {
+            var nodeGuid = Guid.Parse("11111111-1111-1111-1111-111111111111");
+            var rules = new List<Rule>
+            {
+                new Rule("", " 11111111-1111-1111-1111-111111111111 ")
+            };
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, "AnyType", nodeGuid);
+
+            var result = sut.Run(node);
+
+            // Spaces around the GUID mean it won't match the node's key
+            Assert.That(result, Is.Null);
+        }
+
+        #endregion
+
+        #region Edge Case Tests - Doctype with Trailing Commas
+
+        [Test]
+        public void Run_WhenDoctypeHasTrailingComma_IgnoresEmptyEntry()
+        {
+            var rules = new List<Rule>
+            {
+                new Rule("TypeA,", "")
+            };
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, "TypeA");
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.Not.Null);
+        }
+
+        [Test]
+        public void Run_WhenDoctypeHasLeadingComma_IgnoresEmptyEntry()
+        {
+            var rules = new List<Rule>
+            {
+                new Rule(",TypeA", "")
+            };
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, "TypeA");
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.Not.Null);
+        }
+
+        #endregion
+
+        #region Edge Case Tests - Property Alias
+
+        [Test]
+        public void Run_WhenPropertyAliasIsEmpty_SkipsPropertyCheck()
+        {
+            _settings.PropertyAlias = "";
+            var rules = new List<Rule>
+            {
+                new Rule("ProtectedType", "")
+            };
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, "ProtectedType");
+
+            var result = sut.Run(node);
+
+            // With empty property alias the null check (propertyAlias != null) still passes,
+            // but HasProperty("") returns false, so it falls through to rule matching
+            Assert.That(result, Is.Not.Null);
+        }
+
+        [Test]
+        public void Run_WhenPropertyExistsButReturnsFalse_FallsThroughToRuleCheck()
+        {
+            _settings.PropertyAlias = "umbracoProtect";
+            var rules = new List<Rule>
+            {
+                new Rule("ProtectedType", "")
+            };
+            var sut = CreateSut(rules);
+            var node = CreateMockNodeWithProtectionProperty(1, "ProtectedType", "umbracoProtect", false);
+
+            var result = sut.Run(node);
+
+            // Property is false, but doctype matches, so rule still applies
+            Assert.That(result, Is.Not.Null);
+        }
+
+        #endregion
+
+        #region Edge Case Tests - Multiple GUIDs with Empty Entries
+
+        [Test]
+        public void Run_WhenMultipleGuidsWithEmptyEntries_MatchesValidGuid()
+        {
+            var nodeGuid = Guid.Parse("22222222-2222-2222-2222-222222222222");
+            var rules = new List<Rule>
+            {
+                new Rule("", ",22222222-2222-2222-2222-222222222222,,")
+            };
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, "AnyType", nodeGuid);
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.Not.Null);
+        }
+
+        #endregion
+
         #region Result Properties Tests
 
         [Test]

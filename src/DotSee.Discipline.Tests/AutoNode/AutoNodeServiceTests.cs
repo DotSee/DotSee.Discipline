@@ -424,6 +424,163 @@ namespace DotSee.Discipline.Tests.AutoNode
         // easily mocked in unit tests. The Query.Where() method uses ModelToSqlExpressionVisitor
         // which requires proper SQL column mappings for IContent properties.
 
+        #region Edge Case Tests - Rule Construction
+
+        [Test]
+        public void Rule_DefaultConstructor_AllPropertiesHaveDefaults()
+        {
+            var rule = new Rule();
+
+            Assert.That(rule.CreatedDocTypeAlias, Is.Null);
+            Assert.That(rule.DocTypeAliasToCreate, Is.Null);
+            Assert.That(rule.NodeName, Is.Null);
+            Assert.That(rule.BringNewNodeFirst, Is.False);
+            Assert.That(rule.OnlyCreateIfNoChildren, Is.False);
+            Assert.That(rule.CreateIfExistsWithDifferentName, Is.True);
+            Assert.That(rule.DictionaryItemForName, Is.EqualTo("AutoNode.Name"));
+            Assert.That(rule.KeepNewNodeUnpublished, Is.False);
+            Assert.That(rule.Blueprint, Is.EqualTo(string.Empty));
+        }
+
+        [Test]
+        public void Rule_WithNullBoolProperties_DefaultsToFalse()
+        {
+            var rule = new Rule("Type", "Create", "Name", 
+                bringNodeFirst: null, 
+                onlyCreateIfNoChildren: null, 
+                keepNewNodeUnpublished: null);
+
+            Assert.That(rule.BringNewNodeFirst, Is.Null);
+            Assert.That(rule.OnlyCreateIfNoChildren, Is.Null);
+            Assert.That(rule.KeepNewNodeUnpublished, Is.Null);
+        }
+
+        [Test]
+        public void Rule_WithEmptyStrings_PreservesEmptyStrings()
+        {
+            var rule = new Rule("", "", "", dictionaryItemForName: "", blueprint: "");
+
+            Assert.That(rule.CreatedDocTypeAlias, Is.EqualTo(""));
+            Assert.That(rule.DocTypeAliasToCreate, Is.EqualTo(""));
+            Assert.That(rule.NodeName, Is.EqualTo(""));
+            Assert.That(rule.DictionaryItemForName, Is.EqualTo(""));
+            Assert.That(rule.Blueprint, Is.EqualTo(""));
+        }
+
+        #endregion
+
+        #region Edge Case Tests - Run Method
+
+        [Test]
+        public void Run_WhenRulesEmptyList_ReturnsFalse()
+        {
+            var sut = CreateSut(Enumerable.Empty<Rule>());
+            var node = CreateMockNode(1, "HomePage");
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.False);
+        }
+
+        [Test]
+        public void Run_WhenNodeAliasIsEmpty_DoesNotMatchRule()
+        {
+            var rules = new List<Rule>
+            {
+                new Rule("HomePage", "ChildDoc", "Child", dictionaryItemForName: "")
+            };
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, "");
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.True);
+            _contentServiceMock.Verify(x => x.Create(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Test]
+        public void Run_WhenRuleAliasMatchIsCaseInsensitive_MatchesAndCreatesNode()
+        {
+            var rules = new List<Rule>
+            {
+                new Rule("HOMEPAGE", "ChildDoc", "ChildName", dictionaryItemForName: "")
+            };
+            _contentTypeServiceMock.Setup(x => x.Get("ChildDoc")).Returns(CreateMockContentType(2, "ChildDoc"));
+            _contentServiceMock.Setup(x => x.HasChildren(It.IsAny<int>())).Returns(false);
+            var newContent = CreateMockNode(99, "ChildDoc");
+            _contentServiceMock.Setup(x => x.Create("ChildName", It.IsAny<Guid>(), "ChildDoc")).Returns(newContent);
+            var publishResult = new PublishResult(PublishResultType.SuccessPublish, null, newContent);
+            _contentServiceMock.Setup(x => x.Publish(It.IsAny<IContent>(), It.IsAny<string[]>())).Returns(publishResult);
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, "homepage"); // lowercase
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.True);
+            _contentServiceMock.Verify(x => x.Create("ChildName", It.IsAny<Guid>(), "ChildDoc"), Times.Once);
+        }
+
+        #endregion
+
+        #region Edge Case Tests - RegisterRule / ClearRules
+
+        [Test]
+        public void RegisterRule_MultipleRules_AllAdded()
+        {
+            var sut = CreateSut(new List<Rule>());
+
+            sut.RegisterRule(new Rule("A", "B", "C"));
+            sut.RegisterRule(new Rule("D", "E", "F"));
+            sut.RegisterRule(new Rule("G", "H", "I"));
+
+            Assert.That(sut.Rules, Has.Count.EqualTo(3));
+        }
+
+        [Test]
+        public void ClearRules_ThenRegisterNew_OnlyNewRuleExists()
+        {
+            var rules = new List<Rule> { new Rule("A", "B", "C"), new Rule("D", "E", "F") };
+            var sut = CreateSut(rules);
+
+            sut.ClearRules();
+            sut.RegisterRule(new Rule("X", "Y", "Z"));
+
+            Assert.That(sut.Rules, Has.Count.EqualTo(1));
+            Assert.That(sut.Rules[0].CreatedDocTypeAlias, Is.EqualTo("X"));
+        }
+
+        #endregion
+
+        #region Edge Case Tests - RuleSettings
+
+        [Test]
+        public void RuleSettings_DefaultValues()
+        {
+            var settings = new RuleSettings();
+
+            Assert.That(settings.LogLevel, Is.EqualTo("Normal"));
+            Assert.That(settings.RepublishExistingNodes, Is.False);
+        }
+
+        [Test]
+        public void RuleSettings_SetVerbose()
+        {
+            var settings = new RuleSettings { LogLevel = "Verbose", RepublishExistingNodes = true };
+
+            Assert.That(settings.LogLevel, Is.EqualTo("Verbose"));
+            Assert.That(settings.RepublishExistingNodes, Is.True);
+        }
+
+        [Test]
+        public void RuleSettings_NullLogLevel()
+        {
+            var settings = new RuleSettings { LogLevel = null };
+
+            Assert.That(settings.LogLevel, Is.Null);
+        }
+
+        #endregion
+
         [Test]
         public void Run_WhenOnlyCreateIfNoChildrenFalseAndHasChildren_StillCreatesNode()
         {

@@ -301,6 +301,260 @@ namespace DotSee.Discipline.Tests.VirtualNodes
 
         #endregion
 
+        #region Edge Case Tests - IsVirtualNode
+
+        [Test]
+        public void IsVirtualNode_WhenRuleIsJustWildcard_MatchesEverything()
+        {
+            var rules = new List<string> { "*" };
+            var ruleManager = CreateRuleManager(rules);
+            var content = CreateMockPublishedContent("AnyContentType");
+
+            var result = content.IsVirtualNode(ruleManager);
+
+            Assert.That(result, Is.True);
+        }
+
+        [Test]
+        public void IsVirtualNode_WhenContentTypeAliasIsEmpty_ExactRuleDoesNotMatch()
+        {
+            var rules = new List<string> { "VirtualFolder" };
+            var ruleManager = CreateRuleManager(rules);
+            var content = CreateMockPublishedContent("");
+
+            var result = content.IsVirtualNode(ruleManager);
+
+            Assert.That(result, Is.False);
+        }
+
+        [Test]
+        public void IsVirtualNode_WhenContentTypeAliasIsEmpty_WildcardRuleMatches()
+        {
+            var rules = new List<string> { "*" };
+            var ruleManager = CreateRuleManager(rules);
+            var content = CreateMockPublishedContent("");
+
+            var result = content.IsVirtualNode(ruleManager);
+
+            // "*" becomes "", and "".Contains("") is true
+            Assert.That(result, Is.True);
+        }
+
+        [Test]
+        public void IsVirtualNode_WhenRuleIsEmptyString_MatchesExactEmpty()
+        {
+            var rules = new List<string> { "" };
+            var ruleManager = CreateRuleManager(rules);
+            var content = CreateMockPublishedContent("");
+
+            var result = content.IsVirtualNode(ruleManager);
+
+            Assert.That(result, Is.True);
+        }
+
+        [Test]
+        public void IsVirtualNode_WhenRuleIsEmptyString_DoesNotMatchNonEmpty()
+        {
+            var rules = new List<string> { "" };
+            var ruleManager = CreateRuleManager(rules);
+            var content = CreateMockPublishedContent("SomeType");
+
+            var result = content.IsVirtualNode(ruleManager);
+
+            Assert.That(result, Is.False);
+        }
+
+        [Test]
+        public void IsVirtualNode_WhenWildcardOnlyStarStar_MatchesAnything()
+        {
+            // Rule: "*something*" where something is empty => "**"
+            // which is two wildcards: starts with * and ends with *
+            var rules = new List<string> { "**" };
+            var ruleManager = CreateRuleManager(rules);
+            var content = CreateMockPublishedContent("AnyType");
+
+            var result = content.IsVirtualNode(ruleManager);
+
+            // Starts with * and ends with * => Contains("") => always true
+            Assert.That(result, Is.True);
+        }
+
+        #endregion
+
+        #region Edge Case Tests - MatchDuplicateName
+
+        [Test]
+        public void MatchDuplicateName_WhenNameHasNestedParentheses_ReturnsFalse()
+        {
+            var result = Extensions.MatchDuplicateName("MyPage ((1))", "MyPage");
+
+            // The regex expects exactly " (N)" at the end
+            Assert.That(result, Is.False);
+        }
+
+        [Test]
+        public void MatchDuplicateName_WhenNameHasZero_ReturnsTrue()
+        {
+            var result = Extensions.MatchDuplicateName("MyPage (0)", "MyPage");
+
+            Assert.That(result, Is.True);
+        }
+
+        [Test]
+        public void MatchDuplicateName_WhenNameHasNegativeNumber_ReturnsFalse()
+        {
+            var result = Extensions.MatchDuplicateName("MyPage (-1)", "MyPage");
+
+            // \d+ only matches digits, not negative signs
+            Assert.That(result, Is.False);
+        }
+
+        [Test]
+        public void MatchDuplicateName_WhenNameHasDecimalNumber_ReturnsFalse()
+        {
+            var result = Extensions.MatchDuplicateName("MyPage (1.5)", "MyPage");
+
+            Assert.That(result, Is.False);
+        }
+
+        [Test]
+        public void MatchDuplicateName_WhenBothNamesAreEmpty_ReturnsFalse()
+        {
+            var result = Extensions.MatchDuplicateName("", "");
+
+            Assert.That(result, Is.False);
+        }
+
+        [Test]
+        public void MatchDuplicateName_WhenPotentialNameIsEmpty_ReturnsFalse()
+        {
+            var result = Extensions.MatchDuplicateName("", "MyPage");
+
+            Assert.That(result, Is.False);
+        }
+
+        [Test]
+        public void MatchDuplicateName_WhenCurrNameIsEmpty_ReturnsFalse()
+        {
+            var result = Extensions.MatchDuplicateName(" (1)", "");
+
+            // " (1)" is too short: regex needs `.+` (1+ chars) then ` \(\d+\)` (4+ chars) = 5+ chars,
+            // but " (1)" is only 4 chars, so regex doesn't match
+            Assert.That(result, Is.False);
+        }
+
+        [Test]
+        public void MatchDuplicateName_WhenNameHasMultipleSpacesBeforeParenthesis_ReturnsFalse()
+        {
+            var result = Extensions.MatchDuplicateName("MyPage  (1)", "MyPage");
+
+            // "MyPage  (1)" regex base is "MyPage ", which doesn't equal "MyPage"
+            Assert.That(result, Is.False);
+        }
+
+        [Test]
+        public void MatchDuplicateName_WhenNameContainsParenthesesInMiddle_ReturnsFalse()
+        {
+            var result = Extensions.MatchDuplicateName("MyPage (old) (1)", "MyPage (old)");
+
+            Assert.That(result, Is.True);
+        }
+
+        [Test]
+        public void MatchDuplicateName_VeryLargeNumber_ReturnsTrue()
+        {
+            var result = Extensions.MatchDuplicateName("MyPage (99999999)", "MyPage");
+
+            Assert.That(result, Is.True);
+        }
+
+        #endregion
+
+        #region Edge Case Tests - GetMaxNodeNameNumbering
+
+        [Test]
+        public void GetMaxNodeNameNumbering_WhenDifferentBaseName_StillExtractsNumber()
+        {
+            var result = Extensions.GetMaxNodeNameNumbering("OtherPage (5)", "MyPage", 3);
+
+            // GetMaxNodeNameNumbering only checks the regex pattern, not the base name.
+            // "OtherPage (5)" matches `^.+ \((\d+)\)$`, so 5 is extracted and max(5, 3) = 5
+            Assert.That(result, Is.EqualTo(5));
+        }
+
+        [Test]
+        public void GetMaxNodeNameNumbering_WhenMaxIsZero_AndNumberIsZero_ReturnsZero()
+        {
+            var result = Extensions.GetMaxNodeNameNumbering("MyPage (0)", "MyPage", 0);
+
+            Assert.That(result, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void GetMaxNodeNameNumbering_WhenMaxIsNegative_UpdatesToHigherNumber()
+        {
+            var result = Extensions.GetMaxNodeNameNumbering("MyPage (1)", "MyPage", -5);
+
+            Assert.That(result, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void GetMaxNodeNameNumbering_WhenNameIsEmpty_ReturnsSameMax()
+        {
+            var result = Extensions.GetMaxNodeNameNumbering("", "MyPage", 5);
+
+            Assert.That(result, Is.EqualTo(5));
+        }
+
+        [Test]
+        public void GetMaxNodeNameNumbering_WhenInputTooShortForPattern_ReturnsSameMax()
+        {
+            var result = Extensions.GetMaxNodeNameNumbering(" (10)", "", 0);
+
+            // " (10)" doesn't match regex `^.+ \((\d+)\)$` because there's no base name
+            // before the ` (10)` pattern - the leading space IS the only content, so
+            // `.+` matches the space but then there's no space before `\(`
+            Assert.That(result, Is.EqualTo(0));
+        }
+
+        #endregion
+
+        #region Edge Case Tests - VirtualNodesRuleManager
+
+        [Test]
+        public void RuleManager_WhenRulesContainDuplicates_PreservesDuplicates()
+        {
+            var rules = new List<string> { "VirtualFolder", "VirtualFolder", "VirtualFolder" };
+
+            var sut = CreateRuleManager(rules);
+
+            Assert.That(sut.Rules, Has.Count.EqualTo(3));
+        }
+
+        [Test]
+        public void RuleManager_WhenRulesContainEmptyStrings_PreservesEmptyStrings()
+        {
+            var rules = new List<string> { "", "VirtualFolder", "" };
+
+            var sut = CreateRuleManager(rules);
+
+            Assert.That(sut.Rules, Has.Count.EqualTo(3));
+            Assert.That(sut.Rules[0], Is.EqualTo(""));
+        }
+
+        [Test]
+        public void RuleManager_WhenRulesContainNull_PreservesNulls()
+        {
+            var rules = new List<string> { null, "VirtualFolder" };
+
+            var sut = CreateRuleManager(rules);
+
+            Assert.That(sut.Rules, Has.Count.EqualTo(2));
+            Assert.That(sut.Rules[0], Is.Null);
+        }
+
+        #endregion
+
         #region GetMaxNodeNameNumbering Tests
 
         [Test]

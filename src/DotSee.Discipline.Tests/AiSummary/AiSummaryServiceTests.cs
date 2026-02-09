@@ -343,6 +343,328 @@ namespace DotSee.Discipline.Tests.AiSummary
 
         #endregion
 
+        #region Edge Case Tests - AiSummarySettings DocTypes
+
+        [Test]
+        public void AiSummarySettings_DocTypesList_EmptyString_ReturnsEmptyList()
+        {
+            var settings = new AiSummarySettings
+            {
+                DocTypes = ""
+            };
+
+            var list = settings.DocTypesList;
+
+            // Empty string is treated as whitespace by IsNullOrWhiteSpace, so returns empty list
+            Assert.That(list, Is.Empty);
+        }
+
+        [Test]
+        public void AiSummarySettings_DocTypesList_SingleDocType_ReturnsSingleItem()
+        {
+            var settings = new AiSummarySettings
+            {
+                DocTypes = "Article"
+            };
+
+            var list = settings.DocTypesList;
+
+            Assert.That(list, Has.Count.EqualTo(1));
+            Assert.That(list[0], Is.EqualTo("Article"));
+        }
+
+        [Test]
+        public void AiSummarySettings_DocTypesList_CommaOnly_ReturnsEmptyList()
+        {
+            var settings = new AiSummarySettings
+            {
+                DocTypes = ","
+            };
+
+            var list = settings.DocTypesList;
+
+            // Comma-only splits with RemoveEmptyEntries, so yields no items
+            Assert.That(list, Is.Empty);
+        }
+
+        [Test]
+        public void AiSummarySettings_ExcludePropertiesList_EmptyString_ReturnsListWithOneEmptyItem()
+        {
+            var settings = new AiSummarySettings
+            {
+                ExcludeProperties = ""
+            };
+
+            var list = settings.ExcludePropertiesList;
+
+            Assert.That(list, Has.Count.EqualTo(1));
+            Assert.That(list[0], Is.EqualTo(""));
+        }
+
+        [Test]
+        public void AiSummarySettings_ExcludePropertiesList_SingleItem()
+        {
+            var settings = new AiSummarySettings
+            {
+                ExcludeProperties = "umbracoNaviHide"
+            };
+
+            var list = settings.ExcludePropertiesList;
+
+            Assert.That(list, Has.Count.EqualTo(1));
+            Assert.That(list[0], Is.EqualTo("umbracoNaviHide"));
+        }
+
+        #endregion
+
+        #region Edge Case Tests - MaxChars
+
+        [Test]
+        public void AiSummarySettings_MaxChars_DefaultIs150()
+        {
+            var settings = new AiSummarySettings();
+
+            Assert.That(settings.MaxChars, Is.EqualTo(150));
+        }
+
+        [Test]
+        public void AiSummarySettings_MaxChars_CanBeSetToZero()
+        {
+            var settings = new AiSummarySettings { MaxChars = 0 };
+
+            Assert.That(settings.MaxChars, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void AiSummarySettings_MaxChars_CanBeSetToNegative()
+        {
+            var settings = new AiSummarySettings { MaxChars = -1 };
+
+            Assert.That(settings.MaxChars, Is.EqualTo(-1));
+        }
+
+        [Test]
+        public void AiSummarySettings_MaxChars_LargeValue()
+        {
+            var settings = new AiSummarySettings { MaxChars = 100000 };
+
+            Assert.That(settings.MaxChars, Is.EqualTo(100000));
+        }
+
+        #endregion
+
+        #region Edge Case Tests - Tone
+
+        [Test]
+        public void AiSummarySettings_Tone_DefaultValue()
+        {
+            var settings = new AiSummarySettings();
+
+            Assert.That(settings.Tone, Is.EqualTo("Use a professional tone."));
+        }
+
+        [Test]
+        public void AiSummarySettings_Tone_CanBeNull()
+        {
+            var settings = new AiSummarySettings { Tone = null };
+
+            Assert.That(settings.Tone, Is.Null);
+        }
+
+        [Test]
+        public void AiSummarySettings_Tone_CanBeEmpty()
+        {
+            var settings = new AiSummarySettings { Tone = "" };
+
+            Assert.That(settings.Tone, Is.EqualTo(""));
+        }
+
+        #endregion
+
+        #region Edge Case Tests - Settings Validation Combinations
+
+        [Test]
+        public void Settings_WithWhitespaceOnlyApiKey_IsNotEmpty()
+        {
+            var settings = new AiSummarySettings
+            {
+                ApiKey = "   ",
+                PropertyAlias = "summary"
+            };
+
+            var hasApiKey = !string.IsNullOrEmpty(settings.ApiKey);
+
+            // Whitespace-only string is not null or empty
+            Assert.That(hasApiKey, Is.True);
+        }
+
+        [Test]
+        public void Settings_WithWhitespaceOnlyPropertyAlias_IsNotEmpty()
+        {
+            var settings = new AiSummarySettings
+            {
+                ApiKey = "sk-key",
+                PropertyAlias = "   "
+            };
+
+            var hasPropertyAlias = !string.IsNullOrEmpty(settings.PropertyAlias);
+
+            Assert.That(hasPropertyAlias, Is.True);
+        }
+
+        [Test]
+        public void Settings_AllFieldsNull_ShouldNotContinue()
+        {
+            var settings = new AiSummarySettings
+            {
+                ApiKey = null,
+                PropertyAlias = null,
+                DocTypes = null,
+                Llm = null,
+                Model = null,
+                Tone = null,
+                ExcludeProperties = null,
+                TogglePropertyAlias = null
+            };
+
+            var hasApiKey = !string.IsNullOrEmpty(settings.ApiKey);
+            var hasPropertyAlias = !string.IsNullOrEmpty(settings.PropertyAlias);
+
+            Assert.That(hasApiKey, Is.False);
+            Assert.That(hasPropertyAlias, Is.False);
+        }
+
+        #endregion
+
+        #region Edge Case Tests - Toggle Property
+
+        [Test]
+        public void ToggleProperty_WhenValueIsEmptyString_ShouldNotSkip()
+        {
+            var toggleValue = "";
+            var shouldSkip = (toggleValue?.ToLower() ?? "0") == "0";
+
+            Assert.That(shouldSkip, Is.False);
+        }
+
+        [Test]
+        public void ToggleProperty_WhenValueIsWhitespace_ShouldNotSkip()
+        {
+            var toggleValue = "   ";
+            var shouldSkip = (toggleValue?.ToLower() ?? "0") == "0";
+
+            Assert.That(shouldSkip, Is.False);
+        }
+
+        [Test]
+        public void ToggleProperty_WhenValueIsUpperCaseZero_ShouldSkip()
+        {
+            // "0" is "0" regardless of case
+            var toggleValue = "0";
+            var shouldSkip = (toggleValue?.ToLower() ?? "0") == "0";
+
+            Assert.That(shouldSkip, Is.True);
+        }
+
+        #endregion
+
+        #region Edge Case Tests - Content Already Exists
+
+        [Test]
+        public void ContentAlreadyExists_WhenWhitespaceOnly_ShouldNotSkip()
+        {
+            var currentValue = "   ";
+            var hasToggleProperty = false;
+
+            var shouldSkip = !hasToggleProperty 
+                && currentValue != null 
+                && !string.IsNullOrWhiteSpace(currentValue.ToString().Trim());
+
+            Assert.That(shouldSkip, Is.False);
+        }
+
+        [Test]
+        public void ContentAlreadyExists_WhenHtmlContent_ShouldSkip()
+        {
+            var currentValue = "<p>Some summary</p>";
+            var hasToggleProperty = false;
+
+            var shouldSkip = !hasToggleProperty 
+                && currentValue != null 
+                && !string.IsNullOrWhiteSpace(currentValue.ToString().Trim());
+
+            Assert.That(shouldSkip, Is.True);
+        }
+
+        #endregion
+
+        #region Edge Case Tests - Culture Handling
+
+        [Test]
+        public void CultureHandling_WhenCulturesIsNull_ProcessesInvariant()
+        {
+            List<string> availableCultures = null;
+
+            var shouldProcessInvariant = availableCultures == null || !availableCultures.Any();
+
+            Assert.That(shouldProcessInvariant, Is.True);
+        }
+
+        [Test]
+        public void CultureHandling_WhenEditedCulturesEmpty_DoesNotProcess()
+        {
+            var availableCultures = new List<string> { "en-US", "fr-FR" };
+            var editedCultures = new List<string>();
+
+            var hasEdited = editedCultures.Any();
+
+            Assert.That(hasEdited, Is.False);
+        }
+
+        [Test]
+        public void CultureHandling_WhenEditedCulturesContainsAvailableCultures_AllValid()
+        {
+            var availableCultures = new List<string> { "en-US", "fr-FR", "de-DE" };
+            var editedCultures = new List<string> { "en-US", "de-DE" };
+
+            var allValid = editedCultures.All(c => availableCultures.Contains(c));
+
+            Assert.That(allValid, Is.True);
+        }
+
+        #endregion
+
+        #region Edge Case Tests - Complex Property Alias with Various Formats
+
+        [Test]
+        public void ComplexPropertyAlias_WithThreeOrMoreDots_IsComplex()
+        {
+            var alias = "block.element.nested.property";
+            var dotCount = alias.Count(x => x == '.');
+
+            Assert.That(dotCount, Is.GreaterThanOrEqualTo(2));
+        }
+
+        [Test]
+        public void ComplexPropertyAlias_EmptyString_HasNoDots()
+        {
+            var alias = "";
+            var dotCount = alias.Count(x => x == '.');
+
+            Assert.That(dotCount, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void ComplexPropertyAlias_NullSafety()
+        {
+            string alias = null;
+            var dotCount = alias?.Count(x => x == '.') ?? 0;
+
+            Assert.That(dotCount, Is.EqualTo(0));
+        }
+
+        #endregion
+
         #region LLM Selection Tests
 
         [Test]

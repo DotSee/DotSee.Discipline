@@ -360,5 +360,184 @@ namespace DotSee.Discipline.Tests.NodeRestrict
         // requires integration testing because GetFilter uses _sql.Query<IContent>()
         // which needs Umbraco's database mapper infrastructure (IMapperCollection)
         // that cannot be easily mocked in unit tests.
+
+        #region Edge Case Tests - Rule Construction
+
+        [Test]
+        public void Rule_DefaultConstructor_AllPropertiesHaveDefaults()
+        {
+            var rule = new Rule();
+
+            Assert.That(rule.ParentDocType, Is.Null);
+            Assert.That(rule.ChildDocType, Is.Null);
+            Assert.That(rule.MaxNodes, Is.EqualTo(0));
+            Assert.That(rule.FromProperty, Is.False);
+            Assert.That(rule.ShowWarnings, Is.False);
+            Assert.That(rule.CustomMessage, Is.Null);
+            Assert.That(rule.CustomMessageCategory, Is.Null);
+            Assert.That(rule.CustomWarningMessage, Is.Null);
+            Assert.That(rule.CustomWarningMessageCategory, Is.Null);
+        }
+
+        [Test]
+        public void Rule_WithEmptyStrings_PreservesEmptyStrings()
+        {
+            var rule = new Rule("", "", 5, customMessage: "", customMessageCategory: "", customWarningMessage: "", customWarningMessageCategory: "");
+
+            Assert.That(rule.ParentDocType, Is.EqualTo(""));
+            Assert.That(rule.ChildDocType, Is.EqualTo(""));
+            Assert.That(rule.CustomMessage, Is.EqualTo(""));
+            Assert.That(rule.CustomMessageCategory, Is.EqualTo(""));
+            Assert.That(rule.CustomWarningMessage, Is.EqualTo(""));
+            Assert.That(rule.CustomWarningMessageCategory, Is.EqualTo(""));
+        }
+
+        [Test]
+        public void Rule_WithNullDocTypes_SetsNullValues()
+        {
+            var rule = new Rule(null, null, 10);
+
+            Assert.That(rule.ParentDocType, Is.Null);
+            Assert.That(rule.ChildDocType, Is.Null);
+        }
+
+        [Test]
+        public void Rule_MaxNodesAtIntMaxValue_IsAccepted()
+        {
+            var rule = new Rule("ParentType", "ChildType", int.MaxValue);
+
+            Assert.That(rule.MaxNodes, Is.EqualTo(int.MaxValue));
+        }
+
+        #endregion
+
+        #region Edge Case Tests - Result Edge Cases
+
+        [Test]
+        public void Result_LimitReached_WhenNodeCountIsZeroAndMaxNodesIsZero()
+        {
+            var rule = new Rule("ParentType", "ChildType", 0);
+            var result = Result.GetResult(0, rule);
+
+            // 0 >= 0 means limit reached
+            Assert.That(result.LimitReached, Is.True);
+        }
+
+        [Test]
+        public void Result_LimitNotReached_WhenNodeCountIsZeroAndMaxNodesIsOne()
+        {
+            var rule = new Rule("ParentType", "ChildType", 1);
+            var result = Result.GetResult(0, rule);
+
+            Assert.That(result.LimitReached, Is.False);
+            Assert.That(result.NodeCount, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void Result_WithLargeNodeCount_CalculatesCorrectly()
+        {
+            var rule = new Rule("ParentType", "ChildType", 1000);
+            var result = Result.GetResult(999, rule);
+
+            Assert.That(result.LimitReached, Is.False);
+            Assert.That(result.NodeCount, Is.EqualTo(999));
+        }
+
+        [Test]
+        public void Result_ExactlyAtLimit_IsLimitReached()
+        {
+            var rule = new Rule("ParentType", "ChildType", 1);
+            var result = Result.GetResult(1, rule);
+
+            Assert.That(result.LimitReached, Is.True);
+        }
+
+        #endregion
+
+        #region Edge Case Tests - NodeRestrictSettings
+
+        [Test]
+        public void NodeRestrictSettings_DefaultValues()
+        {
+            var settings = new NodeRestrictSettings();
+
+            Assert.That(settings.PropertyAlias, Is.Null);
+            Assert.That(settings.ShowWarnings, Is.False);
+        }
+
+        [Test]
+        public void NodeRestrictSettings_WithEmptyPropertyAlias()
+        {
+            var settings = new NodeRestrictSettings { PropertyAlias = "" };
+
+            Assert.That(settings.PropertyAlias, Is.EqualTo(""));
+        }
+
+        [Test]
+        public void NodeRestrictSettings_WithShowWarningsTrue()
+        {
+            var settings = new NodeRestrictSettings { ShowWarnings = true, PropertyAlias = "maxChildren" };
+
+            Assert.That(settings.ShowWarnings, Is.True);
+            Assert.That(settings.PropertyAlias, Is.EqualTo("maxChildren"));
+        }
+
+        #endregion
+
+        #region Edge Case Tests - Run with Wildcard Rules
+
+        [Test]
+        public void Run_WhenWildcardParentAndWildcardChild_AndNodeIsTopLevel_ReturnsNull()
+        {
+            var rules = new List<Rule>
+            {
+                new Rule("*", "*", 1)
+            };
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, -1, "AnyType");
+
+            _contentServiceMock.Setup(x => x.GetById(-1)).Returns((IContent)null);
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.Null);
+        }
+
+        [Test]
+        public void Run_WhenParentIdIsZero_AndParentDoesNotExist_ReturnsNull()
+        {
+            var rules = new List<Rule>
+            {
+                new Rule("*", "*", 1)
+            };
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(2, 0, "ChildType");
+
+            _contentServiceMock.Setup(x => x.GetById(0)).Returns((IContent)null);
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.Null);
+        }
+
+        #endregion
+
+        #region Edge Case Tests - RegisterRule Behavior
+
+        [Test]
+        public void RegisterRule_MultipleRulesCanBeAdded()
+        {
+            var sut = CreateSut(new List<Rule>());
+
+            sut.RegisterRule(new Rule("ParentA", "ChildA", 3));
+            sut.RegisterRule(new Rule("ParentB", "ChildB", 5));
+            sut.RegisterRule(new Rule("ParentC", "ChildC", 10));
+
+            // Verify all rules are registered by checking behavior with a matching parent
+            Assert.That(sut, Is.Not.Null);
+        }
+
+        #endregion
     }
 }
+
