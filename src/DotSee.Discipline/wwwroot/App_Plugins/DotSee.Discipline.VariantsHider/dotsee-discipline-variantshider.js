@@ -321,6 +321,7 @@ async function H() {
   }
 }
 const w = async (r, e) => {
+  console.log("[DotSee.Discipline.VariantsHider] Initializing...");
   const t = await H();
   if (t.enabled) {
     const n = E(t.caption);
