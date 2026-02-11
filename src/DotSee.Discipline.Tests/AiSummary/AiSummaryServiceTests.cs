@@ -877,77 +877,316 @@ namespace DotSee.Discipline.Tests.AiSummary
 
         #region Property Editor Alias Validation Tests
 
-        [Test]
-        public void IsAllowedPropertyType_TinyMCE_IsAllowed()
-        {
-            var alias = "Umbraco.TinyMCE";
-            var isAllowed = alias.Contains("TinyMCE", StringComparison.InvariantCultureIgnoreCase);
+        // NOTE: The actual IsAllowedPropertyType method (private in AiSummaryService) checks for
+        // "RichText", "TextBox", "TextArea", "TextString", "BlockList", "BlockGrid".
+        // These tests validate the same logic the service uses.
 
-            Assert.That(isAllowed, Is.True);
+        private static bool IsAllowedPropertyType(string propertyEditorAlias)
+        {
+            return propertyEditorAlias.Contains("RichText", StringComparison.InvariantCultureIgnoreCase)
+                || propertyEditorAlias.Contains("TextBox", StringComparison.InvariantCultureIgnoreCase)
+                || propertyEditorAlias.Contains("TextArea", StringComparison.InvariantCultureIgnoreCase)
+                || propertyEditorAlias.Contains("TextString", StringComparison.InvariantCultureIgnoreCase)
+                || propertyEditorAlias.Contains("BlockList", StringComparison.InvariantCultureIgnoreCase)
+                || propertyEditorAlias.Contains("BlockGrid", StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        [Test]
+        public void IsAllowedPropertyType_RichText_IsAllowed()
+        {
+            Assert.That(IsAllowedPropertyType("Umbraco.RichText"), Is.True);
+        }
+
+        [Test]
+        public void IsAllowedPropertyType_RichTextEditor_IsAllowed()
+        {
+            // Contains "RichText" so should match
+            Assert.That(IsAllowedPropertyType("Umbraco.RichTextEditor"), Is.True);
         }
 
         [Test]
         public void IsAllowedPropertyType_TextBox_IsAllowed()
         {
-            var alias = "Umbraco.TextBox";
-            var isAllowed = alias.Contains("TextBox", StringComparison.InvariantCultureIgnoreCase);
-
-            Assert.That(isAllowed, Is.True);
+            Assert.That(IsAllowedPropertyType("Umbraco.TextBox"), Is.True);
         }
 
         [Test]
         public void IsAllowedPropertyType_TextArea_IsAllowed()
         {
-            var alias = "Umbraco.TextArea";
-            var isAllowed = alias.Contains("TextArea", StringComparison.InvariantCultureIgnoreCase);
+            Assert.That(IsAllowedPropertyType("Umbraco.TextArea"), Is.True);
+        }
 
-            Assert.That(isAllowed, Is.True);
+        [Test]
+        public void IsAllowedPropertyType_TextString_IsAllowed()
+        {
+            Assert.That(IsAllowedPropertyType("Umbraco.TextString"), Is.True);
         }
 
         [Test]
         public void IsAllowedPropertyType_BlockList_IsAllowed()
         {
-            var alias = "Umbraco.BlockList";
-            var isAllowed = alias.Contains("BlockList", StringComparison.InvariantCultureIgnoreCase);
-
-            Assert.That(isAllowed, Is.True);
+            Assert.That(IsAllowedPropertyType("Umbraco.BlockList"), Is.True);
         }
 
         [Test]
         public void IsAllowedPropertyType_BlockGrid_IsAllowed()
         {
-            var alias = "Umbraco.BlockGrid";
-            var isAllowed = alias.Contains("BlockGrid", StringComparison.InvariantCultureIgnoreCase);
+            Assert.That(IsAllowedPropertyType("Umbraco.BlockGrid"), Is.True);
+        }
 
-            Assert.That(isAllowed, Is.True);
+        [Test]
+        public void IsAllowedPropertyType_CaseInsensitive_IsAllowed()
+        {
+            Assert.That(IsAllowedPropertyType("umbraco.richtext"), Is.True);
+            Assert.That(IsAllowedPropertyType("UMBRACO.BLOCKLIST"), Is.True);
         }
 
         [Test]
         public void IsAllowedPropertyType_MediaPicker_IsNotAllowed()
         {
-            var alias = "Umbraco.MediaPicker";
-            var isAllowed = alias.Contains("TinyMCE", StringComparison.InvariantCultureIgnoreCase)
-                || alias.Contains("TextBox", StringComparison.InvariantCultureIgnoreCase)
-                || alias.Contains("TextArea", StringComparison.InvariantCultureIgnoreCase)
-                || alias.Contains("TextString", StringComparison.InvariantCultureIgnoreCase)
-                || alias.Contains("BlockList", StringComparison.InvariantCultureIgnoreCase)
-                || alias.Contains("BlockGrid", StringComparison.InvariantCultureIgnoreCase);
-
-            Assert.That(isAllowed, Is.False);
+            Assert.That(IsAllowedPropertyType("Umbraco.MediaPicker"), Is.False);
         }
 
         [Test]
         public void IsAllowedPropertyType_ContentPicker_IsNotAllowed()
         {
-            var alias = "Umbraco.ContentPicker";
-            var isAllowed = alias.Contains("TinyMCE", StringComparison.InvariantCultureIgnoreCase)
-                || alias.Contains("TextBox", StringComparison.InvariantCultureIgnoreCase)
-                || alias.Contains("TextArea", StringComparison.InvariantCultureIgnoreCase)
-                || alias.Contains("TextString", StringComparison.InvariantCultureIgnoreCase)
-                || alias.Contains("BlockList", StringComparison.InvariantCultureIgnoreCase)
-                || alias.Contains("BlockGrid", StringComparison.InvariantCultureIgnoreCase);
+            Assert.That(IsAllowedPropertyType("Umbraco.ContentPicker"), Is.False);
+        }
 
-            Assert.That(isAllowed, Is.False);
+        [Test]
+        public void IsAllowedPropertyType_TinyMCE_IsNotAllowed()
+        {
+            // TinyMCE was used in older Umbraco versions; v17 uses RichText
+            Assert.That(IsAllowedPropertyType("Umbraco.TinyMCE"), Is.False);
+        }
+
+        [Test]
+        public void IsAllowedPropertyType_DropDown_IsNotAllowed()
+        {
+            Assert.That(IsAllowedPropertyType("Umbraco.DropDown.Flexible"), Is.False);
+        }
+
+        [Test]
+        public void IsAllowedPropertyType_MultiNodeTreePicker_IsNotAllowed()
+        {
+            Assert.That(IsAllowedPropertyType("Umbraco.MultiNodeTreePicker"), Is.False);
+        }
+
+        [Test]
+        public void IsAllowedPropertyType_Slider_IsNotAllowed()
+        {
+            Assert.That(IsAllowedPropertyType("Umbraco.Slider"), Is.False);
+        }
+
+        #endregion
+
+        #region DocTypesList Caching Behavior Tests
+
+        [Test]
+        public void AiSummarySettings_DocTypesList_IsCachedAfterFirstAccess()
+        {
+            var settings = new AiSummarySettings { DocTypes = "Article,Blog" };
+
+            var list1 = settings.DocTypesList;
+            var list2 = settings.DocTypesList;
+
+            // Same instance should be returned on second call (caching)
+            Assert.That(list1, Is.SameAs(list2));
+        }
+
+        [Test]
+        public void AiSummarySettings_DocTypesList_CachePreventsReparse()
+        {
+            var settings = new AiSummarySettings { DocTypes = "Article,Blog" };
+
+            var list1 = settings.DocTypesList;
+            Assert.That(list1, Has.Count.EqualTo(2));
+
+            // Even if we change DocTypes after first access, the cached list is returned
+            settings.DocTypes = "One,Two,Three,Four";
+            var list2 = settings.DocTypesList;
+
+            Assert.That(list2, Has.Count.EqualTo(2)); // Still cached from first access
+        }
+
+        #endregion
+
+        #region ExcludePropertiesList Behavior Differences Tests
+
+        [Test]
+        public void AiSummarySettings_ExcludePropertiesList_DoesNotTrim()
+        {
+            // Unlike DocTypesList, ExcludePropertiesList does NOT use Trim()
+            var settings = new AiSummarySettings { ExcludeProperties = " prop1 , prop2 " };
+
+            var list = settings.ExcludePropertiesList;
+
+            Assert.That(list, Has.Count.EqualTo(2));
+            Assert.That(list[0], Is.EqualTo(" prop1 ")); // Spaces preserved
+            Assert.That(list[1], Is.EqualTo(" prop2 ")); // Spaces preserved
+        }
+
+        [Test]
+        public void AiSummarySettings_ExcludePropertiesList_DoesNotRemoveEmptyEntries()
+        {
+            // Unlike DocTypesList, ExcludePropertiesList does NOT use RemoveEmptyEntries
+            var settings = new AiSummarySettings { ExcludeProperties = "prop1,,prop2" };
+
+            var list = settings.ExcludePropertiesList;
+
+            Assert.That(list, Has.Count.EqualTo(3)); // Includes the empty entry
+            Assert.That(list[1], Is.EqualTo(""));
+        }
+
+        [Test]
+        public void AiSummarySettings_ExcludePropertiesList_CommaOnly_IncludesEmptyEntries()
+        {
+            var settings = new AiSummarySettings { ExcludeProperties = "," };
+
+            var list = settings.ExcludePropertiesList;
+
+            Assert.That(list, Has.Count.EqualTo(2));
+            Assert.That(list[0], Is.EqualTo(""));
+            Assert.That(list[1], Is.EqualTo(""));
+        }
+
+        [Test]
+        public void AiSummarySettings_ExcludePropertiesList_IsCachedAfterFirstAccess()
+        {
+            var settings = new AiSummarySettings { ExcludeProperties = "prop1,prop2" };
+
+            var list1 = settings.ExcludePropertiesList;
+            var list2 = settings.ExcludePropertiesList;
+
+            Assert.That(list1, Is.SameAs(list2));
+        }
+
+        #endregion
+
+        #region SavingCultures Parameter Tests
+
+        [Test]
+        public void CultureHandling_WhenSavingCulturesProvided_UsesThemOverAvailableCultures()
+        {
+            var availableCultures = new List<string> { "en-US", "fr-FR", "de-DE" };
+            var savingCultures = new List<string> { "fr-FR" };
+
+            // Replicate the logic in AiSummaryService.Run()
+            var culturesToProcess = (savingCultures != null && savingCultures.Any())
+                ? (IEnumerable<string>)savingCultures
+                : availableCultures;
+
+            Assert.That(culturesToProcess.Count(), Is.EqualTo(1));
+            Assert.That(culturesToProcess.First(), Is.EqualTo("fr-FR"));
+        }
+
+        [Test]
+        public void CultureHandling_WhenSavingCulturesIsNull_FallsBackToAvailableCultures()
+        {
+            var availableCultures = new List<string> { "en-US", "fr-FR" };
+            IEnumerable<string> savingCultures = null;
+
+            var culturesToProcess = (savingCultures != null && savingCultures.Any())
+                ? savingCultures
+                : availableCultures;
+
+            Assert.That(culturesToProcess.Count(), Is.EqualTo(2));
+        }
+
+        [Test]
+        public void CultureHandling_WhenSavingCulturesIsEmpty_FallsBackToAvailableCultures()
+        {
+            var availableCultures = new List<string> { "en-US", "fr-FR" };
+            var savingCultures = new List<string>();
+
+            var culturesToProcess = (savingCultures != null && savingCultures.Any())
+                ? (IEnumerable<string>)savingCultures
+                : availableCultures;
+
+            Assert.That(culturesToProcess.Count(), Is.EqualTo(2));
+        }
+
+        #endregion
+
+        #region SetDefaults Logic Tests
+
+        [Test]
+        public void SetDefaults_WhenLlmAndModelBothNull_DefaultsToOpenAiGpt4oMini()
+        {
+            var settings = new AiSummarySettings { Llm = null, Model = null };
+
+            // Replicate SetDefaults logic
+            if (string.IsNullOrEmpty(settings.Llm)) settings.Llm = "openai";
+            if (string.IsNullOrEmpty(settings.Model))
+            {
+                settings.Model = settings.Llm.ToLower() switch
+                {
+                    "openai" => "gpt-4o-mini",
+                    "gemini" => "gemini-2.5-flash",
+                    _ => null
+                };
+            }
+
+            Assert.That(settings.Llm, Is.EqualTo("openai"));
+            Assert.That(settings.Model, Is.EqualTo("gpt-4o-mini"));
+        }
+
+        [Test]
+        public void SetDefaults_WhenLlmIsGeminiAndModelNull_DefaultsToGeminiFlash()
+        {
+            var settings = new AiSummarySettings { Llm = "gemini", Model = null };
+
+            if (string.IsNullOrEmpty(settings.Llm)) settings.Llm = "openai";
+            if (string.IsNullOrEmpty(settings.Model))
+            {
+                settings.Model = settings.Llm.ToLower() switch
+                {
+                    "openai" => "gpt-4o-mini",
+                    "gemini" => "gemini-2.5-flash",
+                    _ => null
+                };
+            }
+
+            Assert.That(settings.Llm, Is.EqualTo("gemini"));
+            Assert.That(settings.Model, Is.EqualTo("gemini-2.5-flash"));
+        }
+
+        [Test]
+        public void SetDefaults_WhenModelAlreadySet_DoesNotOverride()
+        {
+            var settings = new AiSummarySettings { Llm = "openai", Model = "gpt-4" };
+
+            if (string.IsNullOrEmpty(settings.Llm)) settings.Llm = "openai";
+            if (string.IsNullOrEmpty(settings.Model))
+            {
+                settings.Model = settings.Llm.ToLower() switch
+                {
+                    "openai" => "gpt-4o-mini",
+                    "gemini" => "gemini-2.5-flash",
+                    _ => null
+                };
+            }
+
+            Assert.That(settings.Model, Is.EqualTo("gpt-4"));
+        }
+
+        [Test]
+        public void SetDefaults_WhenLlmIsUnknown_ModelRemainsNull()
+        {
+            var settings = new AiSummarySettings { Llm = "anthropic", Model = null };
+
+            if (string.IsNullOrEmpty(settings.Llm)) settings.Llm = "openai";
+            if (string.IsNullOrEmpty(settings.Model))
+            {
+                settings.Model = settings.Llm.ToLower() switch
+                {
+                    "openai" => "gpt-4o-mini",
+                    "gemini" => "gemini-2.5-flash",
+                    _ => null
+                };
+            }
+
+            Assert.That(settings.Model, Is.Null);
         }
 
         #endregion

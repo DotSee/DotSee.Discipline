@@ -598,5 +598,188 @@ namespace DotSee.Discipline.Tests.VirtualNodes
         }
 
         #endregion
+
+        #region MatchContentTypeAlias Wildcard Edge Cases (via IsVirtualNode)
+
+        [Test]
+        public void IsVirtualNode_WhenPrefixWildcard_CaseInsensitive()
+        {
+            var rules = new List<string> { "Virtual*" };
+            var ruleManager = CreateRuleManager(rules);
+            var content = CreateMockPublishedContent("VIRTUALFOLDER");
+
+            Assert.That(content.IsVirtualNode(ruleManager), Is.True);
+        }
+
+        [Test]
+        public void IsVirtualNode_WhenSuffixWildcard_CaseInsensitive()
+        {
+            var rules = new List<string> { "*FOLDER" };
+            var ruleManager = CreateRuleManager(rules);
+            var content = CreateMockPublishedContent("virtualfolder");
+
+            Assert.That(content.IsVirtualNode(ruleManager), Is.True);
+        }
+
+        [Test]
+        public void IsVirtualNode_WhenContainsWildcard_CaseInsensitive()
+        {
+            var rules = new List<string> { "*VIRTUAL*" };
+            var ruleManager = CreateRuleManager(rules);
+            var content = CreateMockPublishedContent("myvirtualfolder");
+
+            Assert.That(content.IsVirtualNode(ruleManager), Is.True);
+        }
+
+        [Test]
+        public void IsVirtualNode_WhenPrefixWildcard_PartialMatch()
+        {
+            // Rule "Vir*" should match "VirtualFolder" because it starts with "Vir"
+            var rules = new List<string> { "Vir*" };
+            var ruleManager = CreateRuleManager(rules);
+            var content = CreateMockPublishedContent("VirtualFolder");
+
+            Assert.That(content.IsVirtualNode(ruleManager), Is.True);
+        }
+
+        [Test]
+        public void IsVirtualNode_WhenSuffixWildcard_PartialMatch()
+        {
+            var rules = new List<string> { "*der" };
+            var ruleManager = CreateRuleManager(rules);
+            var content = CreateMockPublishedContent("VirtualFolder");
+
+            Assert.That(content.IsVirtualNode(ruleManager), Is.True);
+        }
+
+        [Test]
+        public void IsVirtualNode_WhenContainsWildcard_InMiddle()
+        {
+            var rules = new List<string> { "*ualFol*" };
+            var ruleManager = CreateRuleManager(rules);
+            var content = CreateMockPublishedContent("VirtualFolder");
+
+            Assert.That(content.IsVirtualNode(ruleManager), Is.True);
+        }
+
+        [Test]
+        public void IsVirtualNode_WhenPrefixWildcard_EmptyPrefix_MatchesEverything()
+        {
+            // Rule "*" means startsWith("") - matches everything
+            var rules = new List<string> { "*" };
+            var ruleManager = CreateRuleManager(rules);
+
+            Assert.That(CreateMockPublishedContent("anything").IsVirtualNode(ruleManager), Is.True);
+            Assert.That(CreateMockPublishedContent("").IsVirtualNode(ruleManager), Is.True);
+        }
+
+        [Test]
+        public void IsVirtualNode_WhenMultipleRulesWithDifferentWildcardTypes()
+        {
+            var rules = new List<string> { "Exact", "Pre*", "*Suf", "*Mid*" };
+            var ruleManager = CreateRuleManager(rules);
+
+            Assert.That(CreateMockPublishedContent("Exact").IsVirtualNode(ruleManager), Is.True);
+            Assert.That(CreateMockPublishedContent("PreAnything").IsVirtualNode(ruleManager), Is.True);
+            Assert.That(CreateMockPublishedContent("AnythingSuf").IsVirtualNode(ruleManager), Is.True);
+            Assert.That(CreateMockPublishedContent("HasMidInName").IsVirtualNode(ruleManager), Is.True);
+            Assert.That(CreateMockPublishedContent("NoMatchHere").IsVirtualNode(ruleManager), Is.False);
+        }
+
+        #endregion
+
+        #region MatchDuplicateName Additional Edge Cases
+
+        [Test]
+        public void MatchDuplicateName_WhenNameHasNumberWithoutSpace_ReturnsFalse()
+        {
+            // Missing space before parenthesis: "MyPage(1)" doesn't match
+            var result = Extensions.MatchDuplicateName("MyPage(1)", "MyPage");
+
+            Assert.That(result, Is.False);
+        }
+
+        [Test]
+        public void MatchDuplicateName_WhenNameHasLeadingNumber_ReturnsTrue()
+        {
+            var result = Extensions.MatchDuplicateName("123 Page (2)", "123 Page");
+
+            Assert.That(result, Is.True);
+        }
+
+        [Test]
+        public void MatchDuplicateName_WhenCurrNameContainsParentheses_MatchesCorrectly()
+        {
+            // "My (Cool) Page (3)" should match "My (Cool) Page"
+            var result = Extensions.MatchDuplicateName("My (Cool) Page (3)", "My (Cool) Page");
+
+            Assert.That(result, Is.True);
+        }
+
+        [Test]
+        public void MatchDuplicateName_WhenSingleCharName_ReturnsTrue()
+        {
+            var result = Extensions.MatchDuplicateName("A (1)", "A");
+
+            Assert.That(result, Is.True);
+        }
+
+        [Test]
+        public void MatchDuplicateName_WhenUnicodeName_ReturnsTrue()
+        {
+            var result = Extensions.MatchDuplicateName("Σελίδα (5)", "Σελίδα");
+
+            Assert.That(result, Is.True);
+        }
+
+        #endregion
+
+        #region GetMaxNodeNameNumbering Additional Edge Cases
+
+        [Test]
+        public void GetMaxNodeNameNumbering_WhenMultipleCallsSimulation_TracksMaxCorrectly()
+        {
+            // Simulate checking multiple names and tracking the max
+            int max = 0;
+            max = Extensions.GetMaxNodeNameNumbering("Page (1)", "Page", max);
+            Assert.That(max, Is.EqualTo(1));
+
+            max = Extensions.GetMaxNodeNameNumbering("Page (5)", "Page", max);
+            Assert.That(max, Is.EqualTo(5));
+
+            max = Extensions.GetMaxNodeNameNumbering("Page (3)", "Page", max);
+            Assert.That(max, Is.EqualTo(5)); // 3 < 5, so stays 5
+
+            max = Extensions.GetMaxNodeNameNumbering("Page (10)", "Page", max);
+            Assert.That(max, Is.EqualTo(10));
+        }
+
+        [Test]
+        public void GetMaxNodeNameNumbering_WhenNonMatchingPattern_KeepsMax()
+        {
+            var result = Extensions.GetMaxNodeNameNumbering("Just a name", "Page", 7);
+
+            Assert.That(result, Is.EqualTo(7));
+        }
+
+        [Test]
+        public void GetMaxNodeNameNumbering_WhenLettersInParentheses_KeepsMax()
+        {
+            var result = Extensions.GetMaxNodeNameNumbering("Page (abc)", "Page", 3);
+
+            Assert.That(result, Is.EqualTo(3));
+        }
+
+        [Test]
+        public void GetMaxNodeNameNumbering_IgnoresBaseNameComparison()
+        {
+            // Important: GetMaxNodeNameNumbering does NOT compare base names.
+            // It only extracts the number from the pattern, regardless of base name match.
+            var result = Extensions.GetMaxNodeNameNumbering("DifferentPage (100)", "MyPage", 5);
+
+            Assert.That(result, Is.EqualTo(100));
+        }
+
+        #endregion
     }
 }

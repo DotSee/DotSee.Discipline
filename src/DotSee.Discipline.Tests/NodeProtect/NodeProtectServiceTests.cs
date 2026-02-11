@@ -729,5 +729,174 @@ namespace DotSee.Discipline.Tests.NodeProtect
         }
 
         #endregion
+
+        #region Result.GetResult Factory Tests
+
+        [Test]
+        public void Result_GetResult_ReturnsCorrectNodeId()
+        {
+            var rules = new List<Rule> { new Rule("TypeA", "") };
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(99, "TypeA");
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.NodeId, Is.EqualTo(99));
+        }
+
+        [Test]
+        public void Result_GetResult_ReturnsCorrectNodeName()
+        {
+            var rules = new List<Rule> { new Rule("TypeA", "") };
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(5, "TypeA");
+
+            var result = sut.Run(node);
+
+            Assert.That(result.NodeName, Is.EqualTo("TestNode5"));
+        }
+
+        [Test]
+        public void Result_GetResult_PreservesRule()
+        {
+            var rule = new Rule("TypeA", "", "Custom msg", "Custom cat");
+            var rules = new List<Rule> { rule };
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, "TypeA");
+
+            var result = sut.Run(node);
+
+            Assert.That(result.Rule, Is.SameAs(rule));
+        }
+
+        #endregion
+
+        #region Property-Based Protection - Exception Handling
+
+        [Test]
+        public void Run_WhenPropertyCheckThrowsException_FallsThroughToRuleCheck()
+        {
+            _settings.PropertyAlias = "brokenProperty";
+            var rules = new List<Rule>
+            {
+                new Rule("MatchType", "")
+            };
+            var sut = CreateSut(rules);
+
+            // Create a node where HasProperty returns true but GetValue throws
+            var simpleContentTypeMock = new Mock<ISimpleContentType>();
+            simpleContentTypeMock.Setup(c => c.Alias).Returns("MatchType");
+
+            var nodeMock = new Mock<IContent>();
+            nodeMock.Setup(n => n.Id).Returns(1);
+            nodeMock.Setup(n => n.Key).Returns(Guid.NewGuid());
+            nodeMock.Setup(n => n.ContentType).Returns(simpleContentTypeMock.Object);
+            nodeMock.Setup(n => n.Name).Returns("TestNode1");
+            nodeMock.Setup(n => n.HasProperty("brokenProperty")).Returns(true);
+            nodeMock.Setup(n => n.Properties).Throws(new Exception("Property access error"));
+
+            var result = sut.Run(nodeMock.Object);
+
+            // Property check fails (exception is swallowed), falls through to rule check where doctype matches
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Rule.DocTypeAlias, Is.EqualTo("MatchType"));
+        }
+
+        #endregion
+
+        #region Descendant - Multiple Rules Mix
+
+        [Test]
+        public void Run_WhenDescendantMatchesByGuid_ReturnsResultForDescendant()
+        {
+            var childGuid = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+            var rules = new List<Rule>
+            {
+                new Rule("", "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+            };
+            var parentNode = CreateMockNode(1, "ParentType");
+            var childNode = CreateMockNode(2, "ChildType", childGuid);
+
+            _contentServiceMock
+                .Setup(x => x.GetPagedDescendants(1, 0, int.MaxValue, out _totalRecords, It.IsAny<IQuery<IContent>>(), It.IsAny<Ordering>()))
+                .Returns(new List<IContent> { childNode });
+
+            var sut = CreateSut(rules);
+
+            var result = sut.Run(parentNode);
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.NodeId, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void Run_WhenFirstDescendantDoesNotMatchButSecondDoes_ReturnsSecond()
+        {
+            var rules = new List<Rule>
+            {
+                new Rule("ProtectedChild", "")
+            };
+            var parentNode = CreateMockNode(1, "ParentType");
+            var child1 = CreateMockNode(2, "UnprotectedChild");
+            var child2 = CreateMockNode(3, "ProtectedChild");
+
+            _contentServiceMock
+                .Setup(x => x.GetPagedDescendants(1, 0, int.MaxValue, out _totalRecords, It.IsAny<IQuery<IContent>>(), It.IsAny<Ordering>()))
+                .Returns(new List<IContent> { child1, child2 });
+
+            var sut = CreateSut(rules);
+
+            var result = sut.Run(parentNode);
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.NodeId, Is.EqualTo(3));
+        }
+
+        #endregion
+
+        #region Rule Properties Tests
+
+        [Test]
+        public void Rule_ConstructorWithCustomMessages_SetsAllProperties()
+        {
+            var rule = new Rule("TypeA", "guid1", "Custom delete message", "Delete");
+
+            Assert.That(rule.DocTypeAlias, Is.EqualTo("TypeA"));
+            Assert.That(rule.DocumentGuids, Is.EqualTo("guid1"));
+            Assert.That(rule.CustomMessage, Is.EqualTo("Custom delete message"));
+            Assert.That(rule.CustomMessageCategory, Is.EqualTo("Delete"));
+        }
+
+        [Test]
+        public void Rule_ConstructorWithDefaultMessages_HasEmptyMessages()
+        {
+            var rule = new Rule("TypeA", "guid1");
+
+            Assert.That(rule.CustomMessage, Is.EqualTo(""));
+            Assert.That(rule.CustomMessageCategory, Is.EqualTo(""));
+        }
+
+        #endregion
+
+        #region NodeProtectSettings Tests
+
+        [Test]
+        public void NodeProtectSettings_DefaultPropertyAliasIsNull()
+        {
+            var settings = new NodeProtectSettings();
+
+            Assert.That(settings.PropertyAlias, Is.Null);
+        }
+
+        [Test]
+        public void NodeProtectSettings_CanSetPropertyAlias()
+        {
+            var settings = new NodeProtectSettings { PropertyAlias = "umbracoProtect" };
+
+            Assert.That(settings.PropertyAlias, Is.EqualTo("umbracoProtect"));
+        }
+
+        #endregion
     }
 }
