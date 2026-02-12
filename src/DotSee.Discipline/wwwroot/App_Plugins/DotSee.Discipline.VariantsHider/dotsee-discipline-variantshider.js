@@ -1,7 +1,7 @@
-var f = Object.defineProperty;
-var b = (r, e, t) => e in r ? f(r, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : r[e] = t;
-var c = (r, e, t) => b(r, typeof e != "symbol" ? e + "" : e, t);
-function E(r) {
+var y = Object.defineProperty;
+var S = (i, e, t) => e in i ? y(i, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : i[e] = t;
+var o = (i, e, t) => S(i, typeof e != "symbol" ? e + "" : e, t);
+function g(i) {
   return {
     type: "entityAction",
     kind: "default",
@@ -12,7 +12,7 @@ function E(r) {
     forEntityTypes: ["document-root"],
     meta: {
       icon: "icon-axis-rotation",
-      label: r
+      label: i
     },
     conditions: [
       {
@@ -22,7 +22,7 @@ function E(r) {
     ]
   };
 }
-const S = {
+const b = {
   type: "localization",
   alias: "DotSee.Discipline.VariantsHider.Localization.En",
   name: "DotSee Variants Hider Localization (English)",
@@ -30,17 +30,17 @@ const S = {
     culture: "en"
   },
   js: () => import("./en-B5YfZqhh.js")
-}, y = [S];
-class D {
+}, E = [b];
+class T {
   constructor() {
-    c(this, "isHidden", !1);
-    c(this, "observer", null);
-    c(this, "styleElement", null);
-    c(this, "enabled", !1);
-    c(this, "caption", "Toggle unset variants display");
+    o(this, "isHidden", !1);
+    o(this, "scanInterval", null);
+    o(this, "styleElement", null);
+    o(this, "enabled", !1);
+    o(this, "caption", "Toggle unset variants display");
     // Selectors for finding tree items in Umbraco v14+ backoffice
     // The backoffice uses web components, so we need to check various possible selectors
-    c(this, "TREE_ITEM_SELECTORS", [
+    o(this, "TREE_ITEM_SELECTORS", [
       "umb-tree-item",
       "uui-menu-item",
       '[data-element="tree-item"]',
@@ -54,9 +54,7 @@ class D {
    * This is the preferred method as it avoids a duplicate API call.
    */
   initializeWithSettings(e) {
-    this.enabled = e.enabled, this.caption = e.caption, this.enabled && (this.setupMutationObserver(), setTimeout(() => {
-      this.hideUnsetVariants(), this.isHidden = !0;
-    }, 1e3)), console.log(`[DotSee.Discipline.VariantsHider] Initialized with Enabled: ${this.enabled}, Caption: ${this.caption}`);
+    this.enabled = e.enabled, this.caption = e.caption, console.log(`[DotSee.Discipline.VariantsHider] Initialized with Enabled: ${this.enabled}, Caption: ${this.caption}`);
   }
   /**
    * @deprecated Use initializeWithSettings instead to avoid duplicate API calls
@@ -102,19 +100,35 @@ class D {
     console.log("[DotSee.Discipline.VariantsHider] Toggle called, current state:", this.isHidden ? "hidden" : "visible"), this.isHidden ? (this.showUnsetVariants(), this.isHidden = !1, console.log("[DotSee.Discipline.VariantsHider] Variants are now VISIBLE")) : (this.hideUnsetVariants(), this.isHidden = !0, console.log("[DotSee.Discipline.VariantsHider] Variants are now HIDDEN"));
   }
   /**
-   * Hide all tree items that represent unset variants.
-   * These are identified by having their name wrapped in parentheses.
+   * Hide all tree items that represent unset variants and start a periodic
+   * scan to catch items rendered later (e.g. when expanding tree nodes).
    */
   hideUnsetVariants() {
     const e = this.processTreeItems(!0);
-    this.applyHideStyles(), console.log(`[DotSee.Discipline.VariantsHider] Processed ${e} items for hiding`);
+    this.applyHideStyles(), this.startPeriodicScan(), console.log(`[DotSee.Discipline.VariantsHider] Processed ${e} items for hiding`);
   }
   /**
-   * Show all previously hidden unset variant tree items.
+   * Show all previously hidden unset variant tree items and stop scanning.
    */
   showUnsetVariants() {
+    this.stopPeriodicScan();
     const e = this.processTreeItems(!1);
     this.removeHideStyles(), console.log(`[DotSee.Discipline.VariantsHider] Processed ${e} items for showing`);
+  }
+  /**
+   * Start a periodic scan that catches tree items rendered after the initial hide
+   * (e.g. when expanding collapsed tree nodes). Scans every 500ms while hiding is active.
+   */
+  startPeriodicScan() {
+    this.scanInterval || (this.scanInterval = setInterval(() => {
+      this.processTreeItems(!0), this.applyHideStyles();
+    }, 500));
+  }
+  /**
+   * Stop the periodic scan.
+   */
+  stopPeriodicScan() {
+    this.scanInterval && (clearInterval(this.scanInterval), this.scanInterval = null);
   }
   /**
    * Process tree items to show or hide them based on whether they are unset variants.
@@ -123,57 +137,21 @@ class D {
    */
   processTreeItems(e) {
     let t = 0;
-    const n = document.querySelectorAll(this.TREE_ITEM_SELECTORS);
-    return console.log(`[DotSee.Discipline.VariantsHider] Found ${n.length} tree items with standard selectors`), n.forEach((o) => {
-      this.processTreeItem(o, e) && t++;
-    }), this.processShadowRoots(document.body, e), this.debugLogTreeStructure(), t;
-  }
-  /**
-   * Debug helper to log the tree structure and help identify correct selectors
-   */
-  debugLogTreeStructure() {
-    console.log("[DotSee.Discipline.VariantsHider] === DEBUG: Scanning tree structure ==="), [
-      "umb-backoffice-main",
-      "umb-section-sidebar",
-      "umb-tree",
-      "umb-document-tree",
-      '[data-element="tree"]',
-      "nav",
-      "aside"
-    ].forEach((i) => {
-      const s = document.querySelectorAll(i);
-      s.length > 0 && console.log(`[DEBUG] Found ${s.length} elements matching "${i}"`);
-    });
-    const t = document.querySelectorAll("*"), n = [];
-    t.forEach((i) => {
-      var a, l;
-      const s = ((a = i.textContent) == null ? void 0 : a.trim()) || "";
-      i.children.length < 3 && s.startsWith("(") && s.endsWith(")") && s.length > 2 && s.length < 100 && n.push({
-        tag: i.tagName.toLowerCase(),
-        text: s.substring(0, 50),
-        classes: ((l = i.className) == null ? void 0 : l.toString()) || ""
-      });
-    }), n.length > 0 ? console.log("[DEBUG] Elements with text in parentheses:", n) : console.log("[DEBUG] No elements found with text in parentheses");
-    const o = document.querySelectorAll('umb-tree-item, uui-menu-item, [role="treeitem"]');
-    if (console.log(`[DEBUG] Found ${o.length} tree-item-like elements`), o.length > 0) {
-      const i = o[0];
-      console.log("[DEBUG] Sample tree item:", {
-        tagName: i.tagName,
-        className: i.className,
-        attributes: Array.from(i.attributes).map((s) => `${s.name}="${s.value}"`).join(", "),
-        innerHTML: i.innerHTML.substring(0, 200)
-      });
-    }
+    return document.querySelectorAll(this.TREE_ITEM_SELECTORS).forEach((s) => {
+      this.processTreeItem(s, e) && t++;
+    }), t += this.processShadowRoots(document.body, e), t;
   }
   /**
    * Recursively search through shadow DOMs to find tree items.
+   * @returns The number of items processed
    */
   processShadowRoots(e, t) {
-    e.querySelectorAll("*").forEach((o) => {
-      o.shadowRoot && (o.shadowRoot.querySelectorAll(this.TREE_ITEM_SELECTORS).forEach((s) => {
-        this.processTreeItem(s, t);
-      }), this.processShadowRoots(o.shadowRoot, t));
-    });
+    let n = 0;
+    return e.querySelectorAll("*").forEach((a) => {
+      a.shadowRoot && (a.shadowRoot.querySelectorAll(this.TREE_ITEM_SELECTORS).forEach((c) => {
+        this.processTreeItem(c, t) && n++;
+      }), n += this.processShadowRoots(a.shadowRoot, t));
+    }), n;
   }
   /**
    * Process a single tree item to determine if it should be hidden.
@@ -183,14 +161,14 @@ class D {
    */
   processTreeItem(e, t) {
     const n = this.getTreeItemName(e);
-    return n && this.isUnsetVariant(n) ? (console.log(`[DotSee.Discipline.VariantsHider] Found unset variant: "${n}"`), t ? (e.classList.add("dotsee-variants-hidden"), e.setAttribute("data-dotsee-hidden", "true"), e.style.display = "none") : (e.classList.remove("dotsee-variants-hidden"), e.removeAttribute("data-dotsee-hidden"), e.style.display = ""), !0) : !1;
+    return n && this.isUnsetVariant(n) ? (t ? (e.classList.add("dotsee-variants-hidden"), e.setAttribute("data-dotsee-hidden", "true"), e.style.display = "none") : (e.classList.remove("dotsee-variants-hidden"), e.removeAttribute("data-dotsee-hidden"), e.style.display = ""), !0) : !1;
   }
   /**
    * Extract the name/label from a tree item element.
    * Tries multiple strategies to find the text.
    */
   getTreeItemName(e) {
-    var i, s, a, l, h;
+    var a, u, c, m, f;
     const t = e.getAttribute("label") || e.getAttribute("name");
     if (t)
       return t.trim();
@@ -205,24 +183,24 @@ class D {
       "button span",
       'span:not([slot="icon"])'
     ];
-    for (const u of n) {
-      const d = e.querySelector(u);
-      if ((i = d == null ? void 0 : d.textContent) != null && i.trim())
-        return d.textContent.trim();
+    for (const l of n) {
+      const r = e.querySelector(l);
+      if ((a = r == null ? void 0 : r.textContent) != null && a.trim())
+        return r.textContent.trim();
     }
     if (e.shadowRoot) {
-      for (const d of n) {
-        const m = e.shadowRoot.querySelector(d);
-        if ((s = m == null ? void 0 : m.textContent) != null && s.trim())
-          return m.textContent.trim();
+      for (const r of n) {
+        const d = e.shadowRoot.querySelector(r);
+        if ((u = d == null ? void 0 : d.textContent) != null && u.trim())
+          return d.textContent.trim();
       }
-      const u = (a = e.shadowRoot.textContent) == null ? void 0 : a.trim();
-      if (u)
-        return u;
+      const l = (c = e.shadowRoot.textContent) == null ? void 0 : c.trim();
+      if (l)
+        return l;
     }
-    const o = (l = e.textContent) == null ? void 0 : l.trim();
-    return o ? ((h = o.split(`
-`)[0]) == null ? void 0 : h.trim()) || o : "";
+    const s = (m = e.textContent) == null ? void 0 : m.trim();
+    return s ? ((f = s.split(`
+`)[0]) == null ? void 0 : f.trim()) || s : "";
   }
   /**
    * Check if a name represents an unset variant (wrapped in parentheses).
@@ -256,85 +234,59 @@ class D {
     });
   }
   /**
-   * Set up a MutationObserver to watch for new tree items being added.
-   * This ensures dynamically loaded tree items are also processed.
-   */
-  setupMutationObserver() {
-    this.observer || (this.observer = new MutationObserver((e) => {
-      if (!this.isHidden) return;
-      let t = !1;
-      e.forEach((n) => {
-        n.addedNodes.forEach((o) => {
-          var i, s;
-          if (o.nodeType === Node.ELEMENT_NODE) {
-            const a = o;
-            (i = a.matches) != null && i.call(a, this.TREE_ITEM_SELECTORS) && (this.processTreeItem(a, !0), t = !0);
-            const l = (s = a.querySelectorAll) == null ? void 0 : s.call(a, this.TREE_ITEM_SELECTORS);
-            l != null && l.length && (l.forEach((h) => {
-              this.processTreeItem(h, !0);
-            }), t = !0);
-          }
-        });
-      }), t && console.log("[DotSee.Discipline.VariantsHider] Processed newly added tree items");
-    }), this.observer.observe(document.body, {
-      childList: !0,
-      subtree: !0
-    }), console.log("[DotSee.Discipline.VariantsHider] MutationObserver started"));
-  }
-  /**
-   * Disconnect the MutationObserver and clean up.
+   * Clean up all resources.
    */
   dispose() {
-    this.observer && (this.observer.disconnect(), this.observer = null), this.removeHideStyles();
+    this.stopPeriodicScan(), this.removeHideStyles();
   }
 }
-let p = null;
-function T() {
-  return p || (p = new D()), p;
+let h = null;
+function D() {
+  return h || (h = new T()), h;
 }
-function V() {
-  return p;
+function I() {
+  return h;
 }
-const g = {
+const p = {
   enabled: !1,
   caption: "Toggle unset variants display"
 };
-async function H() {
+async function v() {
   try {
-    const r = await fetch("/umbraco/api/variantshider/settings", {
+    const i = await fetch("/umbraco/api/variantshider/settings", {
       method: "GET",
       credentials: "include",
       headers: {
         "Content-Type": "application/json"
       }
     });
-    if (r.ok) {
-      const e = await r.json();
+    if (i.ok) {
+      const e = await i.json();
       return {
         enabled: e.enabled === !0 || e.enabled === "true",
-        caption: e.caption || g.caption
+        caption: e.caption || p.caption
       };
     }
-    return console.warn("[DotSee.Discipline.VariantsHider] Failed to fetch settings, using defaults"), g;
-  } catch (r) {
-    return console.error("[DotSee.Discipline.VariantsHider] Error fetching settings:", r), g;
+    return console.warn("[DotSee.Discipline.VariantsHider] Failed to fetch settings, using defaults"), p;
+  } catch (i) {
+    return console.error("[DotSee.Discipline.VariantsHider] Error fetching settings:", i), p;
   }
 }
-const w = async (r, e) => {
+const V = async (i, e) => {
   console.log("[DotSee.Discipline.VariantsHider] Initializing...");
-  const t = await H();
+  const t = await v();
   if (t.enabled) {
-    const n = E(t.caption);
+    const n = g(t.caption);
     e.registerMany([
       n,
-      ...y
-    ]), T().initializeWithSettings(t), console.log("[DotSee.Discipline.VariantsHider] Initialized successfully with caption:", t.caption);
+      ...E
+    ]), D().initializeWithSettings(t), console.log("[DotSee.Discipline.VariantsHider] Initialized successfully with caption:", t.caption);
   } else
     console.log("[DotSee.Discipline.VariantsHider] Feature is disabled in configuration");
 };
 export {
-  D as VariantsHiderService,
-  V as getVariantsHiderService,
-  w as onInit
+  T as VariantsHiderService,
+  I as getVariantsHiderService,
+  V as onInit
 };
 //# sourceMappingURL=dotsee-discipline-variantshider.js.map

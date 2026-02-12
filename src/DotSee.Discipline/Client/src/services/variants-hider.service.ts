@@ -2,14 +2,14 @@ import type { VariantsHiderSettings } from './settings-fetcher.js';
 
 /**
  * Service for hiding/showing unset language variants in the Umbraco content tree.
- * 
+ *
  * In multilingual Umbraco setups, when a content node doesn't have a variant created
  * for a specific language, it appears in the tree with its name in parentheses (e.g., "(Page Name)").
  * This service provides functionality to hide these placeholder nodes to reduce clutter.
  */
 export class VariantsHiderService {
   private isHidden: boolean = false;
-  private observer: MutationObserver | null = null;
+  private scanInterval: ReturnType<typeof setInterval> | null = null;
   private styleElement: HTMLStyleElement | null = null;
   private enabled: boolean = false;
   private caption: string = 'Toggle unset variants display';
@@ -32,16 +32,7 @@ export class VariantsHiderService {
   initializeWithSettings(settings: VariantsHiderSettings): void {
     this.enabled = settings.enabled;
     this.caption = settings.caption;
-    
-    if (this.enabled) {
-      this.setupMutationObserver();
-      // Initially hide variants if enabled - delay slightly to allow tree to render
-      setTimeout(() => {
-        this.hideUnsetVariants();
-        this.isHidden = true;
-      }, 1000);
-    }
-    
+
     console.log(`[DotSee.Discipline.VariantsHider] Initialized with Enabled: ${this.enabled}, Caption: ${this.caption}`);
   }
 
@@ -91,7 +82,7 @@ export class VariantsHiderService {
    */
   toggleVariantsVisibility(): void {
     console.log('[DotSee.Discipline.VariantsHider] Toggle called, current state:', this.isHidden ? 'hidden' : 'visible');
-    
+
     if (this.isHidden) {
       this.showUnsetVariants();
       this.isHidden = false;
@@ -104,22 +95,46 @@ export class VariantsHiderService {
   }
 
   /**
-   * Hide all tree items that represent unset variants.
-   * These are identified by having their name wrapped in parentheses.
+   * Hide all tree items that represent unset variants and start a periodic
+   * scan to catch items rendered later (e.g. when expanding tree nodes).
    */
   private hideUnsetVariants(): void {
     const count = this.processTreeItems(true);
     this.applyHideStyles();
+    this.startPeriodicScan();
     console.log(`[DotSee.Discipline.VariantsHider] Processed ${count} items for hiding`);
   }
 
   /**
-   * Show all previously hidden unset variant tree items.
+   * Show all previously hidden unset variant tree items and stop scanning.
    */
   private showUnsetVariants(): void {
+    this.stopPeriodicScan();
     const count = this.processTreeItems(false);
     this.removeHideStyles();
     console.log(`[DotSee.Discipline.VariantsHider] Processed ${count} items for showing`);
+  }
+
+  /**
+   * Start a periodic scan that catches tree items rendered after the initial hide
+   * (e.g. when expanding collapsed tree nodes). Scans every 500ms while hiding is active.
+   */
+  private startPeriodicScan(): void {
+    if (this.scanInterval) return;
+    this.scanInterval = setInterval(() => {
+      this.processTreeItems(true);
+      this.applyHideStyles();
+    }, 500);
+  }
+
+  /**
+   * Stop the periodic scan.
+   */
+  private stopPeriodicScan(): void {
+    if (this.scanInterval) {
+      clearInterval(this.scanInterval);
+      this.scanInterval = null;
+    }
   }
 
   /**
@@ -129,11 +144,10 @@ export class VariantsHiderService {
    */
   private processTreeItems(hide: boolean): number {
     let processedCount = 0;
-    
+
     // First, try to find tree items using standard selectors
     const treeItems = document.querySelectorAll(this.TREE_ITEM_SELECTORS);
-    console.log(`[DotSee.Discipline.VariantsHider] Found ${treeItems.length} tree items with standard selectors`);
-    
+
     treeItems.forEach((item) => {
       if (this.processTreeItem(item as HTMLElement, hide)) {
         processedCount++;
@@ -141,89 +155,31 @@ export class VariantsHiderService {
     });
 
     // Also search inside shadow DOMs of custom elements
-    this.processShadowRoots(document.body, hide);
-    
-    // Debug: Log all elements in the tree area to help identify correct selectors
-    this.debugLogTreeStructure();
-    
+    processedCount += this.processShadowRoots(document.body, hide);
+
     return processedCount;
-  }
-  
-  /**
-   * Debug helper to log the tree structure and help identify correct selectors
-   */
-  private debugLogTreeStructure(): void {
-    console.log('[DotSee.Discipline.VariantsHider] === DEBUG: Scanning tree structure ===');
-    
-    // Look for the sidebar/tree container
-    const possibleContainers = [
-      'umb-backoffice-main',
-      'umb-section-sidebar', 
-      'umb-tree',
-      'umb-document-tree',
-      '[data-element="tree"]',
-      'nav',
-      'aside',
-    ];
-    
-    possibleContainers.forEach(selector => {
-      const elements = document.querySelectorAll(selector);
-      if (elements.length > 0) {
-        console.log(`[DEBUG] Found ${elements.length} elements matching "${selector}"`);
-      }
-    });
-    
-    // Find any element containing text in parentheses
-    const allElements = document.querySelectorAll('*');
-    const elementsWithParentheses: {tag: string, text: string, classes: string}[] = [];
-    
-    allElements.forEach(el => {
-      const text = el.textContent?.trim() || '';
-      // Only check leaf-ish nodes (avoid containers that include all children text)
-      if (el.children.length < 3 && text.startsWith('(') && text.endsWith(')') && text.length > 2 && text.length < 100) {
-        elementsWithParentheses.push({
-          tag: el.tagName.toLowerCase(),
-          text: text.substring(0, 50),
-          classes: el.className?.toString() || ''
-        });
-      }
-    });
-    
-    if (elementsWithParentheses.length > 0) {
-      console.log('[DEBUG] Elements with text in parentheses:', elementsWithParentheses);
-    } else {
-      console.log('[DEBUG] No elements found with text in parentheses');
-    }
-    
-    // Log first few tree-like elements
-    const treeElements = document.querySelectorAll('umb-tree-item, uui-menu-item, [role="treeitem"]');
-    console.log(`[DEBUG] Found ${treeElements.length} tree-item-like elements`);
-    if (treeElements.length > 0) {
-      const sample = treeElements[0] as HTMLElement;
-      console.log('[DEBUG] Sample tree item:', {
-        tagName: sample.tagName,
-        className: sample.className,
-        attributes: Array.from(sample.attributes).map(a => `${a.name}="${a.value}"`).join(', '),
-        innerHTML: sample.innerHTML.substring(0, 200)
-      });
-    }
   }
 
   /**
    * Recursively search through shadow DOMs to find tree items.
+   * @returns The number of items processed
    */
-  private processShadowRoots(root: Element | ShadowRoot, hide: boolean): void {
+  private processShadowRoots(root: Element | ShadowRoot, hide: boolean): number {
+    let count = 0;
     const elements = root.querySelectorAll('*');
     elements.forEach((el) => {
       if (el.shadowRoot) {
         const shadowTreeItems = el.shadowRoot.querySelectorAll(this.TREE_ITEM_SELECTORS);
         shadowTreeItems.forEach((item) => {
-          this.processTreeItem(item as HTMLElement, hide);
+          if (this.processTreeItem(item as HTMLElement, hide)) {
+            count++;
+          }
         });
         // Recurse into nested shadow roots
-        this.processShadowRoots(el.shadowRoot, hide);
+        count += this.processShadowRoots(el.shadowRoot, hide);
       }
     });
+    return count;
   }
 
   /**
@@ -235,15 +191,13 @@ export class VariantsHiderService {
   private processTreeItem(item: HTMLElement, hide: boolean): boolean {
     // Get the text content - try multiple approaches
     const name = this.getTreeItemName(item);
-    
+
     if (!name) {
       return false;
     }
-    
+
     // Check if the name is wrapped in parentheses (indicates unset variant)
     if (this.isUnsetVariant(name)) {
-      console.log(`[DotSee.Discipline.VariantsHider] Found unset variant: "${name}"`);
-      
       if (hide) {
         item.classList.add('dotsee-variants-hidden');
         item.setAttribute('data-dotsee-hidden', 'true');
@@ -255,7 +209,7 @@ export class VariantsHiderService {
       }
       return true;
     }
-    
+
     return false;
   }
 
@@ -354,7 +308,7 @@ export class VariantsHiderService {
       this.styleElement.remove();
       this.styleElement = null;
     }
-    
+
     // Also remove inline styles
     document.querySelectorAll('[data-dotsee-hidden]').forEach((el) => {
       (el as HTMLElement).style.display = '';
@@ -362,62 +316,10 @@ export class VariantsHiderService {
   }
 
   /**
-   * Set up a MutationObserver to watch for new tree items being added.
-   * This ensures dynamically loaded tree items are also processed.
-   */
-  private setupMutationObserver(): void {
-    if (this.observer) return;
-
-    this.observer = new MutationObserver((mutations) => {
-      if (!this.isHidden) return;
-
-      let foundNewItems = false;
-      
-      mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === Node.ELEMENT_NODE) {
-            const element = node as HTMLElement;
-            
-            // Check if the added node is a tree item
-            if (element.matches?.(this.TREE_ITEM_SELECTORS)) {
-              this.processTreeItem(element, true);
-              foundNewItems = true;
-            }
-            
-            // Check for tree items within the added node
-            const treeItems = element.querySelectorAll?.(this.TREE_ITEM_SELECTORS);
-            if (treeItems?.length) {
-              treeItems.forEach((item) => {
-                this.processTreeItem(item as HTMLElement, true);
-              });
-              foundNewItems = true;
-            }
-          }
-        });
-      });
-
-      if (foundNewItems) {
-        console.log('[DotSee.Discipline.VariantsHider] Processed newly added tree items');
-      }
-    });
-
-    // Start observing the document body for changes
-    this.observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
-    
-    console.log('[DotSee.Discipline.VariantsHider] MutationObserver started');
-  }
-
-  /**
-   * Disconnect the MutationObserver and clean up.
+   * Clean up all resources.
    */
   dispose(): void {
-    if (this.observer) {
-      this.observer.disconnect();
-      this.observer = null;
-    }
+    this.stopPeriodicScan();
     this.removeHideStyles();
   }
 }
