@@ -6,16 +6,17 @@ import type { VariantsHiderSettings } from './settings-fetcher.js';
  * In multilingual Umbraco setups, when a content node doesn't have a variant created
  * for a specific language, it appears in the tree with its name in parentheses (e.g., "(Page Name)").
  * This service provides functionality to hide these placeholder nodes to reduce clutter.
+ *
+ * Uses requestAnimationFrame to scan for new items before the browser paints,
+ * ensuring no visible flash when tree nodes are expanded.
  */
 export class VariantsHiderService {
   private isHidden: boolean = false;
-  private scanInterval: ReturnType<typeof setInterval> | null = null;
-  private styleElement: HTMLStyleElement | null = null;
+  private rafId: number | null = null;
   private enabled: boolean = false;
   private caption: string = 'Toggle unset variants display';
 
   // Selectors for finding tree items in Umbraco v14+ backoffice
-  // The backoffice uses web components, so we need to check various possible selectors
   private readonly TREE_ITEM_SELECTORS = [
     'umb-tree-item',
     'uui-menu-item',
@@ -27,12 +28,10 @@ export class VariantsHiderService {
 
   /**
    * Initialize the service with pre-fetched settings.
-   * This is the preferred method as it avoids a duplicate API call.
    */
   initializeWithSettings(settings: VariantsHiderSettings): void {
     this.enabled = settings.enabled;
     this.caption = settings.caption;
-
     console.log(`[DotSee.Discipline.VariantsHider] Initialized with Enabled: ${this.enabled}, Caption: ${this.caption}`);
   }
 
@@ -44,9 +43,7 @@ export class VariantsHiderService {
       const response = await fetch('/umbraco/api/variantshider/settings', {
         method: 'GET',
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
       });
 
       if (response.ok) {
@@ -61,24 +58,16 @@ export class VariantsHiderService {
     }
   }
 
-  /**
-   * Get the current caption for the toggle action.
-   */
   getCaption(): string {
     return this.caption;
   }
 
-  /**
-   * Check if the service is enabled.
-   */
   isEnabled(): boolean {
     return this.enabled;
   }
 
   /**
    * Toggle the visibility of unset variants in the tree.
-   * This will always work regardless of the 'enabled' configuration -
-   * 'enabled' only controls whether auto-hide happens on load.
    */
   toggleVariantsVisibility(): void {
     console.log('[DotSee.Discipline.VariantsHider] Toggle called, current state:', this.isHidden ? 'hidden' : 'visible');
@@ -95,75 +84,63 @@ export class VariantsHiderService {
   }
 
   /**
-   * Hide all tree items that represent unset variants and start a periodic
-   * scan to catch items rendered later (e.g. when expanding tree nodes).
+   * Hide all unset variants and start a requestAnimationFrame loop that
+   * continuously scans for newly rendered items. RAF callbacks run before
+   * the browser paints, so new items are hidden before they appear on screen.
    */
   private hideUnsetVariants(): void {
     const count = this.processTreeItems(true);
-    this.applyHideStyles();
-    this.startPeriodicScan();
+    this.startRafScan();
     console.log(`[DotSee.Discipline.VariantsHider] Processed ${count} items for hiding`);
   }
 
   /**
-   * Show all previously hidden unset variant tree items and stop scanning.
+   * Stop scanning, show all hidden variants, and reset state.
    */
   private showUnsetVariants(): void {
-    this.stopPeriodicScan();
+    this.stopRafScan();
     const count = this.processTreeItems(false);
-    this.removeHideStyles();
     console.log(`[DotSee.Discipline.VariantsHider] Processed ${count} items for showing`);
   }
 
-  /**
-   * Start a periodic scan that catches tree items rendered after the initial hide
-   * (e.g. when expanding collapsed tree nodes). Scans every 500ms while hiding is active.
-   */
-  private startPeriodicScan(): void {
-    if (this.scanInterval) return;
-    this.scanInterval = setInterval(() => {
+  // ---------------------------------------------------------------------------
+  // requestAnimationFrame scan loop
+  // ---------------------------------------------------------------------------
+
+  private startRafScan(): void {
+    if (this.rafId !== null) return;
+    const scan = () => {
       this.processTreeItems(true);
-      this.applyHideStyles();
-    }, 500);
+      this.rafId = requestAnimationFrame(scan);
+    };
+    this.rafId = requestAnimationFrame(scan);
   }
 
-  /**
-   * Stop the periodic scan.
-   */
-  private stopPeriodicScan(): void {
-    if (this.scanInterval) {
-      clearInterval(this.scanInterval);
-      this.scanInterval = null;
+  private stopRafScan(): void {
+    if (this.rafId !== null) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = null;
     }
   }
 
-  /**
-   * Process tree items to show or hide them based on whether they are unset variants.
-   * @param hide Whether to hide (true) or show (false) the items
-   * @returns The number of items processed
-   */
+  // ---------------------------------------------------------------------------
+  // Tree item processing
+  // ---------------------------------------------------------------------------
+
   private processTreeItems(hide: boolean): number {
     let processedCount = 0;
 
-    // First, try to find tree items using standard selectors
     const treeItems = document.querySelectorAll(this.TREE_ITEM_SELECTORS);
-
     treeItems.forEach((item) => {
       if (this.processTreeItem(item as HTMLElement, hide)) {
         processedCount++;
       }
     });
 
-    // Also search inside shadow DOMs of custom elements
     processedCount += this.processShadowRoots(document.body, hide);
-
     return processedCount;
   }
 
-  /**
-   * Recursively search through shadow DOMs to find tree items.
-   * @returns The number of items processed
-   */
   private processShadowRoots(root: Element | ShadowRoot, hide: boolean): number {
     let count = 0;
     const elements = root.querySelectorAll('*');
@@ -175,56 +152,48 @@ export class VariantsHiderService {
             count++;
           }
         });
-        // Recurse into nested shadow roots
         count += this.processShadowRoots(el.shadowRoot, hide);
       }
     });
     return count;
   }
 
-  /**
-   * Process a single tree item to determine if it should be hidden.
-   * @param item The tree item element
-   * @param hide Whether to hide (true) or show (false) the item
-   * @returns True if the item was processed (matched criteria), false otherwise
-   */
   private processTreeItem(item: HTMLElement, hide: boolean): boolean {
-    // Get the text content - try multiple approaches
-    const name = this.getTreeItemName(item);
+    const wasHiddenByUs = item.hasAttribute('data-dotsee-hidden');
 
-    if (!name) {
+    if (!hide) {
+      if (wasHiddenByUs) {
+        item.style.display = '';
+        item.removeAttribute('data-dotsee-hidden');
+        return true;
+      }
       return false;
     }
 
-    // Check if the name is wrapped in parentheses (indicates unset variant)
+    // hide === true
+    const name = this.getTreeItemName(item);
+    if (!name) return false;
+
     if (this.isUnsetVariant(name)) {
-      if (hide) {
-        item.classList.add('dotsee-variants-hidden');
-        item.setAttribute('data-dotsee-hidden', 'true');
+      if (!wasHiddenByUs) {
         item.style.display = 'none';
-      } else {
-        item.classList.remove('dotsee-variants-hidden');
-        item.removeAttribute('data-dotsee-hidden');
-        item.style.display = '';
+        item.setAttribute('data-dotsee-hidden', '');
+        return true;
       }
-      return true;
+      // Already hidden, still a variant — keep hidden
+    } else if (wasHiddenByUs) {
+      // Was hidden by us but name changed (e.g. language switch) — restore
+      item.style.display = '';
+      item.removeAttribute('data-dotsee-hidden');
     }
 
     return false;
   }
 
-  /**
-   * Extract the name/label from a tree item element.
-   * Tries multiple strategies to find the text.
-   */
   private getTreeItemName(item: HTMLElement): string {
-    // Strategy 1: Check for label attribute
     const labelAttr = item.getAttribute('label') || item.getAttribute('name');
-    if (labelAttr) {
-      return labelAttr.trim();
-    }
+    if (labelAttr) return labelAttr.trim();
 
-    // Strategy 2: Look for specific label elements/slots
     const labelSelectors = [
       '[slot="label"]',
       '.umb-tree-item__label',
@@ -244,7 +213,6 @@ export class VariantsHiderService {
       }
     }
 
-    // Strategy 3: Check shadow DOM
     if (item.shadowRoot) {
       for (const selector of labelSelectors) {
         const labelEl = item.shadowRoot.querySelector(selector);
@@ -252,17 +220,12 @@ export class VariantsHiderService {
           return labelEl.textContent.trim();
         }
       }
-      // Also try getting the first text node
       const textContent = item.shadowRoot.textContent?.trim();
-      if (textContent) {
-        return textContent;
-      }
+      if (textContent) return textContent;
     }
 
-    // Strategy 4: Direct text content as fallback (may include children)
     const directText = item.textContent?.trim();
     if (directText) {
-      // Try to get just the first line or meaningful part
       const firstLine = directText.split('\n')[0]?.trim();
       return firstLine || directText;
     }
@@ -270,56 +233,12 @@ export class VariantsHiderService {
     return '';
   }
 
-  /**
-   * Check if a name represents an unset variant (wrapped in parentheses).
-   * @param name The name to check
-   * @returns True if the name represents an unset variant
-   */
   private isUnsetVariant(name: string): boolean {
     const trimmed = name.trim();
     return trimmed.startsWith('(') && trimmed.endsWith(')') && trimmed.length > 2;
   }
 
-  /**
-   * Apply CSS styles to hide the marked tree items.
-   */
-  private applyHideStyles(): void {
-    if (this.styleElement) return;
-
-    this.styleElement = document.createElement('style');
-    this.styleElement.id = 'dotsee-variants-hider-styles';
-    this.styleElement.textContent = `
-      .dotsee-variants-hidden,
-      [data-dotsee-hidden="true"] {
-        display: none !important;
-        visibility: hidden !important;
-        height: 0 !important;
-        overflow: hidden !important;
-      }
-    `;
-    document.head.appendChild(this.styleElement);
-  }
-
-  /**
-   * Remove the CSS styles that hide tree items.
-   */
-  private removeHideStyles(): void {
-    if (this.styleElement) {
-      this.styleElement.remove();
-      this.styleElement = null;
-    }
-
-    // Also remove inline styles
-    document.querySelectorAll('[data-dotsee-hidden]').forEach((el) => {
-      (el as HTMLElement).style.display = '';
-    });
-  }
-
-  /**
-   * Clean up all resources.
-   */
   dispose(): void {
-    this.stopPeriodicScan();
-    this.removeHideStyles();
+    this.stopRafScan();
   }
 }

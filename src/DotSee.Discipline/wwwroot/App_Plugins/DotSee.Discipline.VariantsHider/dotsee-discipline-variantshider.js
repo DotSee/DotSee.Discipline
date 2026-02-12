@@ -1,7 +1,7 @@
-var y = Object.defineProperty;
-var S = (i, e, t) => e in i ? y(i, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : i[e] = t;
-var o = (i, e, t) => S(i, typeof e != "symbol" ? e + "" : e, t);
-function g(i) {
+var S = Object.defineProperty;
+var g = (i, e, t) => e in i ? S(i, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : i[e] = t;
+var r = (i, e, t) => g(i, typeof e != "symbol" ? e + "" : e, t);
+function b(i) {
   return {
     type: "entityAction",
     kind: "default",
@@ -22,7 +22,7 @@ function g(i) {
     ]
   };
 }
-const b = {
+const T = {
   type: "localization",
   alias: "DotSee.Discipline.VariantsHider.Localization.En",
   name: "DotSee Variants Hider Localization (English)",
@@ -30,17 +30,15 @@ const b = {
     culture: "en"
   },
   js: () => import("./en-B5YfZqhh.js")
-}, E = [b];
-class T {
+}, y = [T];
+class D {
   constructor() {
-    o(this, "isHidden", !1);
-    o(this, "scanInterval", null);
-    o(this, "styleElement", null);
-    o(this, "enabled", !1);
-    o(this, "caption", "Toggle unset variants display");
+    r(this, "isHidden", !1);
+    r(this, "rafId", null);
+    r(this, "enabled", !1);
+    r(this, "caption", "Toggle unset variants display");
     // Selectors for finding tree items in Umbraco v14+ backoffice
-    // The backoffice uses web components, so we need to check various possible selectors
-    o(this, "TREE_ITEM_SELECTORS", [
+    r(this, "TREE_ITEM_SELECTORS", [
       "umb-tree-item",
       "uui-menu-item",
       '[data-element="tree-item"]',
@@ -51,7 +49,6 @@ class T {
   }
   /**
    * Initialize the service with pre-fetched settings.
-   * This is the preferred method as it avoids a duplicate API call.
    */
   initializeWithSettings(e) {
     this.enabled = e.enabled, this.caption = e.caption, console.log(`[DotSee.Discipline.VariantsHider] Initialized with Enabled: ${this.enabled}, Caption: ${this.caption}`);
@@ -64,9 +61,7 @@ class T {
       const e = await fetch("/umbraco/api/variantshider/settings", {
         method: "GET",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json"
-        }
+        headers: { "Content-Type": "application/json" }
       });
       if (e.ok) {
         const t = await e.json();
@@ -79,99 +74,81 @@ class T {
       console.error("[DotSee.Discipline.VariantsHider] Failed to fetch settings:", e);
     }
   }
-  /**
-   * Get the current caption for the toggle action.
-   */
   getCaption() {
     return this.caption;
   }
-  /**
-   * Check if the service is enabled.
-   */
   isEnabled() {
     return this.enabled;
   }
   /**
    * Toggle the visibility of unset variants in the tree.
-   * This will always work regardless of the 'enabled' configuration -
-   * 'enabled' only controls whether auto-hide happens on load.
    */
   toggleVariantsVisibility() {
     console.log("[DotSee.Discipline.VariantsHider] Toggle called, current state:", this.isHidden ? "hidden" : "visible"), this.isHidden ? (this.showUnsetVariants(), this.isHidden = !1, console.log("[DotSee.Discipline.VariantsHider] Variants are now VISIBLE")) : (this.hideUnsetVariants(), this.isHidden = !0, console.log("[DotSee.Discipline.VariantsHider] Variants are now HIDDEN"));
   }
   /**
-   * Hide all tree items that represent unset variants and start a periodic
-   * scan to catch items rendered later (e.g. when expanding tree nodes).
+   * Hide all unset variants and start a requestAnimationFrame loop that
+   * continuously scans for newly rendered items. RAF callbacks run before
+   * the browser paints, so new items are hidden before they appear on screen.
    */
   hideUnsetVariants() {
     const e = this.processTreeItems(!0);
-    this.applyHideStyles(), this.startPeriodicScan(), console.log(`[DotSee.Discipline.VariantsHider] Processed ${e} items for hiding`);
+    this.startRafScan(), console.log(`[DotSee.Discipline.VariantsHider] Processed ${e} items for hiding`);
   }
   /**
-   * Show all previously hidden unset variant tree items and stop scanning.
+   * Stop scanning, show all hidden variants, and reset state.
    */
   showUnsetVariants() {
-    this.stopPeriodicScan();
+    this.stopRafScan();
     const e = this.processTreeItems(!1);
-    this.removeHideStyles(), console.log(`[DotSee.Discipline.VariantsHider] Processed ${e} items for showing`);
+    console.log(`[DotSee.Discipline.VariantsHider] Processed ${e} items for showing`);
   }
-  /**
-   * Start a periodic scan that catches tree items rendered after the initial hide
-   * (e.g. when expanding collapsed tree nodes). Scans every 500ms while hiding is active.
-   */
-  startPeriodicScan() {
-    this.scanInterval || (this.scanInterval = setInterval(() => {
-      this.processTreeItems(!0), this.applyHideStyles();
-    }, 500));
+  // ---------------------------------------------------------------------------
+  // requestAnimationFrame scan loop
+  // ---------------------------------------------------------------------------
+  startRafScan() {
+    if (this.rafId !== null) return;
+    const e = () => {
+      this.processTreeItems(!0), this.rafId = requestAnimationFrame(e);
+    };
+    this.rafId = requestAnimationFrame(e);
   }
-  /**
-   * Stop the periodic scan.
-   */
-  stopPeriodicScan() {
-    this.scanInterval && (clearInterval(this.scanInterval), this.scanInterval = null);
+  stopRafScan() {
+    this.rafId !== null && (cancelAnimationFrame(this.rafId), this.rafId = null);
   }
-  /**
-   * Process tree items to show or hide them based on whether they are unset variants.
-   * @param hide Whether to hide (true) or show (false) the items
-   * @returns The number of items processed
-   */
+  // ---------------------------------------------------------------------------
+  // Tree item processing
+  // ---------------------------------------------------------------------------
   processTreeItems(e) {
     let t = 0;
     return document.querySelectorAll(this.TREE_ITEM_SELECTORS).forEach((s) => {
       this.processTreeItem(s, e) && t++;
     }), t += this.processShadowRoots(document.body, e), t;
   }
-  /**
-   * Recursively search through shadow DOMs to find tree items.
-   * @returns The number of items processed
-   */
   processShadowRoots(e, t) {
     let n = 0;
     return e.querySelectorAll("*").forEach((a) => {
-      a.shadowRoot && (a.shadowRoot.querySelectorAll(this.TREE_ITEM_SELECTORS).forEach((c) => {
-        this.processTreeItem(c, t) && n++;
+      a.shadowRoot && (a.shadowRoot.querySelectorAll(this.TREE_ITEM_SELECTORS).forEach((l) => {
+        this.processTreeItem(l, t) && n++;
       }), n += this.processShadowRoots(a.shadowRoot, t));
     }), n;
   }
-  /**
-   * Process a single tree item to determine if it should be hidden.
-   * @param item The tree item element
-   * @param hide Whether to hide (true) or show (false) the item
-   * @returns True if the item was processed (matched criteria), false otherwise
-   */
   processTreeItem(e, t) {
-    const n = this.getTreeItemName(e);
-    return n && this.isUnsetVariant(n) ? (t ? (e.classList.add("dotsee-variants-hidden"), e.setAttribute("data-dotsee-hidden", "true"), e.style.display = "none") : (e.classList.remove("dotsee-variants-hidden"), e.removeAttribute("data-dotsee-hidden"), e.style.display = ""), !0) : !1;
+    const n = e.hasAttribute("data-dotsee-hidden");
+    if (!t)
+      return n ? (e.style.display = "", e.removeAttribute("data-dotsee-hidden"), !0) : !1;
+    const s = this.getTreeItemName(e);
+    if (!s) return !1;
+    if (this.isUnsetVariant(s)) {
+      if (!n)
+        return e.style.display = "none", e.setAttribute("data-dotsee-hidden", ""), !0;
+    } else n && (e.style.display = "", e.removeAttribute("data-dotsee-hidden"));
+    return !1;
   }
-  /**
-   * Extract the name/label from a tree item element.
-   * Tries multiple strategies to find the text.
-   */
   getTreeItemName(e) {
-    var a, u, c, m, f;
+    var a, h, l, f, m;
     const t = e.getAttribute("label") || e.getAttribute("name");
-    if (t)
-      return t.trim();
+    if (t) return t.trim();
     const n = [
       '[slot="label"]',
       ".umb-tree-item__label",
@@ -183,75 +160,44 @@ class T {
       "button span",
       'span:not([slot="icon"])'
     ];
-    for (const l of n) {
-      const r = e.querySelector(l);
-      if ((a = r == null ? void 0 : r.textContent) != null && a.trim())
-        return r.textContent.trim();
+    for (const c of n) {
+      const o = e.querySelector(c);
+      if ((a = o == null ? void 0 : o.textContent) != null && a.trim())
+        return o.textContent.trim();
     }
     if (e.shadowRoot) {
-      for (const r of n) {
-        const d = e.shadowRoot.querySelector(r);
-        if ((u = d == null ? void 0 : d.textContent) != null && u.trim())
+      for (const o of n) {
+        const d = e.shadowRoot.querySelector(o);
+        if ((h = d == null ? void 0 : d.textContent) != null && h.trim())
           return d.textContent.trim();
       }
-      const l = (c = e.shadowRoot.textContent) == null ? void 0 : c.trim();
-      if (l)
-        return l;
+      const c = (l = e.shadowRoot.textContent) == null ? void 0 : l.trim();
+      if (c) return c;
     }
-    const s = (m = e.textContent) == null ? void 0 : m.trim();
-    return s ? ((f = s.split(`
-`)[0]) == null ? void 0 : f.trim()) || s : "";
+    const s = (f = e.textContent) == null ? void 0 : f.trim();
+    return s ? ((m = s.split(`
+`)[0]) == null ? void 0 : m.trim()) || s : "";
   }
-  /**
-   * Check if a name represents an unset variant (wrapped in parentheses).
-   * @param name The name to check
-   * @returns True if the name represents an unset variant
-   */
   isUnsetVariant(e) {
     const t = e.trim();
     return t.startsWith("(") && t.endsWith(")") && t.length > 2;
   }
-  /**
-   * Apply CSS styles to hide the marked tree items.
-   */
-  applyHideStyles() {
-    this.styleElement || (this.styleElement = document.createElement("style"), this.styleElement.id = "dotsee-variants-hider-styles", this.styleElement.textContent = `
-      .dotsee-variants-hidden,
-      [data-dotsee-hidden="true"] {
-        display: none !important;
-        visibility: hidden !important;
-        height: 0 !important;
-        overflow: hidden !important;
-      }
-    `, document.head.appendChild(this.styleElement));
-  }
-  /**
-   * Remove the CSS styles that hide tree items.
-   */
-  removeHideStyles() {
-    this.styleElement && (this.styleElement.remove(), this.styleElement = null), document.querySelectorAll("[data-dotsee-hidden]").forEach((e) => {
-      e.style.display = "";
-    });
-  }
-  /**
-   * Clean up all resources.
-   */
   dispose() {
-    this.stopPeriodicScan(), this.removeHideStyles();
+    this.stopRafScan();
   }
 }
-let h = null;
-function D() {
-  return h || (h = new T()), h;
-}
+let u = null;
 function I() {
-  return h;
+  return u || (u = new D()), u;
+}
+function w() {
+  return u;
 }
 const p = {
   enabled: !1,
   caption: "Toggle unset variants display"
 };
-async function v() {
+async function V() {
   try {
     const i = await fetch("/umbraco/api/variantshider/settings", {
       method: "GET",
@@ -272,21 +218,21 @@ async function v() {
     return console.error("[DotSee.Discipline.VariantsHider] Error fetching settings:", i), p;
   }
 }
-const V = async (i, e) => {
+const H = async (i, e) => {
   console.log("[DotSee.Discipline.VariantsHider] Initializing...");
-  const t = await v();
+  const t = await V();
   if (t.enabled) {
-    const n = g(t.caption);
+    const n = b(t.caption);
     e.registerMany([
       n,
-      ...E
-    ]), D().initializeWithSettings(t), console.log("[DotSee.Discipline.VariantsHider] Initialized successfully with caption:", t.caption);
+      ...y
+    ]), I().initializeWithSettings(t), console.log("[DotSee.Discipline.VariantsHider] Initialized successfully with caption:", t.caption);
   } else
     console.log("[DotSee.Discipline.VariantsHider] Feature is disabled in configuration");
 };
 export {
-  T as VariantsHiderService,
-  I as getVariantsHiderService,
-  V as onInit
+  D as VariantsHiderService,
+  w as getVariantsHiderService,
+  H as onInit
 };
 //# sourceMappingURL=dotsee-discipline-variantshider.js.map
