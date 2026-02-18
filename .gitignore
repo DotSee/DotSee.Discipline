@@ -291,3 +291,5 @@ wwwroot/umbraco/*.*
 **/Umbraco.Website/App_Plugins/DotSee.Discipline.*/
 /src/UmbracoV10/nuget.exe
 Smidge
+/.claude
+/CLAUDE.md
