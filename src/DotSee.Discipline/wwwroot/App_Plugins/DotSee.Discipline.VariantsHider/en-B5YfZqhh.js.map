@@ -1,0 +1,1 @@
+{"version":3,"file":"en-B5YfZqhh.js","sources":["../../../Client/src/localization/en.ts"],"sourcesContent":["export default {\r\n  dotsee_variantshider_toggle: 'Toggle unset variants display',\r\n};\r\n"],"names":["en"],"mappings":"AAAA,MAAAA,IAAe;AAAA,EACb,6BAA6B;AAC/B;"}

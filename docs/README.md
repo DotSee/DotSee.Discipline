@@ -1,4 +1,4 @@
-﻿This is a plugin for Umbraco V10 and V13 combining the functionality of the following legacy V8 plugins:
+﻿This is a plugin for Umbraco v10-v17 combining the functionality of the following legacy V8 plugins:
 - **AutoNode**: Automatically create new nodes upon publishing a node, based on rules
 - **NodeRestrict**: Restrict number of nodes to be created under a node, based on rules
 - **VirtualNodes**: Hide the url segment of a specific node based on doctype
@@ -7,6 +7,9 @@
 It also adds the following functions:
 - **NodeProtect**: Protect nodes from deletion based on rules
 - **AISummaries**: Generate AI-based summaries for content nodes in the back office (requires OpenAI or Gemini API key)
+
+Version 1.x is for v10-v13
+Version 2.x is for v17
 
 # General Notes
 In your appSettings.json, create a new root level entry as follows:
@@ -53,16 +56,29 @@ You need to have an API key for either service and specify it in the configurati
 ```
 
 **llm**: The large language model to use. Possible values are "OpenAI" and "Gemini".
+
 **ApiKey** : Your API key for the selected service
+
 **Model**: The model to use. For OpenAI, you can use "gpt-3.5-turbo", "gpt-4" or any other model you have access to. For Gemini, you can use "gemini-1.5", "gemini-2.5-flash" or any other model you have access to.    
+
 **MaxChars**: The maximum number of characters for the generated summary.
+
 **Tone**: Instructions for the AI on the tone to use for the summary.
+
 **DocTypes**: Comma-separated list of document type aliases to apply the summary generation to. Leave empty to apply to all document types.
+
 **ExcludeProperties**: Comma-separated list of property aliases to exclude from the content used to generate the summary.
+
 **PropertyAlias**: The alias of the property where the generated summary will be stored.
+
 **TogglePropertyAlias**: (optional) The alias of a true/false property that will act as a toggle for summary generation. If specified, the summary will only be generated if this property is set to true. The property gets automatically set to false afterwards.
 
-Note: The "toggle" property should always be invariant.
+
+Note: The PropertyAlias property can take two kind of values:
+- A simple property alias (e.g. "aiSummary"): In this case, the "aiSummary" field is a property of the document itself.
+- A block property alias in the format "blockListAlias.elementAlias.propertyAlias" (e.g. "contentBlocks.textBlock.aiSummary"): In this case, the "aiSummary" field is a property of the first "textBlock" block within a block list property having the alias "contentBlocks" in this example.
+
+So if you specify the value of PropertyAlias as "contentBlocks.textBlock.aiSummary", the plugin will look for a block list property with alias "contentBlocks", then look for the first block of type "textBlock" within it, and finally set the value of the "aiSummary" property of that block.
 
 # Restricting creation of new nodes in the Umbraco back office (formerly NodeRestrict)
 
