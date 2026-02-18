@@ -1,4 +1,4 @@
-﻿using DotSee.Discipline.Interfaces;
+using DotSee.Discipline.Interfaces;
 using Serilog;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
@@ -76,7 +76,7 @@ namespace DotSee.Discipline.AutoNode
             _contentTypeService = contentTypeService;
             _ruleProviderService = ruleProviderService;
             _sqlContext = sqlContext;
-            _rules = ruleProviderService.Rules.ToList();
+            _rules = ruleProviderService.Rules?.ToList() ?? new List<Rule>();
         }
 
         #endregion Constructors
@@ -113,9 +113,9 @@ namespace DotSee.Discipline.AutoNode
                 _rulesLoaded = true;
             }
 
-            if (!_rulesLoaded && _ruleProviderService != null)
+            if (!_rulesLoaded && _ruleProviderService?.Rules != null)
             {
-                foreach (Rule r in (_ruleProviderService.Rules))
+                foreach (Rule r in _ruleProviderService.Rules)
                 {
                     _rules.Add(r);
                 }
@@ -203,7 +203,7 @@ namespace DotSee.Discipline.AutoNode
             //Republish the node if there are no pending changes
             if (!existingNode.Edited)
             {
-                var result = _contentService.SaveAndPublish(existingNode, (string.IsNullOrEmpty(culture) ? "*" : culture));
+                var result = _contentService.Publish(existingNode, (string.IsNullOrEmpty(culture) ? "*" : culture).Split(','));
                 if (!result.Success)
                 {
                     _logger.Error(String.Format(MessageConstants.ErrorRepublishNoSuccess, existingNode.Name, node.Name));
@@ -264,7 +264,10 @@ namespace DotSee.Discipline.AutoNode
 
                     if (bp != null)
                     {
+                        // TODO: Replace with IContentBlueprintEditingService.GetScaffoldedAsync() when migrating to V18
+#pragma warning disable CS0618 // Type or member is obsolete
                         content = _contentService.CreateContentFromBlueprint(bp, assignedNodeName);
+#pragma warning restore CS0618
                         content.SetParent(node);
                     }
                     else
@@ -289,10 +292,13 @@ namespace DotSee.Discipline.AutoNode
                     else
                     {
                         //Publish the new node
-                        var result = (string.IsNullOrEmpty(culture))
-                            ? _contentService.SaveAndPublish(content, culture: null)
-                            : _contentService.SaveAndPublish(content, culture: culture);
+                        // In Umbraco 17+, use "*" for invariant content instead of null
+                        var culturesToPublish = string.IsNullOrEmpty(culture)
+                            ? new[] { "*" }
+                            : culture.Split(',');
 
+                        _contentService.Save(content);
+                        var result = _contentService.Publish(content, cultures: culturesToPublish);
                         success = result.Success;
                     }
 
@@ -370,9 +376,11 @@ namespace DotSee.Discipline.AutoNode
         private IContent GetBlueprint(Rule rule)
         {
             if (string.IsNullOrEmpty(rule.Blueprint)) { return null; }
-            var contentTypeId = _contentTypeService.GetAllContentTypeIds(new string[] { rule.DocTypeAliasToCreate }).FirstOrDefault();
-            if (contentTypeId <= 0) { return null; }
-            var bps = _contentService.GetBlueprintsForContentTypes(contentTypeId);
+
+            var contentType = _contentTypeService.Get(rule.DocTypeAliasToCreate);
+            if (contentType == null) { return null; }
+
+            var bps = _contentService.GetBlueprintsForContentTypes(contentType.Id);
             if (bps == null || bps.Count() == 0) { return null; }
             var bp = bps.Where(x => x.Name == rule.Blueprint).FirstOrDefault();
             return bp;

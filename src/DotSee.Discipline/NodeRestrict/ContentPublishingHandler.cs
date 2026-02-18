@@ -1,4 +1,4 @@
-﻿using Umbraco.Cms.Core.Events;
+using Umbraco.Cms.Core.Events;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Notifications;
 using Umbraco.Cms.Core.Services;
@@ -22,7 +22,13 @@ namespace DotSee.Discipline.NodeRestrict
             foreach (IContent node in notification.PublishedEntities)
             {
                 //This is where the magic happens. Unicorns. Free burgers. 
-                result = _restrictor.Run(node);
+                // In Umbraco v14+, EditedCultures may be null during publish notifications.
+                // Use notification.IsPublishingCulture() to reliably determine which cultures are being published.
+                var publishingCultures = node.AvailableCultures?
+                    .Where(culture => notification.IsPublishingCulture(node, culture))
+                    .ToList();
+
+                result = _restrictor.Run(node, publishingCultures);
             }
 
             //No rule applied, as you were.

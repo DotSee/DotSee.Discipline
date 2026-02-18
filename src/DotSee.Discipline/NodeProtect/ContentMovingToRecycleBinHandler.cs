@@ -15,7 +15,7 @@ namespace DotSee.Discipline.NodeProtect
 
         public void Handle(ContentMovingToRecycleBinNotification notification)
         {
-            foreach (MoveEventInfo<IContent> item in notification.MoveInfoCollection)
+            foreach (MoveToRecycleBinEventInfo<IContent> item in notification.MoveInfoCollection)
             {
                 Result result = _nodeProtectService.Run(item.Entity);
 

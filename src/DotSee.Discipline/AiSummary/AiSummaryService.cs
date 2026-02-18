@@ -1,8 +1,7 @@
-﻿using DotSee.Discipline.AiSummary.Exceptions;
+using DotSee.Discipline.AiSummary.Exceptions;
 using DotSee.Discipline.AiSummary.Generators;
 using DotSee.Discipline.AiSummary.Helpers;
 using DotSee.Discipline.Interfaces;
-using Newtonsoft.Json.Linq;
 using NPoco;
 using Serilog;
 using System.Text.Json;
@@ -44,7 +43,18 @@ namespace DotSee.Discipline.AiSummary
 
         #region Public Methods
 
-        public virtual void Run(IContent node)
+        /// <summary>
+        /// Applies the AI summary service to the given content node.
+        /// </summary>
+        /// <param name="node">The content node being saved.</param>
+        /// <param name="savingCultures">
+        /// The cultures currently being saved, as determined by the notification handler 
+        /// (e.g. via notification.IsSavingCulture()). In Umbraco v14+, IContent.EditedCultures 
+        /// may be null during save notifications, so the handler must resolve saving cultures 
+        /// from the notification object instead.
+        /// Pass null for invariant (non-variant) content.
+        /// </param>
+        public virtual void Run(IContent node, IEnumerable<string> savingCultures = null)
         {
             //Make all the necessary checks to decide if we should continue. 
             //If so, return an object with other useful info to use further down the line.
@@ -57,13 +67,21 @@ namespace DotSee.Discipline.AiSummary
 
             try
             {
-                if (node.AvailableCultures == null || node.AvailableCultures?.Count() == 0)
+                if (node.AvailableCultures == null || !node.AvailableCultures.Any())
                 {
+                    // Invariant content - process once without a culture
                     DoRun(node, checkResults, null);
                 }
                 else
                 {
-                    foreach (string culture in node.EditedCultures)
+                    // Variant content - determine which cultures to process.
+                    // Prefer the saving cultures passed from the notification handler.
+                    // Fall back to AvailableCultures if no saving cultures were provided.
+                    var culturesToProcess = (savingCultures != null && savingCultures.Any())
+                        ? savingCultures
+                        : node.AvailableCultures;
+
+                    foreach (string culture in culturesToProcess)
                     {
                         DoRun(node, checkResults, culture);
                     }
@@ -116,25 +134,9 @@ namespace DotSee.Discipline.AiSummary
                         propertyUpdated = true;
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    _logger.Warning("AiSummaryService could not update block property for ID {NodeId} with Name {NodeName}. Falling back to nested content", node.Id, node.Name);
-
-                    //This is extremely ugly, but it's here only for v13 and for the case that it's an NC property
-                    //instead of a blocklist. 
-                    try
-                    {
-                        var bl = AddSummaryToNcProperty(node, culture);
-                        if (bl != null)
-                        {
-                            node.SetValue(_settings.PropertyAlias.Split('.')[0], bl, culture);
-                            propertyUpdated = true;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.Error("AiSummaryService could not update complex property (with fallback to nested content) for ID {NodeId} with Name {NodeName}. Exception message: {message}", node.Id, node.Name, ex.Message);
-                    }
+                    _logger.Error("AiSummaryService could not update complex property for ID {NodeId} with Name {NodeName}. Exception message: {message}", node.Id, node.Name, ex.Message);
                 }
             }
             else
@@ -157,7 +159,6 @@ namespace DotSee.Discipline.AiSummary
                 node.SetValue(_settings.TogglePropertyAlias, false, culture);
             }
 
-            return;
             return;
         }
 
@@ -235,18 +236,15 @@ namespace DotSee.Discipline.AiSummary
             var blockAiSummaryPropertyAlias = aliases[2];
 
             var blockModelRaw = node.GetValue(blockListPropertyAlias, culture);
-            var blockValue = _jsonSerializer.Deserialize<BlockValue>(blockModelRaw.ToString());
+            var blockValue = _jsonSerializer.Deserialize<BlockListValue>(blockModelRaw.ToString());
 
             foreach (var layoutEntry in blockValue.Layout.Values)
             {
-                if (layoutEntry is not JArray layoutArray) continue;
-
-                foreach (var li in layoutArray.OfType<JObject>())
+                foreach (var li in layoutEntry)
                 {
-                    var contentUdiStr = li["contentUdi"]?.Value<string>();
-                    if (string.IsNullOrWhiteSpace(contentUdiStr)) continue;
+                    var contentKey = li.ContentKey;
 
-                    var block = blockValue.ContentData.FirstOrDefault(x => x.Udi?.ToString() == contentUdiStr);
+                    var block = blockValue.ContentData.FirstOrDefault(x => x.Key == contentKey);
                     if (block is null) continue;
 
                     //The content type alias is NOT stored in the JSON, so we need to get it from the block 
@@ -264,9 +262,16 @@ namespace DotSee.Discipline.AiSummary
                     //if a problem is encountered.
                     string summary = GetAiResults(node, culture);
 
-                    // IMPORTANT: if summary wasn't present (because empty), just add it
-                    block.RawPropertyValues ??= new();
-                    block.RawPropertyValues[blockAiSummaryPropertyAlias] = summary;
+                    // Update or add the summary in the block's Values list
+                    var existingValue = block.Values.FirstOrDefault(v => v.Alias == blockAiSummaryPropertyAlias);
+                    if (existingValue is not null)
+                    {
+                        existingValue.Value = summary;
+                    }
+                    else
+                    {
+                        block.Values.Add(new BlockPropertyValue { Alias = blockAiSummaryPropertyAlias, Value = summary });
+                    }
 
                     var updatedJson = _jsonSerializer.Serialize(blockValue);
 
@@ -376,7 +381,7 @@ namespace DotSee.Discipline.AiSummary
         private static bool IsAllowedPropertyType(string propertyEditorAlias)
         {
             if (
-                propertyEditorAlias.Contains("TinyMCE", StringComparison.InvariantCultureIgnoreCase)
+                propertyEditorAlias.Contains("RichText", StringComparison.InvariantCultureIgnoreCase)
                 || propertyEditorAlias.Contains("TextBox", StringComparison.InvariantCultureIgnoreCase)
                 || propertyEditorAlias.Contains("TextArea", StringComparison.InvariantCultureIgnoreCase)
                 || propertyEditorAlias.Contains("TextString", StringComparison.InvariantCultureIgnoreCase)
