@@ -22,7 +22,7 @@
     ]
   },
   "Category": "Editor Tools",
-  "Description": "Keep your back office in order with a set of rule-driven functions for automatic node creation, restrictions on creating new nodes, hiding parts of a URL and toggling display of not created nodes in multilingual setups",
+  "Description": "Keep your back office in order with a set of rule-driven functions for automatic node creation, restrictions on creating new nodes, hiding parts of a URL, toggling display of not created nodes in multilingual setups, and generation of AI summaries.",
   "IssueTrackerUrl": "https://github.com/DotSee/DotSee.Discipline/issues",
   "LicenseTypes": [
     "Free"
@@ -33,7 +33,8 @@
     "autonode",
     "noderestrict",
     "virtualnodes",
-    "hidenotcreatedvariants"
+    "hidenotcreatedvariants",
+	"aisummary"
   ],
   "Title": "Discipline"
 }

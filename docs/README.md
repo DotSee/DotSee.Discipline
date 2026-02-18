@@ -1,4 +1,4 @@
-﻿This is a plugin for Umbraco V10 and V13 combining the functionality of the following legacy V8 plugins:
+﻿This is a plugin for Umbraco v10-v17 combining the functionality of the following legacy V8 plugins:
 - **AutoNode**: Automatically create new nodes upon publishing a node, based on rules
 - **NodeRestrict**: Restrict number of nodes to be created under a node, based on rules
 - **VirtualNodes**: Hide the url segment of a specific node based on doctype
@@ -7,6 +7,9 @@
 It also adds the following functions:
 - **NodeProtect**: Protect nodes from deletion based on rules
 - **AISummaries**: Generate AI-based summaries for content nodes in the back office (requires OpenAI or Gemini API key)
+
+Version 1.x is for v10-v13
+Version 2.x is for v17
 
 # General Notes
 In your appSettings.json, create a new root level entry as follows:
