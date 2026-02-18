@@ -1,21 +1,39 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Umbraco.Cms.Core.Configuration.Models;
 using Umbraco.Cms.Core.Models.PublishedContent;
+using Umbraco.Cms.Core.PublishedCache;
 using Umbraco.Cms.Core.Routing;
 using Umbraco.Cms.Core.Services;
+using Umbraco.Cms.Core.Services.Navigation;
 using Umbraco.Cms.Core.Web;
 using Umbraco.Extensions;
 
 namespace DotSee.Discipline.VirtualNodes
 {
-    public class VirtualNodesUrlProvider : DefaultUrlProvider
+    public class VirtualNodesUrlProvider : NewDefaultUrlProvider
     {
         private readonly GlobalSettings _globalSettings;
         private readonly VirtualNodesRuleManager _virtualNodesRuleManager;
         private readonly IUmbracoContextFactory _umbContextFactory;
 
-        public VirtualNodesUrlProvider(IOptionsMonitor<RequestHandlerSettings> requestSettings, ILogger<DefaultUrlProvider> logger, ISiteDomainMapper siteDomainMapper, IUmbracoContextAccessor umbracoContextAccessor, UriUtility uriUtility, ILocalizationService localizationService, IOptions<GlobalSettings> globalSettings, VirtualNodesRuleManager virtualNodesRuleManager, IUmbracoContextFactory umbContextFactory) : base(requestSettings, logger, siteDomainMapper, umbracoContextAccessor, uriUtility, localizationService)
+        public VirtualNodesUrlProvider(
+            IOptionsMonitor<RequestHandlerSettings> requestSettings,
+            ILogger<NewDefaultUrlProvider> logger,
+            ISiteDomainMapper siteDomainMapper,
+            IUmbracoContextAccessor umbracoContextAccessor,
+            UriUtility uriUtility,
+            IPublishedContentCache publishedContentCache,
+            IDomainCache domainCache,
+            IIdKeyMap idKeyMap,
+            IDocumentUrlService documentUrlService,
+            IDocumentNavigationQueryService navigationQueryService,
+            IPublishedContentStatusFilteringService publishedContentStatusFilteringService,
+            ILanguageService languageService,
+            IOptions<GlobalSettings> globalSettings,
+            VirtualNodesRuleManager virtualNodesRuleManager,
+            IUmbracoContextFactory umbContextFactory)
+            : base(requestSettings, logger, siteDomainMapper, umbracoContextAccessor, uriUtility, publishedContentCache, domainCache, idKeyMap, documentUrlService, navigationQueryService, publishedContentStatusFilteringService, languageService)
         {
             _globalSettings = globalSettings.Value;
             _virtualNodesRuleManager = virtualNodesRuleManager;
@@ -63,7 +81,7 @@ namespace DotSee.Discipline.VirtualNodes
             string url = null;
             try
             {
-                url = base.GetUrl(content, mode, culture, current).Text;
+                url = base.GetUrl(content, mode, culture, current).ToString();
             }
             catch (NullReferenceException ex)
             {
@@ -127,10 +145,8 @@ namespace DotSee.Discipline.VirtualNodes
             }
 
             finalUrl = string.Concat(hostPart, finalUrl);
-            var _urlInfo = new UrlInfo(finalUrl, true, culture);
-
-            //Voila.
-            return _urlInfo;
+            bool isExternal = !string.IsNullOrEmpty(hostPart);
+            return UrlInfo.AsUrl(finalUrl, nameof(VirtualNodesUrlProvider), culture, isExternal);
         }
     }
 }

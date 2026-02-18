@@ -1,46 +1,27 @@
-﻿using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Umbraco.Cms.Core;
-using Umbraco.Cms.Core.Events;
-using Umbraco.Cms.Core.Notifications;
+// NOTE: In Umbraco v14+, the VariantsHider functionality has been moved to the client side.
+// The context menu item is now registered via a TypeScript entity action extension.
+// See the Client folder for the TypeScript implementation.
+//
+// This file is kept for reference of the v13 implementation which used MenuRenderingNotification.
+// The API controller (VariantsHiderApiController) still provides the configuration settings
+// to the client-side extension.
 
 namespace DotSee.Discipline.VariantsHider
-{ 
-    public class VariantsHiderService : INotificationHandler<MenuRenderingNotification>
+{
+    /// <summary>
+    /// In Umbraco v14+, the VariantsHider menu injection is handled entirely on the client side.
+    /// This class is no longer needed as the entity action is registered via TypeScript.
+    /// Configuration is provided via the VariantsHiderApiController.
+    /// </summary>
+    /// <remarks>
+    /// The old v13 implementation used MenuRenderingNotification to add a context menu item
+    /// that would call a JavaScript function. In v14+, this is replaced by:
+    /// - TypeScript entity action extensions
+    /// - A client-side service that manipulates the DOM
+    /// </remarks>
+    public static class VariantsHiderServiceInfo
     {
-        private readonly IConfiguration _configuration;  
-           
-        public VariantsHiderService(IConfiguration configuration)
-        {
-            _configuration = configuration; 
-        }
-
-        public void Handle(MenuRenderingNotification notification)
-        {
-            if (notification.TreeAlias == "content" && _configuration.GetSection("DotSee.Discipline:VariantsHider:Enabled")?.Value?.ToLower() == "true")
-            {
-                if (string.IsNullOrEmpty(notification.NodeId) || notification.NodeId.Equals(Constants.System.RecycleBinContentString)) { return; }
-
-                if (notification.NodeId == "-1")
-                {
-                    string caption = _configuration.GetSection("DotSee.Discipline:VariantsHider:Caption")?.Value;
-
-                    if (string.IsNullOrEmpty(caption))
-                    {
-                        caption = "Toggle unset variants display";
-                    }
-
-                    var toggleMenuItem = new Umbraco.Cms.Core.Models.Trees.MenuItem("toggleMlNodes", caption);
-                    toggleMenuItem.Icon = "axis-rotation";
-                    toggleMenuItem.SeparatorBefore = true;
-                    toggleMenuItem.ExecuteJsMethod("HideShowTreeNodes()");
-                    notification.Menu.Items.Insert(notification.Menu.Items.Count, toggleMenuItem);
-                }
-            }
-        }
+        public const string Version = "2.0.0";
+        public const string Description = "Hides unset language variants from the content tree in multilingual setups.";
     }
 }

@@ -1,6 +1,4 @@
 ﻿using Serilog;
-using System;
-using System.Linq;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Extensions;
 
@@ -9,12 +7,14 @@ namespace DotSee.Discipline.AutoNode
     public class AutoNodeUtils
     {
         private readonly ILogger _logger;
-        private readonly ILocalizationService _localizationService;
+        private readonly ILanguageService _languageService;
+        private readonly IDictionaryItemService _dictionaryItemService;
 
-        public AutoNodeUtils(ILogger logger, ILocalizationService localizationService)
+        public AutoNodeUtils(ILogger logger, ILanguageService languageService, IDictionaryItemService dictionaryItemService)
         {
             _logger = logger;
-            _localizationService = localizationService;
+            _languageService = languageService;
+            _dictionaryItemService = dictionaryItemService;
         }
 
         /// <summary>
@@ -35,11 +35,11 @@ namespace DotSee.Discipline.AutoNode
                 {
                     if (!string.IsNullOrEmpty(culture))
                     {
-                        assignedNodeName = _localizationService.GetDictionaryItemByKey(rule.DictionaryItemForName).Translations.First(t => t.Language.CultureInfo.Name.InvariantEquals(culture)).Value;
+                        assignedNodeName = _dictionaryItemService.GetAsync(rule.DictionaryItemForName).Result.GetTranslatedValue(culture);
                     }
                     else
                     {
-                        assignedNodeName = _localizationService.GetDictionaryItemByKey(rule.DictionaryItemForName).Translations.First().Value;
+                        assignedNodeName = _dictionaryItemService.GetAsync(rule.DictionaryItemForName).Result.GetTranslatedValue(null);
                     }
                 }
                 catch (Exception ex)
