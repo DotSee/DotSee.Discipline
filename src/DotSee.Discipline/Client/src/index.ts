@@ -3,7 +3,7 @@ import { createEntityActionManifest } from './manifests/entity-action.manifest.j
 import { propertyVersionManifests } from './manifests/property-version.manifest.js';
 import { manifests as localizationManifests } from './localization/manifest.js';
 import { initializeVariantsHiderService, getVariantsHiderService } from './services/service-instance.js';
-import { fetchVariantsHiderSettings } from './services/settings-fetcher.js';
+import { fetchVariantsHiderSettings, fetchPropertyVersionsSettings } from './services/settings-fetcher.js';
 
 // Re-export for external use
 export { VariantsHiderService } from './services/variants-hider.service.js';
@@ -12,14 +12,21 @@ export { getVariantsHiderService };
 export const onInit: UmbEntryPointOnInit = async (_host, extensionRegistry) => {
   console.log('[DotSee.Discipline] Initializing...');
 
-  // Register property version navigation actions (always available)
-  extensionRegistry.registerMany([
-    ...propertyVersionManifests,
+  // Fetch settings for both features in parallel
+  const [pvSettings, settings] = await Promise.all([
+    fetchPropertyVersionsSettings(),
+    fetchVariantsHiderSettings(),
   ]);
-  console.log('[DotSee.Discipline] Property version actions registered');
 
-  // Fetch settings from API first to get the caption
-  const settings = await fetchVariantsHiderSettings();
+  // Register property version navigation actions if enabled
+  if (pvSettings.enabled) {
+    extensionRegistry.registerMany([
+      ...propertyVersionManifests,
+    ]);
+    console.log('[DotSee.Discipline] Property version actions registered');
+  } else {
+    console.log('[DotSee.Discipline.PropertyVersions] Feature is disabled in configuration');
+  }
 
   // Only register the entity action if the feature is enabled
   if (settings.enabled) {

@@ -1,7 +1,7 @@
-var S = Object.defineProperty;
-var b = (i, e, t) => e in i ? S(i, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : i[e] = t;
-var a = (i, e, t) => b(i, typeof e != "symbol" ? e + "" : e, t);
-function y(i) {
+var b = Object.defineProperty;
+var y = (i, e, t) => e in i ? b(i, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : i[e] = t;
+var a = (i, e, t) => y(i, typeof e != "symbol" ? e + "" : e, t);
+function D(i) {
   return {
     type: "entityAction",
     kind: "default",
@@ -26,7 +26,7 @@ const g = [
   "Umb.PropertyEditorUi.TextBox",
   "Umb.PropertyEditorUi.TextArea",
   "Umb.PropertyEditorUi.Tiptap"
-], D = [
+], T = [
   {
     type: "propertyAction",
     alias: "DotSee.Discipline.PropertyVersions.PrevVersion",
@@ -51,7 +51,7 @@ const g = [
       label: "Next version"
     }
   }
-], T = {
+], V = {
   type: "localization",
   alias: "DotSee.Discipline.VariantsHider.Localization.En",
   name: "DotSee Variants Hider Localization (English)",
@@ -59,8 +59,8 @@ const g = [
     culture: "en"
   },
   js: () => import("./en-B5YfZqhh.js")
-}, V = [T];
-class E {
+}, E = [V];
+class I {
   constructor() {
     a(this, "isHidden", !1);
     a(this, "rafId", null);
@@ -216,17 +216,36 @@ class E {
   }
 }
 let p = null;
-function I() {
-  return p || (p = new E()), p;
+function w() {
+  return p || (p = new I()), p;
 }
-function A() {
+function U() {
   return p;
 }
 const h = {
   enabled: !1,
   caption: "Toggle unset variants display"
+}, S = {
+  enabled: !1
 };
-async function w() {
+async function H() {
+  try {
+    const i = await fetch("/umbraco/api/propertyversions/settings", {
+      method: "GET",
+      credentials: "include"
+    });
+    if (i.ok) {
+      const e = await i.json();
+      return {
+        enabled: e.enabled === !0 || e.enabled === "true"
+      };
+    }
+    return S;
+  } catch {
+    return S;
+  }
+}
+async function A() {
   try {
     const i = await fetch("/umbraco/api/variantshider/settings", {
       method: "GET",
@@ -247,23 +266,26 @@ async function w() {
     return console.error("[DotSee.Discipline.VariantsHider] Error fetching settings:", i), h;
   }
 }
-const v = async (i, e) => {
-  console.log("[DotSee.Discipline] Initializing..."), e.registerMany([
-    ...D
-  ]), console.log("[DotSee.Discipline] Property version actions registered");
-  const t = await w();
-  if (t.enabled) {
-    const n = y(t.caption);
+const R = async (i, e) => {
+  console.log("[DotSee.Discipline] Initializing...");
+  const [t, n] = await Promise.all([
+    H(),
+    A()
+  ]);
+  if (t.enabled ? (e.registerMany([
+    ...T
+  ]), console.log("[DotSee.Discipline] Property version actions registered")) : console.log("[DotSee.Discipline.PropertyVersions] Feature is disabled in configuration"), n.enabled) {
+    const s = D(n.caption);
     e.registerMany([
-      n,
-      ...V
-    ]), I().initializeWithSettings(t), console.log("[DotSee.Discipline.VariantsHider] Initialized successfully with caption:", t.caption);
+      s,
+      ...E
+    ]), w().initializeWithSettings(n), console.log("[DotSee.Discipline.VariantsHider] Initialized successfully with caption:", n.caption);
   } else
     console.log("[DotSee.Discipline.VariantsHider] Feature is disabled in configuration");
 };
 export {
-  E as VariantsHiderService,
-  A as getVariantsHiderService,
-  v as onInit
+  I as VariantsHiderService,
+  U as getVariantsHiderService,
+  R as onInit
 };
 //# sourceMappingURL=dotsee-discipline.js.map

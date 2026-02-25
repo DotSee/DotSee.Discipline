@@ -15,6 +15,41 @@ const DEFAULT_SETTINGS: VariantsHiderSettings = {
 };
 
 /**
+ * Settings response for PropertyVersions.
+ */
+export interface PropertyVersionsSettings {
+  enabled: boolean;
+}
+
+const DEFAULT_PV_SETTINGS: PropertyVersionsSettings = {
+  enabled: false,
+};
+
+/**
+ * Fetch PropertyVersions settings from the API.
+ * Returns default settings (disabled) if the API call fails.
+ */
+export async function fetchPropertyVersionsSettings(): Promise<PropertyVersionsSettings> {
+  try {
+    const response = await fetch('/umbraco/api/propertyversions/settings', {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return {
+        enabled: data.enabled === true || data.enabled === 'true',
+      };
+    }
+
+    return DEFAULT_PV_SETTINGS;
+  } catch {
+    return DEFAULT_PV_SETTINGS;
+  }
+}
+
+/**
  * Fetch VariantsHider settings from the API.
  * Returns default settings if the API call fails.
  */
