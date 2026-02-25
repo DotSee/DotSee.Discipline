@@ -126,6 +126,18 @@ export function canGoNext(contentKey: string, propertyAlias: string, culture: st
   return state.currentIndex > 0;
 }
 
+export async function prefetch(contentKey: string, propertyAlias: string, culture: string | null, currentValue: string, authToken: string, block?: BlockParams): Promise<void> {
+  await getOrFetchState(contentKey, propertyAlias, culture, currentValue, authToken, block);
+  fireNavigationEvent();
+}
+
+export function hasVersions(contentKey: string, propertyAlias: string, culture: string | null, block?: BlockParams): boolean {
+  const key = makeKey(contentKey, propertyAlias, culture, block);
+  const state = stateMap.get(key);
+  if (!state) return true; // Not yet fetched — assume yes until we know
+  return state.versions.length > 1;
+}
+
 export function clearCache(): void {
   stateMap.clear();
 }

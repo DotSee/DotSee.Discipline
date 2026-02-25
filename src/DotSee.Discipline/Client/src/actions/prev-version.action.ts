@@ -4,7 +4,7 @@ import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
 import { UMB_BLOCK_MANAGER_CONTEXT } from '@umbraco-cms/backoffice/block';
 import type { UmbControllerHost } from '@umbraco-cms/backoffice/controller-api';
 import type { UmbPropertyActionArgs } from '@umbraco-cms/backoffice/property-action';
-import { navigatePrev, canGoPrev } from '../services/property-versions.service.js';
+import { navigatePrev, canGoPrev, prefetch, hasVersions } from '../services/property-versions.service.js';
 import type { BlockParams } from '../services/property-versions.service.js';
 import { getCurrentStringValue, buildNewValue } from '../services/property-value-helpers.js';
 
@@ -43,10 +43,24 @@ export class PrevVersionAction extends UmbPropertyActionBase {
       });
     }).asPromise({ preventTimeout: true }).catch(() => {});
 
-    // Once contexts are ready, notify elements to re-check disabled state
-    this.#init.then(() => {
-      document.dispatchEvent(new Event('dotsee-version-nav-changed'));
+    // Prefetch versions so we know whether to show "No previous versions"
+    this.#init.then(async () => {
+      await Promise.race([this.#blockInit, new Promise((r) => setTimeout(r, 200))]);
+      await this.#prefetch();
     });
+  }
+
+  async #prefetch(): Promise<void> {
+    if (!this.#propertyContext || !this.#datasetContext || !this.#authContext) return;
+    const block = this.#getBlockParams();
+    const contentKey = this.#getContentKey(block);
+    const propertyAlias = this.#propertyContext.getAlias();
+    if (!contentKey || !propertyAlias) return;
+    const culture = this.#propertyContext.getVariantId()?.culture ?? null;
+    const rawValue = this.#propertyContext.getValue();
+    const currentString = getCurrentStringValue(rawValue);
+    const token = await this.#authContext.getLatestToken();
+    await prefetch(contentKey, propertyAlias, culture, currentString, token, block);
   }
 
   #getBlockParams(): BlockParams | undefined {
@@ -69,8 +83,31 @@ export class PrevVersionAction extends UmbPropertyActionBase {
     return this.#datasetContext?.getUnique();
   }
 
+  #hasVersions(): boolean {
+    const block = this.#getBlockParams();
+    const contentKey = this.#getContentKey(block);
+    const propertyAlias = this.#propertyContext?.getAlias();
+    if (!contentKey || !propertyAlias) return true;
+    const culture = this.#propertyContext?.getVariantId()?.culture ?? null;
+    return hasVersions(contentKey, propertyAlias, culture, block);
+  }
+
+  /** Returns true if the element should not render at all. */
+  isHidden(): boolean {
+    return false;
+  }
+
+  /** Returns an override label, or undefined to use the manifest default. */
+  getLabel(): string | undefined {
+    if (!this.#hasVersions()) {
+      return 'No previous versions';
+    }
+    return undefined;
+  }
+
   /** Called by the element to check if this action should be disabled. */
   getDisabledState(): boolean {
+    if (!this.#hasVersions()) return true;
     const block = this.#getBlockParams();
     const contentKey = this.#getContentKey(block);
     const propertyAlias = this.#propertyContext?.getAlias();
@@ -81,8 +118,6 @@ export class PrevVersionAction extends UmbPropertyActionBase {
 
   override async execute(): Promise<void> {
     await this.#init;
-    // Wait up to 200ms for block context; resolves instantly if already available,
-    // times out harmlessly when not inside a block.
     await Promise.race([this.#blockInit, new Promise((r) => setTimeout(r, 200))]);
 
     if (!this.#propertyContext || !this.#datasetContext || !this.#authContext) {
