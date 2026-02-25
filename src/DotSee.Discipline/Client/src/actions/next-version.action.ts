@@ -1,16 +1,25 @@
 import { UmbPropertyActionBase } from '@umbraco-cms/backoffice/property-action';
 import { UMB_PROPERTY_CONTEXT, UMB_PROPERTY_DATASET_CONTEXT } from '@umbraco-cms/backoffice/property';
 import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
+import { UMB_BLOCK_MANAGER_CONTEXT } from '@umbraco-cms/backoffice/block';
 import type { UmbControllerHost } from '@umbraco-cms/backoffice/controller-api';
 import type { UmbPropertyActionArgs } from '@umbraco-cms/backoffice/property-action';
 import { navigateNext, canGoNext } from '../services/property-versions.service.js';
+import type { BlockParams } from '../services/property-versions.service.js';
 import { getCurrentStringValue, buildNewValue } from '../services/property-value-helpers.js';
+
+function getDocumentKeyFromUrl(): string | undefined {
+  const match = window.location.pathname.match(/\/workspace\/document\/edit\/([a-f0-9-]+)/i);
+  return match?.[1];
+}
 
 export class NextVersionAction extends UmbPropertyActionBase {
   #propertyContext?: any;
   #datasetContext?: any;
   #authContext?: any;
+  #blockParentAlias?: string;
   #init: Promise<unknown>;
+  #blockInit: Promise<unknown>;
 
   constructor(host: UmbControllerHost, args: UmbPropertyActionArgs<never>) {
     super(host, args);
@@ -26,29 +35,62 @@ export class NextVersionAction extends UmbPropertyActionBase {
       }).asPromise({ preventTimeout: true }),
     ]);
 
+    // Block manager context is only available inside block editors.
+    // We race with a short timer in execute() so non-block usage isn't delayed.
+    this.#blockInit = this.consumeContext(UMB_BLOCK_MANAGER_CONTEXT, (ctx) => {
+      this.observe(ctx.propertyAlias, (alias) => {
+        this.#blockParentAlias = alias;
+      });
+    }).asPromise({ preventTimeout: true }).catch(() => {});
+
     // Once contexts are ready, notify elements to re-check disabled state
     this.#init.then(() => {
       document.dispatchEvent(new Event('dotsee-version-nav-changed'));
     });
   }
 
+  #getBlockParams(): BlockParams | undefined {
+    if (this.#blockParentAlias) {
+      const blockElementKey = this.#datasetContext?.getUnique();
+      if (blockElementKey) {
+        return {
+          parentPropertyAlias: this.#blockParentAlias,
+          blockElementKey,
+        };
+      }
+    }
+    return undefined;
+  }
+
+  #getContentKey(block: BlockParams | undefined): string | undefined {
+    if (block) {
+      return getDocumentKeyFromUrl();
+    }
+    return this.#datasetContext?.getUnique();
+  }
+
   /** Called by the element to check if this action should be disabled. */
   getDisabledState(): boolean {
-    const contentKey = this.#datasetContext?.getUnique();
+    const block = this.#getBlockParams();
+    const contentKey = this.#getContentKey(block);
     const propertyAlias = this.#propertyContext?.getAlias();
     if (!contentKey || !propertyAlias) return true;
     const culture = this.#propertyContext?.getVariantId()?.culture ?? null;
-    return !canGoNext(contentKey, propertyAlias, culture);
+    return !canGoNext(contentKey, propertyAlias, culture, block);
   }
 
   override async execute(): Promise<void> {
     await this.#init;
+    // Wait up to 200ms for block context; resolves instantly if already available,
+    // times out harmlessly when not inside a block.
+    await Promise.race([this.#blockInit, new Promise((r) => setTimeout(r, 200))]);
 
     if (!this.#propertyContext || !this.#datasetContext || !this.#authContext) {
       return;
     }
 
-    const contentKey = this.#datasetContext.getUnique();
+    const block = this.#getBlockParams();
+    const contentKey = this.#getContentKey(block);
     const propertyAlias = this.#propertyContext.getAlias();
     if (!contentKey || !propertyAlias) return;
 
@@ -58,7 +100,7 @@ export class NextVersionAction extends UmbPropertyActionBase {
     const currentString = getCurrentStringValue(rawValue);
     const token = await this.#authContext.getLatestToken();
 
-    const newString = await navigateNext(contentKey, propertyAlias, culture, currentString, token);
+    const newString = await navigateNext(contentKey, propertyAlias, culture, currentString, token, block);
     if (newString !== null) {
       this.#propertyContext.setValue(buildNewValue(rawValue, newString));
     }

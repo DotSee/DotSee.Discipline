@@ -10,19 +10,29 @@ interface VersionState {
   originalValue: string;
 }
 
-const stateMap = new Map<string, VersionState>();
-
-function makeKey(contentKey: string, propertyAlias: string, culture: string | null): string {
-  return `${contentKey}-${propertyAlias}-${culture ?? ''}`;
+export interface BlockParams {
+  parentPropertyAlias: string;
+  blockElementKey: string;
 }
 
-async function fetchVersions(contentKey: string, propertyAlias: string, culture: string | null, authToken: string): Promise<VersionEntry[]> {
+const stateMap = new Map<string, VersionState>();
+
+function makeKey(contentKey: string, propertyAlias: string, culture: string | null, block?: BlockParams): string {
+  const base = `${contentKey}-${propertyAlias}-${culture ?? ''}`;
+  return block ? `${base}-${block.blockElementKey}` : base;
+}
+
+async function fetchVersions(contentKey: string, propertyAlias: string, culture: string | null, authToken: string, block?: BlockParams): Promise<VersionEntry[]> {
   const params = new URLSearchParams({
     contentKey,
     propertyAlias,
   });
   if (culture) {
     params.set('culture', culture);
+  }
+  if (block) {
+    params.set('parentPropertyAlias', block.parentPropertyAlias);
+    params.set('blockElementKey', block.blockElementKey);
   }
 
   const url = `/umbraco/api/propertyversions/history?${params.toString()}`;
@@ -43,12 +53,12 @@ async function fetchVersions(contentKey: string, propertyAlias: string, culture:
   return data;
 }
 
-async function getOrFetchState(contentKey: string, propertyAlias: string, culture: string | null, currentValue: string, authToken: string): Promise<VersionState> {
-  const key = makeKey(contentKey, propertyAlias, culture);
+async function getOrFetchState(contentKey: string, propertyAlias: string, culture: string | null, currentValue: string, authToken: string, block?: BlockParams): Promise<VersionState> {
+  const key = makeKey(contentKey, propertyAlias, culture, block);
   let state = stateMap.get(key);
 
   if (!state) {
-    const versions = await fetchVersions(contentKey, propertyAlias, culture, authToken);
+    const versions = await fetchVersions(contentKey, propertyAlias, culture, authToken, block);
     state = {
       versions,
       currentIndex: 0,
@@ -64,8 +74,8 @@ function fireNavigationEvent(): void {
   document.dispatchEvent(new Event('dotsee-version-nav-changed'));
 }
 
-export async function navigatePrev(contentKey: string, propertyAlias: string, culture: string | null, currentValue: string, authToken: string): Promise<string | null> {
-  const state = await getOrFetchState(contentKey, propertyAlias, culture, currentValue, authToken);
+export async function navigatePrev(contentKey: string, propertyAlias: string, culture: string | null, currentValue: string, authToken: string, block?: BlockParams): Promise<string | null> {
+  const state = await getOrFetchState(contentKey, propertyAlias, culture, currentValue, authToken, block);
 
   if (state.versions.length === 0) {
     fireNavigationEvent();
@@ -83,8 +93,8 @@ export async function navigatePrev(contentKey: string, propertyAlias: string, cu
   return state.versions[nextIndex].value;
 }
 
-export async function navigateNext(contentKey: string, propertyAlias: string, culture: string | null, currentValue: string, authToken: string): Promise<string | null> {
-  const state = await getOrFetchState(contentKey, propertyAlias, culture, currentValue, authToken);
+export async function navigateNext(contentKey: string, propertyAlias: string, culture: string | null, currentValue: string, authToken: string, block?: BlockParams): Promise<string | null> {
+  const state = await getOrFetchState(contentKey, propertyAlias, culture, currentValue, authToken, block);
 
   if (state.versions.length === 0) {
     fireNavigationEvent();
@@ -102,15 +112,15 @@ export async function navigateNext(contentKey: string, propertyAlias: string, cu
   return state.versions[nextIndex].value;
 }
 
-export function canGoPrev(contentKey: string, propertyAlias: string, culture: string | null): boolean {
-  const key = makeKey(contentKey, propertyAlias, culture);
+export function canGoPrev(contentKey: string, propertyAlias: string, culture: string | null, block?: BlockParams): boolean {
+  const key = makeKey(contentKey, propertyAlias, culture, block);
   const state = stateMap.get(key);
   if (!state || state.versions.length === 0) return true;
   return state.currentIndex + 1 < state.versions.length;
 }
 
-export function canGoNext(contentKey: string, propertyAlias: string, culture: string | null): boolean {
-  const key = makeKey(contentKey, propertyAlias, culture);
+export function canGoNext(contentKey: string, propertyAlias: string, culture: string | null, block?: BlockParams): boolean {
+  const key = makeKey(contentKey, propertyAlias, culture, block);
   const state = stateMap.get(key);
   if (!state || state.versions.length === 0) return false;
   return state.currentIndex > 0;

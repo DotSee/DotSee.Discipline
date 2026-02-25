@@ -31,7 +31,7 @@ const g = [
     type: "propertyAction",
     alias: "DotSee.Discipline.PropertyVersions.PrevVersion",
     name: "Previous Version",
-    api: () => import("./prev-version.action-JQ03NHXU.js"),
+    api: () => import("./prev-version.action-CqNDFOsz.js"),
     element: () => import("./version-action.element-Cojz7NSh.js"),
     forPropertyEditorUis: g,
     meta: {
@@ -43,7 +43,7 @@ const g = [
     type: "propertyAction",
     alias: "DotSee.Discipline.PropertyVersions.NextVersion",
     name: "Next Version",
-    api: () => import("./next-version.action-D_RJFyO5.js"),
+    api: () => import("./next-version.action-DHuMWTM4.js"),
     element: () => import("./version-action.element-Cojz7NSh.js"),
     forPropertyEditorUis: g,
     meta: {
