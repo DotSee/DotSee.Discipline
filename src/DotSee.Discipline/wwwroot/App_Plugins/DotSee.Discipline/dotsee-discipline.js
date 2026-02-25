@@ -1,14 +1,14 @@
 var S = Object.defineProperty;
-var g = (i, e, t) => e in i ? S(i, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : i[e] = t;
-var r = (i, e, t) => g(i, typeof e != "symbol" ? e + "" : e, t);
-function b(i) {
+var b = (i, e, t) => e in i ? S(i, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : i[e] = t;
+var a = (i, e, t) => b(i, typeof e != "symbol" ? e + "" : e, t);
+function y(i) {
   return {
     type: "entityAction",
     kind: "default",
     alias: "DotSee.Discipline.VariantsHider.ToggleAction",
     name: "Toggle Unset Variants Display",
     weight: 100,
-    api: () => import("./toggle-variants.action-CLunlf31.js"),
+    api: () => import("./toggle-variants.action-BL_Jgn3Z.js"),
     forEntityTypes: ["document-root"],
     meta: {
       icon: "icon-axis-rotation",
@@ -22,7 +22,36 @@ function b(i) {
     ]
   };
 }
-const T = {
+const g = [
+  "Umb.PropertyEditorUi.TextBox",
+  "Umb.PropertyEditorUi.TextArea",
+  "Umb.PropertyEditorUi.Tiptap"
+], D = [
+  {
+    type: "propertyAction",
+    alias: "DotSee.Discipline.PropertyVersions.PrevVersion",
+    name: "Previous Version",
+    api: () => import("./prev-version.action-JQ03NHXU.js"),
+    element: () => import("./version-action.element-Cojz7NSh.js"),
+    forPropertyEditorUis: g,
+    meta: {
+      icon: "icon-arrow-left",
+      label: "Previous version"
+    }
+  },
+  {
+    type: "propertyAction",
+    alias: "DotSee.Discipline.PropertyVersions.NextVersion",
+    name: "Next Version",
+    api: () => import("./next-version.action-D_RJFyO5.js"),
+    element: () => import("./version-action.element-Cojz7NSh.js"),
+    forPropertyEditorUis: g,
+    meta: {
+      icon: "icon-arrow-right",
+      label: "Next version"
+    }
+  }
+], T = {
   type: "localization",
   alias: "DotSee.Discipline.VariantsHider.Localization.En",
   name: "DotSee Variants Hider Localization (English)",
@@ -30,15 +59,15 @@ const T = {
     culture: "en"
   },
   js: () => import("./en-B5YfZqhh.js")
-}, y = [T];
-class D {
+}, V = [T];
+class E {
   constructor() {
-    r(this, "isHidden", !1);
-    r(this, "rafId", null);
-    r(this, "enabled", !1);
-    r(this, "caption", "Toggle unset variants display");
+    a(this, "isHidden", !1);
+    a(this, "rafId", null);
+    a(this, "enabled", !1);
+    a(this, "caption", "Toggle unset variants display");
     // Selectors for finding tree items in Umbraco v14+ backoffice
-    r(this, "TREE_ITEM_SELECTORS", [
+    a(this, "TREE_ITEM_SELECTORS", [
       "umb-tree-item",
       "uui-menu-item",
       '[data-element="tree-item"]',
@@ -127,10 +156,10 @@ class D {
   }
   processShadowRoots(e, t) {
     let n = 0;
-    return e.querySelectorAll("*").forEach((a) => {
-      a.shadowRoot && (a.shadowRoot.querySelectorAll(this.TREE_ITEM_SELECTORS).forEach((l) => {
+    return e.querySelectorAll("*").forEach((o) => {
+      o.shadowRoot && (o.shadowRoot.querySelectorAll(this.TREE_ITEM_SELECTORS).forEach((l) => {
         this.processTreeItem(l, t) && n++;
-      }), n += this.processShadowRoots(a.shadowRoot, t));
+      }), n += this.processShadowRoots(o.shadowRoot, t));
     }), n;
   }
   processTreeItem(e, t) {
@@ -146,7 +175,7 @@ class D {
     return !1;
   }
   getTreeItemName(e) {
-    var a, h, l, f, m;
+    var o, u, l, f, m;
     const t = e.getAttribute("label") || e.getAttribute("name");
     if (t) return t.trim();
     const n = [
@@ -161,14 +190,14 @@ class D {
       'span:not([slot="icon"])'
     ];
     for (const c of n) {
-      const o = e.querySelector(c);
-      if ((a = o == null ? void 0 : o.textContent) != null && a.trim())
-        return o.textContent.trim();
+      const r = e.querySelector(c);
+      if ((o = r == null ? void 0 : r.textContent) != null && o.trim())
+        return r.textContent.trim();
     }
     if (e.shadowRoot) {
-      for (const o of n) {
-        const d = e.shadowRoot.querySelector(o);
-        if ((h = d == null ? void 0 : d.textContent) != null && h.trim())
+      for (const r of n) {
+        const d = e.shadowRoot.querySelector(r);
+        if ((u = d == null ? void 0 : d.textContent) != null && u.trim())
           return d.textContent.trim();
       }
       const c = (l = e.shadowRoot.textContent) == null ? void 0 : l.trim();
@@ -186,18 +215,18 @@ class D {
     this.stopRafScan();
   }
 }
-let u = null;
+let p = null;
 function I() {
-  return u || (u = new D()), u;
+  return p || (p = new E()), p;
 }
-function w() {
-  return u;
+function A() {
+  return p;
 }
-const p = {
+const h = {
   enabled: !1,
   caption: "Toggle unset variants display"
 };
-async function V() {
+async function w() {
   try {
     const i = await fetch("/umbraco/api/variantshider/settings", {
       method: "GET",
@@ -210,29 +239,31 @@ async function V() {
       const e = await i.json();
       return {
         enabled: e.enabled === !0 || e.enabled === "true",
-        caption: e.caption || p.caption
+        caption: e.caption || h.caption
       };
     }
-    return console.warn("[DotSee.Discipline.VariantsHider] Failed to fetch settings, using defaults"), p;
+    return console.warn("[DotSee.Discipline.VariantsHider] Failed to fetch settings, using defaults"), h;
   } catch (i) {
-    return console.error("[DotSee.Discipline.VariantsHider] Error fetching settings:", i), p;
+    return console.error("[DotSee.Discipline.VariantsHider] Error fetching settings:", i), h;
   }
 }
-const H = async (i, e) => {
-  console.log("[DotSee.Discipline.VariantsHider] Initializing...");
-  const t = await V();
+const v = async (i, e) => {
+  console.log("[DotSee.Discipline] Initializing..."), e.registerMany([
+    ...D
+  ]), console.log("[DotSee.Discipline] Property version actions registered");
+  const t = await w();
   if (t.enabled) {
-    const n = b(t.caption);
+    const n = y(t.caption);
     e.registerMany([
       n,
-      ...y
+      ...V
     ]), I().initializeWithSettings(t), console.log("[DotSee.Discipline.VariantsHider] Initialized successfully with caption:", t.caption);
   } else
     console.log("[DotSee.Discipline.VariantsHider] Feature is disabled in configuration");
 };
 export {
-  D as VariantsHiderService,
-  w as getVariantsHiderService,
-  H as onInit
+  E as VariantsHiderService,
+  A as getVariantsHiderService,
+  v as onInit
 };
-//# sourceMappingURL=dotsee-discipline-variantshider.js.map
+//# sourceMappingURL=dotsee-discipline.js.map

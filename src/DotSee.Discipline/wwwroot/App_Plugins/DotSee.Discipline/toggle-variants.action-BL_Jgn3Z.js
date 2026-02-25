@@ -1,5 +1,5 @@
 import { UmbEntityActionBase as t } from "@umbraco-cms/backoffice/entity-action";
-import { getVariantsHiderService as r } from "./dotsee-discipline-variantshider.js";
+import { getVariantsHiderService as r } from "./dotsee-discipline.js";
 class a extends t {
   constructor(i, e) {
     super(i, e);
@@ -13,4 +13,4 @@ export {
   a as ToggleVariantsAction,
   a as api
 };
-//# sourceMappingURL=toggle-variants.action-CLunlf31.js.map
+//# sourceMappingURL=toggle-variants.action-BL_Jgn3Z.js.map
