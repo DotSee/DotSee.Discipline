@@ -2,6 +2,6 @@
 {
     public interface ISummaryGenerator
     {
-        string Generate(string apiKey, string aiModel, string tone, int maxChars, string content);
+        string Generate(string apiKey, string aiModel, string tone, int maxChars, string culture, string content);
     }
 }
