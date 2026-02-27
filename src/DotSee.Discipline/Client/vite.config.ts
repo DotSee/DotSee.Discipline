@@ -5,14 +5,15 @@ export default defineConfig({
     lib: {
       entry: "src/index.ts",
       formats: ["es"],
-      fileName: "dotsee-discipline-variantshider"
+      fileName: "dotsee-discipline"
     },
-    outDir: "../wwwroot/App_Plugins/DotSee.Discipline.VariantsHider",
+    outDir: "../wwwroot/App_Plugins/DotSee.Discipline",
     emptyOutDir: true,
+    copyPublicDir: true,
     sourcemap: true,
     rollupOptions: {
       external: [/^@umbraco/],
     },
   },
-  base: "/App_Plugins/DotSee.Discipline.VariantsHider/",
+  base: "/App_Plugins/DotSee.Discipline/",
 });
