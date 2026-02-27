@@ -185,6 +185,7 @@ namespace DotSee.Discipline.AiSummary
                 aiModel: settings.Model,
                 tone: settings.Tone,
                 maxChars: settings.MaxChars,
+                culture: culture,
                 content: singleString.StripHtml()
                 );
 
