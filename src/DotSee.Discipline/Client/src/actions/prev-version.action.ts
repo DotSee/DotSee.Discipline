@@ -7,6 +7,7 @@ import type { UmbPropertyActionArgs } from '@umbraco-cms/backoffice/property-act
 import { navigatePrev, canGoPrev, prefetch, hasVersions } from '../services/property-versions.service.js';
 import type { BlockParams } from '../services/property-versions.service.js';
 import { getCurrentStringValue, buildNewValue } from '../services/property-value-helpers.js';
+import { getNoVersionsCaption } from '../services/pv-captions.js';
 
 function getDocumentKeyFromUrl(): string | undefined {
   const match = window.location.pathname.match(/\/workspace\/document\/edit\/([a-f0-9-]+)/i);
@@ -100,7 +101,7 @@ export class PrevVersionAction extends UmbPropertyActionBase {
   /** Returns an override label, or undefined to use the manifest default. */
   getLabel(): string | undefined {
     if (!this.#hasVersions()) {
-      return 'No previous versions';
+      return getNoVersionsCaption();
     }
     return undefined;
   }

@@ -1,9 +1,10 @@
 import { UmbEntryPointOnInit } from '@umbraco-cms/backoffice/extension-api';
 import { createEntityActionManifest } from './manifests/entity-action.manifest.js';
-import { propertyVersionManifests } from './manifests/property-version.manifest.js';
+import { createPropertyVersionManifests } from './manifests/property-version.manifest.js';
 import { manifests as localizationManifests } from './localization/manifest.js';
 import { initializeVariantsHiderService, getVariantsHiderService } from './services/service-instance.js';
 import { fetchVariantsHiderSettings, fetchPropertyVersionsSettings } from './services/settings-fetcher.js';
+import { setNoVersionsCaption } from './services/pv-captions.js';
 
 // Re-export for external use
 export { VariantsHiderService } from './services/variants-hider.service.js';
@@ -20,9 +21,13 @@ export const onInit: UmbEntryPointOnInit = async (_host, extensionRegistry) => {
 
   // Register property version navigation actions if enabled
   if (pvSettings.enabled) {
-    extensionRegistry.registerMany([
-      ...propertyVersionManifests,
-    ]);
+    setNoVersionsCaption(pvSettings.noVersionsCaption);
+    const pvManifests = createPropertyVersionManifests({
+      nextVersionCaption: pvSettings.nextVersionCaption,
+      previousVersionCaption: pvSettings.previousVersionCaption,
+      noVersionsCaption: pvSettings.noVersionsCaption,
+    });
+    extensionRegistry.registerMany(pvManifests);
     console.log('[DotSee.Discipline] Property version actions registered');
   } else {
     console.log('[DotSee.Discipline.PropertyVersions] Feature is disabled in configuration');

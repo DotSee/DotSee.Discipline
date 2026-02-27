@@ -19,19 +19,31 @@ const DEFAULT_SETTINGS: VariantsHiderSettings = {
  */
 export interface PropertyVersionsSettings {
   enabled: boolean;
+  nextVersionCaption: string | null;
+  previousVersionCaption: string | null;
+  noVersionsCaption: string | null;
 }
 
 const DEFAULT_PV_SETTINGS: PropertyVersionsSettings = {
   enabled: false,
+  nextVersionCaption: null,
+  previousVersionCaption: null,
+  noVersionsCaption: null,
 };
 
 /**
  * Fetch PropertyVersions settings from the API.
+ * Passes the current document language to resolve dictionary captions.
  * Returns default settings (disabled) if the API call fails.
  */
 export async function fetchPropertyVersionsSettings(): Promise<PropertyVersionsSettings> {
   try {
-    const response = await fetch('/umbraco/api/propertyversions/settings', {
+    const culture = document.documentElement.lang || '';
+    const url = culture
+      ? `/umbraco/api/propertyversions/settings?culture=${encodeURIComponent(culture)}`
+      : '/umbraco/api/propertyversions/settings';
+
+    const response = await fetch(url, {
       method: 'GET',
       credentials: 'include',
     });
@@ -40,6 +52,9 @@ export async function fetchPropertyVersionsSettings(): Promise<PropertyVersionsS
       const data = await response.json();
       return {
         enabled: data.enabled === true || data.enabled === 'true',
+        nextVersionCaption: data.nextVersionCaption ?? null,
+        previousVersionCaption: data.previousVersionCaption ?? null,
+        noVersionsCaption: data.noVersionsCaption ?? null,
       };
     }
 
