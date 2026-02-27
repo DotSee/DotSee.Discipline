@@ -54,23 +54,26 @@ namespace DotSee.Discipline.AiSummary
         /// from the notification object instead.
         /// Pass null for invariant (non-variant) content.
         /// </param>
-        public virtual void Run(IContent node, IEnumerable<string> savingCultures = null)
+        /// <returns>True if at least one AI summary was generated; false otherwise.</returns>
+        public virtual bool Run(IContent node, IEnumerable<string> savingCultures = null)
         {
-            //Make all the necessary checks to decide if we should continue. 
+            //Make all the necessary checks to decide if we should continue.
             //If so, return an object with other useful info to use further down the line.
             ServiceCheckResults checkResults = ShouldContinue(node);
 
             if (!checkResults.ShouldContinue)
             {
-                return;
+                return false;
             }
+
+            bool summaryGenerated = false;
 
             try
             {
                 if (node.AvailableCultures == null || !node.AvailableCultures.Any())
                 {
                     // Invariant content - process once without a culture
-                    DoRun(node, checkResults, null);
+                    summaryGenerated = DoRun(node, checkResults, null);
                 }
                 else
                 {
@@ -83,7 +86,7 @@ namespace DotSee.Discipline.AiSummary
 
                     foreach (string culture in culturesToProcess)
                     {
-                        DoRun(node, checkResults, culture);
+                        summaryGenerated |= DoRun(node, checkResults, culture);
                     }
                 }
             }
@@ -95,17 +98,17 @@ namespace DotSee.Discipline.AiSummary
 
             _logger.Information("AiSummaryService ran for ID {NodeId} with Name {NodeName}", node.Id, node.Name);
 
-            return;
+            return summaryGenerated;
         }
         #endregion
 
         #region Private Methods
-        private void DoRun(IContent node, ServiceCheckResults checkResults, string culture)
+        private bool DoRun(IContent node, ServiceCheckResults checkResults, string culture)
         {
             //Check if toggle property exists in current node and whether is has been set to true.
             if (checkResults.HasToggleProperty && (node.GetValue(_settings.TogglePropertyAlias, culture)?.ToString()?.ToLower() ?? "0") == "0")
             {
-                return;
+                return false;
             }
 
             //Get the current value of the property to update.
@@ -119,7 +122,7 @@ namespace DotSee.Discipline.AiSummary
             //Toggle property set to true will force the update, even with content already in.
             if (!checkResults.HasToggleProperty && currentValue != null && !currentValue.ToString().Trim().IsNullOrWhiteSpace())
             {
-                return;
+                return false;
             }
 
             bool propertyUpdated = false;
@@ -159,7 +162,7 @@ namespace DotSee.Discipline.AiSummary
                 node.SetValue(_settings.TogglePropertyAlias, false, culture);
             }
 
-            return;
+            return true;
         }
 
         private string GetAiResults(IContent node, string culture)

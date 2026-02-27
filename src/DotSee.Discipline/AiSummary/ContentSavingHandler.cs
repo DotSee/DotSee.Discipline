@@ -29,12 +29,17 @@ namespace DotSee.Discipline.AiSummary
                         .Where(culture => notification.IsSavingCulture(node, culture))
                         .ToList();
 
-                    _svc.Run(node, savingCultures);
+                    bool summaryGenerated = _svc.Run(node, savingCultures);
+
+                    if (summaryGenerated)
+                    {
+                        notification.Messages.Add(new EventMessage(category: "AI Summary", message: "AI summary generated.", EventMessageType.Success));
+                    }
                 }
                 catch (Exception ex)
                 {
                     _logger.Error(ex, MessageConstants.ErrorContentSaving, node.Id, node.Name);
-                    notification.Messages.Add(new EventMessage(category: "AI Summary", "Something went wrong. AI summary was not updated. Please check your logs.", EventMessageType.Warning));
+                    notification.Messages.Add(new EventMessage(category: "AI Summary", message: "Something went wrong. AI summary was not updated. Please check your logs.", EventMessageType.Warning));
                 }
             }
         }
