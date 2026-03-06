@@ -7,9 +7,13 @@
 It also adds the following functions:
 - **NodeProtect**: Protect nodes from deletion based on rules
 - **AISummaries**: Generate AI-based summaries for content nodes in the back office (requires OpenAI or Gemini API key)
+- **PropertyVersions** : Keep track of string / RTE property value changes and display them in the back office, as well as allowing to rollback to previous values.
 
-Version 1.x is for v10-v13
-Version 2.x is for v17
+#### Package Versions:
+
+Version 1.x is for Umbraco v10-v13
+
+Version 2.x is for Umbraco v17
 
 # General Notes
 In your appSettings.json, create a new root level entry as follows:
@@ -24,6 +28,30 @@ In your appSettings.json, create a new root level entry as follows:
 
 and then use the configuration for any of the functions you need to use. 
 All functionality is disabled by default, so if you do not include configuration for a specific functionality it won't kick in at all.
+
+# Enabling property version tracking for string and RTE properties in the back office
+This functionality allows you to keep track of changes to string and RTE properties in the content nodes and display them in a tab in the back office, as well as allowing you to rollback to previous values.
+It works on Rich Text, Textstring and Textarea properties and it is available on all document types, as well as in properties in block list items.
+
+It respects the "Rollback" user permissions, so only users with the permission to rollback will be able to see the version history and rollback to previous versions.
+
+## Configuration
+```
+ "PropertyVersions": {
+      "Enabled": true,
+      "NextVersionButtonCaptionDictionaryEntry": "NextVersion",
+      "PreviousVersionButtonCaptionDictionaryEntry": "PreviousVersion",
+      "NoVersionsButtonCaptionDictionaryEntry": "NoVersions"
+ }
+ ```
+  
+ **Enabled**: Set to true to enable the functionality. If it is set to false or the section is not included, the functionality will be disabled.
+
+ **NextVersionButtonCaptionDictionaryEntry**: The key for the dictionary item that will be used as the caption for the "Next Version" button in the back office. This button allows you to go to newer versions of the property value.
+
+ **PreviousVersionButtonCaptionDictionaryEntry**: The key for the dictionary item that will be used as the caption for the "Previous Version" button in the back office. This button allows you to go to previous versions of the property value.
+
+ **NoVersionsButtonCaptionDictionaryEntry**: The key for the dictionary item that will be used as the caption for the button shown when there are no versions available for a property. This button is disabled and does not do anything, but it informs the user that there are no versions to go to.
 
 # Creating AI-based summaries for content nodes in the back office
 

@@ -18,8 +18,6 @@ export class ToggleVariantsAction extends UmbEntityActionBase<never> {
     const service = getVariantsHiderService();
     if (service) {
       service.toggleVariantsVisibility();
-    } else {
-      console.warn('[DotSee.Discipline.VariantsHider] Service not initialized');
     }
   }
 }
