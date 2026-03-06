@@ -36,7 +36,7 @@ const DEFAULT_PV_SETTINGS: PropertyVersionsSettings = {
  * Passes the current document language to resolve dictionary captions.
  * Returns default settings (disabled) if the API call fails.
  */
-export async function fetchPropertyVersionsSettings(): Promise<PropertyVersionsSettings> {
+export async function fetchPropertyVersionsSettings(authToken: string): Promise<PropertyVersionsSettings> {
   try {
     const culture = document.documentElement.lang || '';
     const url = culture
@@ -45,7 +45,9 @@ export async function fetchPropertyVersionsSettings(): Promise<PropertyVersionsS
 
     const response = await fetch(url, {
       method: 'GET',
-      credentials: 'include',
+      headers: {
+        'Authorization': `Bearer ${authToken}`,
+      },
     });
 
     if (response.ok) {
@@ -86,10 +88,8 @@ export async function fetchVariantsHiderSettings(): Promise<VariantsHiderSetting
       };
     }
     
-    console.warn('[DotSee.Discipline.VariantsHider] Failed to fetch settings, using defaults');
     return DEFAULT_SETTINGS;
-  } catch (error) {
-    console.error('[DotSee.Discipline.VariantsHider] Error fetching settings:', error);
+  } catch {
     return DEFAULT_SETTINGS;
   }
 }
