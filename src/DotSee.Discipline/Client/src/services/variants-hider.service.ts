@@ -32,7 +32,6 @@ export class VariantsHiderService {
   initializeWithSettings(settings: VariantsHiderSettings): void {
     this.enabled = settings.enabled;
     this.caption = settings.caption;
-    console.log(`[DotSee.Discipline.VariantsHider] Initialized with Enabled: ${this.enabled}, Caption: ${this.caption}`);
   }
 
   /**
@@ -53,8 +52,8 @@ export class VariantsHiderService {
           caption: settings.caption || this.caption,
         });
       }
-    } catch (error) {
-      console.error('[DotSee.Discipline.VariantsHider] Failed to fetch settings:', error);
+    } catch {
+      // Settings fetch failed — service remains disabled with defaults.
     }
   }
 
@@ -70,16 +69,12 @@ export class VariantsHiderService {
    * Toggle the visibility of unset variants in the tree.
    */
   toggleVariantsVisibility(): void {
-    console.log('[DotSee.Discipline.VariantsHider] Toggle called, current state:', this.isHidden ? 'hidden' : 'visible');
-
     if (this.isHidden) {
       this.showUnsetVariants();
       this.isHidden = false;
-      console.log('[DotSee.Discipline.VariantsHider] Variants are now VISIBLE');
     } else {
       this.hideUnsetVariants();
       this.isHidden = true;
-      console.log('[DotSee.Discipline.VariantsHider] Variants are now HIDDEN');
     }
   }
 
@@ -89,9 +84,8 @@ export class VariantsHiderService {
    * the browser paints, so new items are hidden before they appear on screen.
    */
   private hideUnsetVariants(): void {
-    const count = this.processTreeItems(true);
+    this.processTreeItems(true);
     this.startRafScan();
-    console.log(`[DotSee.Discipline.VariantsHider] Processed ${count} items for hiding`);
   }
 
   /**
@@ -99,8 +93,7 @@ export class VariantsHiderService {
    */
   private showUnsetVariants(): void {
     this.stopRafScan();
-    const count = this.processTreeItems(false);
-    console.log(`[DotSee.Discipline.VariantsHider] Processed ${count} items for showing`);
+    this.processTreeItems(false);
   }
 
   // ---------------------------------------------------------------------------

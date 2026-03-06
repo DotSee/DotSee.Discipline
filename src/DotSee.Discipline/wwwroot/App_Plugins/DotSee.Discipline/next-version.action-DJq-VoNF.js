@@ -7,7 +7,7 @@ import { UmbPropertyActionBase as U } from "@umbraco-cms/backoffice/property-act
 import { UMB_PROPERTY_CONTEXT as K, UMB_PROPERTY_DATASET_CONTEXT as v } from "@umbraco-cms/backoffice/property";
 import { UMB_AUTH_CONTEXT as B } from "@umbraco-cms/backoffice/auth";
 import { UMB_BLOCK_MANAGER_CONTEXT as O } from "@umbraco-cms/backoffice/block";
-import { g as x, p as S, h as M, a as R, d as I, b as L } from "./property-value-helpers-DT36Om7H.js";
+import { g as x, p as S, h as M, a as R, d as I, b as L } from "./property-value-helpers-BF2x--js.js";
 function X() {
   const s = window.location.pathname.match(/\/workspace\/document\/edit\/([a-f0-9-]+)/i);
   return s == null ? void 0 : s[1];
@@ -97,4 +97,4 @@ export {
   j as NextVersionAction,
   j as api
 };
-//# sourceMappingURL=next-version.action-ChSpJHum.js.map
+//# sourceMappingURL=next-version.action-DJq-VoNF.js.map

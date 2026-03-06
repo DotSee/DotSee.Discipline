@@ -1,4 +1,5 @@
 import { UmbEntryPointOnInit } from '@umbraco-cms/backoffice/extension-api';
+import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
 import { createEntityActionManifest } from './manifests/entity-action.manifest.js';
 import { createPropertyVersionManifests } from './manifests/property-version.manifest.js';
 import { manifests as localizationManifests } from './localization/manifest.js';
@@ -11,11 +12,13 @@ export { VariantsHiderService } from './services/variants-hider.service.js';
 export { getVariantsHiderService };
 
 export const onInit: UmbEntryPointOnInit = async (_host, extensionRegistry) => {
-  console.log('[DotSee.Discipline] Initializing...');
+  // Get auth token for authenticated API calls
+  const authContext = await _host.getContext(UMB_AUTH_CONTEXT);
+  const authToken = await authContext.getLatestToken();
 
   // Fetch settings for both features in parallel
   const [pvSettings, settings] = await Promise.all([
-    fetchPropertyVersionsSettings(),
+    fetchPropertyVersionsSettings(authToken),
     fetchVariantsHiderSettings(),
   ]);
 
@@ -28,28 +31,18 @@ export const onInit: UmbEntryPointOnInit = async (_host, extensionRegistry) => {
       noVersionsCaption: pvSettings.noVersionsCaption,
     });
     extensionRegistry.registerMany(pvManifests);
-    console.log('[DotSee.Discipline] Property version actions registered');
-  } else {
-    console.log('[DotSee.Discipline.PropertyVersions] Feature is disabled in configuration');
   }
 
   // Only register the entity action if the feature is enabled
   if (settings.enabled) {
-    // Create the entity action manifest with the caption from settings
     const entityActionManifest = createEntityActionManifest(settings.caption);
 
-    // Register manifests
     extensionRegistry.registerMany([
       entityActionManifest,
       ...localizationManifests,
     ]);
 
-    // Initialize the variants hider service with the fetched settings
     const service = initializeVariantsHiderService();
     service.initializeWithSettings(settings);
-
-    console.log('[DotSee.Discipline.VariantsHider] Initialized successfully with caption:', settings.caption);
-  } else {
-    console.log('[DotSee.Discipline.VariantsHider] Feature is disabled in configuration');
   }
 };

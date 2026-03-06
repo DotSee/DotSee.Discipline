@@ -1,7 +1,8 @@
-import { V as a, g as i, o as s } from "./index-CbnpoTq6.js";
+import "@umbraco-cms/backoffice/auth";
+import { V as a, g as t, o } from "./index-5MWhwXwm.js";
 export {
   a as VariantsHiderService,
-  i as getVariantsHiderService,
-  s as onInit
+  t as getVariantsHiderService,
+  o as onInit
 };
 //# sourceMappingURL=dotsee-discipline.js.map

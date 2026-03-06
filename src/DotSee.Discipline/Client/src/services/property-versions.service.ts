@@ -45,7 +45,6 @@ async function fetchVersions(contentKey: string, propertyAlias: string, culture:
   });
 
   if (!response.ok) {
-    console.error('[PropertyVersions] Failed to fetch versions:', response.status, response.statusText);
     return [];
   }
 

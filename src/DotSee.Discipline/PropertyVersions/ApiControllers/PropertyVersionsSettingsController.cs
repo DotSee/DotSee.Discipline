@@ -1,9 +1,12 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Umbraco.Cms.Core.Actions;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
+using Umbraco.Cms.Web.Common.Authorization;
 using Umbraco.Extensions;
 
 namespace DotSee.Discipline.PropertyVersions.ApiControllers
@@ -15,19 +18,22 @@ namespace DotSee.Discipline.PropertyVersions.ApiControllers
         private readonly IConfiguration _configuration;
         private readonly IDictionaryItemService _dictionaryItemService;
         private readonly ILanguageService _languageService;
+        private readonly IUserService _userService;
 
         public PropertyVersionsSettingsController(
             IConfiguration configuration,
             IDictionaryItemService dictionaryItemService,
-            ILanguageService languageService)
+            ILanguageService languageService,
+            IUserService userService)
         {
             _configuration = configuration;
             _dictionaryItemService = dictionaryItemService;
             _languageService = languageService;
+            _userService = userService;
         }
 
         [HttpGet("settings")]
-        [AllowAnonymous]
+        [Authorize(Policy = AuthorizationPolicies.BackOfficeAccess)]
         [ProducesResponseType(typeof(PropertyVersionsSettingsResponse), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetSettings([FromQuery] string culture = null)
         {
@@ -36,6 +42,13 @@ namespace DotSee.Discipline.PropertyVersions.ApiControllers
 
             var enabled = !string.IsNullOrEmpty(enabledSetting) &&
                           enabledSetting.Equals("true", StringComparison.OrdinalIgnoreCase);
+
+            // If enabled by config, also check that the current user has the Rollback
+            // permission in at least one of their user groups.
+            if (enabled)
+            {
+                enabled = await CurrentUserHasRollbackPermission();
+            }
 
             // Resolve the culture to a proper ISO code that matches dictionary translations.
             var resolvedCulture = await ResolveIsoCode(culture);
@@ -106,6 +119,33 @@ namespace DotSee.Discipline.PropertyVersions.ApiControllers
             {
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Checks whether the current backoffice user belongs to at least one
+        /// user group that has the Rollback permission enabled.
+        /// </summary>
+        private async Task<bool> CurrentUserHasRollbackPermission()
+        {
+            // The user key GUID is in the "sub" (Subject) claim in Umbraco v17's
+            // OpenID Connect token, not in NameIdentifier (which holds the legacy int ID).
+            var userKeyClaim = User.FindFirstValue("sub");
+
+            if (string.IsNullOrEmpty(userKeyClaim) || !Guid.TryParse(userKeyClaim, out var userKey))
+            {
+                return false;
+            }
+
+            var user = await _userService.GetAsync(userKey);
+            if (user == null)
+            {
+                return false;
+            }
+
+            var rollbackLetter = ActionRollback.ActionLetter.ToString();
+
+            return user.Groups.Any(g =>
+                g.Permissions != null && g.Permissions.Contains(rollbackLetter));
         }
     }
 
