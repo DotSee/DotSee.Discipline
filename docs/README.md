@@ -33,6 +33,8 @@ All functionality is disabled by default, so if you do not include configuration
 This functionality allows you to keep track of changes to string and RTE properties in the content nodes and display them in a tab in the back office, as well as allowing you to rollback to previous values.
 It works on Rich Text, Textstring and Textarea properties and it is available on all document types, as well as in properties in block list items.
 
+It respects the "Rollback" user permissions, so only users with the permission to rollback will be able to see the version history and rollback to previous versions.
+
 ## Configuration
 ```
  "PropertyVersions": {
