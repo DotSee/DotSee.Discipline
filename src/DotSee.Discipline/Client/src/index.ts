@@ -6,6 +6,8 @@ import { manifests as localizationManifests } from './localization/manifest.js';
 import { initializeVariantsHiderService, getVariantsHiderService } from './services/service-instance.js';
 import { fetchVariantsHiderSettings, fetchPropertyVersionsSettings } from './services/settings-fetcher.js';
 import { setNoVersionsCaption } from './services/pv-captions.js';
+import { disciplineSettingsManifests } from './disciplineSettings/manifests.js';
+import { fetchDisciplineUiStatus } from './disciplineSettings/ui-status.js';
 
 // Re-export for external use
 export { VariantsHiderService } from './services/variants-hider.service.js';
@@ -16,11 +18,17 @@ export const onInit: UmbEntryPointOnInit = async (_host, extensionRegistry) => {
   const authContext = await _host.getContext(UMB_AUTH_CONTEXT);
   const authToken = await authContext.getLatestToken();
 
-  // Fetch settings for both features in parallel
-  const [pvSettings, settings] = await Promise.all([
+  // Fetch settings for all features in parallel
+  const [pvSettings, settings, uiStatus] = await Promise.all([
     fetchPropertyVersionsSettings(authToken),
     fetchVariantsHiderSettings(),
+    fetchDisciplineUiStatus(authToken),
   ]);
+
+  // Register the backoffice settings UI when enabled via appsettings
+  if (uiStatus.uiEnabled) {
+    extensionRegistry.registerMany(disciplineSettingsManifests);
+  }
 
   // Register property version navigation actions if enabled
   if (pvSettings.enabled) {

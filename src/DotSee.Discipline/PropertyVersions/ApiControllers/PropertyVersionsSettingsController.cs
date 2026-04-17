@@ -1,8 +1,8 @@
 using System.Security.Claims;
+using DotSee.Discipline.Backoffice;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Umbraco.Cms.Core.Actions;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
@@ -15,18 +15,18 @@ namespace DotSee.Discipline.PropertyVersions.ApiControllers
     [Route("umbraco/api/propertyversions")]
     public class PropertyVersionsSettingsController : ControllerBase
     {
-        private readonly IConfiguration _configuration;
+        private readonly IDisciplineSettingsResolver _resolver;
         private readonly IDictionaryItemService _dictionaryItemService;
         private readonly ILanguageService _languageService;
         private readonly IUserService _userService;
 
         public PropertyVersionsSettingsController(
-            IConfiguration configuration,
+            IDisciplineSettingsResolver resolver,
             IDictionaryItemService dictionaryItemService,
             ILanguageService languageService,
             IUserService userService)
         {
-            _configuration = configuration;
+            _resolver = resolver;
             _dictionaryItemService = dictionaryItemService;
             _languageService = languageService;
             _userService = userService;
@@ -37,25 +37,19 @@ namespace DotSee.Discipline.PropertyVersions.ApiControllers
         [ProducesResponseType(typeof(PropertyVersionsSettingsResponse), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetSettings([FromQuery] string culture = null)
         {
-            var section = _configuration.GetSection("DotSee.Discipline:PropertyVersions");
-            var enabledSetting = section["Enabled"];
+            var feature = _resolver.GetPropertyVersions();
+            var enabled = feature.Enabled;
 
-            var enabled = !string.IsNullOrEmpty(enabledSetting) &&
-                          enabledSetting.Equals("true", StringComparison.OrdinalIgnoreCase);
-
-            // If enabled by config, also check that the current user has the Rollback
-            // permission in at least one of their user groups.
             if (enabled)
             {
                 enabled = await CurrentUserHasRollbackPermission();
             }
 
-            // Resolve the culture to a proper ISO code that matches dictionary translations.
             var resolvedCulture = await ResolveIsoCode(culture);
 
-            var nextCaption = await ResolveDictionaryValue(section["NextVersionButtonCaptionDictionaryEntry"], resolvedCulture);
-            var prevCaption = await ResolveDictionaryValue(section["PreviousVersionButtonCaptionDictionaryEntry"], resolvedCulture);
-            var noVersionsCaption = await ResolveDictionaryValue(section["NoVersionsButtonCaptionDictionaryEntry"], resolvedCulture);
+            var nextCaption = await ResolveDictionaryValue(feature.NextVersionButtonCaptionDictionaryEntry, resolvedCulture);
+            var prevCaption = await ResolveDictionaryValue(feature.PreviousVersionButtonCaptionDictionaryEntry, resolvedCulture);
+            var noVersionsCaption = await ResolveDictionaryValue(feature.NoVersionsButtonCaptionDictionaryEntry, resolvedCulture);
 
             return Ok(new PropertyVersionsSettingsResponse
             {
