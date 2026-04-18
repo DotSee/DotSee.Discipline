@@ -102,6 +102,40 @@ namespace DotSee.Discipline.Backoffice.ApiControllers
             return Ok(options);
         }
 
+        [HttpGet("properties/truefalse")]
+        [ProducesResponseType(typeof(IEnumerable<PropertyOption>), StatusCodes.Status200OK)]
+        public IActionResult GetTrueFalseProperties()
+        {
+            return Ok(GetPropertiesByEditorAliases("Umbraco.TrueFalse"));
+        }
+
+        [HttpGet("properties/text-content")]
+        [ProducesResponseType(typeof(IEnumerable<PropertyOption>), StatusCodes.Status200OK)]
+        public IActionResult GetTextContentProperties()
+        {
+            return Ok(GetPropertiesByEditorAliases(
+                "Umbraco.RichText",
+                "Umbraco.TinyMCE",
+                "Umbraco.TextBox",
+                "Umbraco.TextArea"));
+        }
+
+        private List<PropertyOption> GetPropertiesByEditorAliases(params string[] editorAliases)
+        {
+            var aliasSet = new HashSet<string>(editorAliases, StringComparer.OrdinalIgnoreCase);
+            return _contentTypeService.GetAll()
+                .SelectMany(ct => ct.CompositionPropertyTypes)
+                .Where(pt => aliasSet.Contains(pt.PropertyEditorAlias))
+                .GroupBy(pt => pt.Alias, StringComparer.OrdinalIgnoreCase)
+                .Select(g => new PropertyOption
+                {
+                    Alias = g.Key,
+                    Name = g.Select(p => p.Name).FirstOrDefault(n => !string.IsNullOrWhiteSpace(n)) ?? g.Key,
+                })
+                .OrderBy(o => o.Name, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
         private DisciplineSettingsResponse BuildResponse(DisciplineSettings settings)
         {
             return new DisciplineSettingsResponse
@@ -128,6 +162,12 @@ namespace DotSee.Discipline.Backoffice.ApiControllers
     }
 
     public class DocTypeOption
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Alias { get; set; } = string.Empty;
+    }
+
+    public class PropertyOption
     {
         public string Name { get; set; } = string.Empty;
         public string Alias { get; set; } = string.Empty;

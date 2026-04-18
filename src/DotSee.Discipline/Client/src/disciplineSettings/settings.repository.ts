@@ -1,4 +1,4 @@
-import type { DisciplineSettings, DisciplineSettingsResponse, DocTypeOption } from './types.js';
+import type { DisciplineSettings, DisciplineSettingsResponse, DocTypeOption, PropertyOption } from './types.js';
 
 const BASE = '/umbraco/api/discipline';
 
@@ -45,6 +45,28 @@ export class DisciplineSettingsRepository {
       throw new Error(`Failed to load doctypes (${response.status})`);
     }
     return (await response.json()) as DocTypeOption[];
+  }
+
+  async getTrueFalseProperties(): Promise<PropertyOption[]> {
+    const response = await fetch(`${BASE}/properties/truefalse`, {
+      method: 'GET',
+      headers: this.headers(),
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to load true/false properties (${response.status})`);
+    }
+    return (await response.json()) as PropertyOption[];
+  }
+
+  async getTextContentProperties(): Promise<PropertyOption[]> {
+    const response = await fetch(`${BASE}/properties/text-content`, {
+      method: 'GET',
+      headers: this.headers(),
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to load text content properties (${response.status})`);
+    }
+    return (await response.json()) as PropertyOption[];
   }
 
   async importFromAppSettings(): Promise<DisciplineSettingsResponse> {

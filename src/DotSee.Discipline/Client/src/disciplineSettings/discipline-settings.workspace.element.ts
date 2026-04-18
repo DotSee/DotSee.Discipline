@@ -7,6 +7,7 @@ import {
   DisciplineSettings,
   DisciplineSettingsResponse,
   DocTypeOption,
+  PropertyOption,
   createEmptyAutoNodeRule,
   createEmptyNodeProtectRule,
   createEmptyNodeRestrictRule,
@@ -86,12 +87,41 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
   @state()
   private _docTypes: DocTypeOption[] = [];
 
+  @state()
+  private _trueFalseProperties: PropertyOption[] = [];
+
+  @state()
+  private _textContentProperties: PropertyOption[] = [];
+
+  @state()
+  private _expandedFields = new Set<string>();
+
+  @state()
+  private _filterModes = new Map<string, 'all' | 'selected'>();
+
   private _repository?: DisciplineSettingsRepository;
 
   override connectedCallback() {
     super.connectedCallback();
     this._init();
+    document.addEventListener('mousedown', this._onDocumentMouseDown);
   }
+
+  override disconnectedCallback() {
+    super.disconnectedCallback();
+    document.removeEventListener('mousedown', this._onDocumentMouseDown);
+  }
+
+  private _onDocumentMouseDown = (event: MouseEvent) => {
+    if (this._expandedFields.size === 0) return;
+    const insideMultiBox = event
+      .composedPath()
+      .some((node) => node instanceof HTMLElement && node.classList?.contains('multi-box'));
+    if (!insideMultiBox) {
+      this._expandedFields.clear();
+      this.requestUpdate();
+    }
+  };
 
   private async _init() {
     const authContext = await this.getContext(UMB_AUTH_CONTEXT);
@@ -99,11 +129,15 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     this._repository = new DisciplineSettingsRepository(token);
 
     try {
-      const [response, docTypes] = await Promise.all([
+      const [response, docTypes, trueFalseProps, textContentProps] = await Promise.all([
         this._repository.getSettings(),
         this._repository.getDocTypes().catch(() => [] as DocTypeOption[]),
+        this._repository.getTrueFalseProperties().catch(() => [] as PropertyOption[]),
+        this._repository.getTextContentProperties().catch(() => [] as PropertyOption[]),
       ]);
       this._docTypes = docTypes;
+      this._trueFalseProperties = trueFalseProps;
+      this._textContentProperties = textContentProps;
       this._applyResponse(response);
     } catch (error) {
       await this._notify('danger', `Could not load settings: ${this._errorMessage(error)}`);
@@ -708,17 +742,23 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
           ${this._textField('Property alias *', feat.propertyAlias, disabled || !feat.enabled, (v) =>
             update({ propertyAlias: v }),
           )}
-          ${this._textField('Toggle property alias', feat.togglePropertyAlias, disabled || !feat.enabled, (v) =>
-            update({ togglePropertyAlias: v }),
+          ${this._propertyField(
+            'Toggle property alias',
+            this._trueFalseProperties,
+            feat.togglePropertyAlias,
+            disabled || !feat.enabled,
+            (v) => update({ togglePropertyAlias: v }),
           )}
-          ${this._textField(
-            'DocTypes (comma separated)',
+          ${this._multiAliasField(
+            'DocTypes',
+            this._docTypes,
             feat.docTypes,
             disabled || !feat.enabled,
             (v) => update({ docTypes: v }),
           )}
-          ${this._textField(
-            'Exclude properties (comma separated)',
+          ${this._multiAliasField(
+            'Exclude properties',
+            this._textContentProperties,
             feat.excludeProperties,
             disabled || !feat.enabled,
             (v) => update({ excludeProperties: v }),
@@ -797,8 +837,146 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     disabled: boolean,
     onChange: (value: string) => void,
   ) {
+    return this._aliasField(label, this._docTypes, value, disabled, onChange);
+  }
+
+  private _propertyField(
+    label: string,
+    options: PropertyOption[],
+    value: string,
+    disabled: boolean,
+    onChange: (value: string) => void,
+  ) {
+    return this._aliasField(label, options, value, disabled, onChange);
+  }
+
+  private _multiAliasField(
+    label: string,
+    options: { name: string; alias: string }[],
+    value: string,
+    disabled: boolean,
+    onChange: (value: string) => void,
+  ) {
+    const selected = new Set(
+      (value ?? '')
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0),
+    );
+    const toggle = (alias: string, checked: boolean) => {
+      if (checked) selected.add(alias);
+      else selected.delete(alias);
+      onChange(Array.from(selected).join(','));
+    };
+    const knownAliases = new Set(options.map((o) => o.alias));
+    const unknownSelected = Array.from(selected).filter((a) => !knownAliases.has(a));
+    const expanded = this._expandedFields.has(label);
+    const filterMode = this._filterModes.get(label) ?? 'all';
+    const setExpanded = (v: boolean) => {
+      if (v) this._expandedFields.add(label);
+      else this._expandedFields.delete(label);
+      this.requestUpdate();
+    };
+    const setFilter = (mode: 'all' | 'selected') => {
+      this._filterModes.set(label, mode);
+      this.requestUpdate();
+    };
+    const visibleOptions =
+      filterMode === 'selected' ? options.filter((o) => selected.has(o.alias)) : options;
+    const visibleUnknown =
+      filterMode === 'selected' || filterMode === 'all' ? unknownSelected : [];
+    return html`
+      <label>
+        <span>${label}</span>
+        <div class="multi-box">
+          <div class="multi-bar">
+            <button
+              type="button"
+              class="multi-toggle"
+              ?disabled=${disabled}
+              @click=${() => setExpanded(!expanded)}
+            >
+              <span class="multi-action">${expanded ? 'Hide list' : 'Show list'}</span>
+              <span class="multi-count">(${selected.size} selected)</span>
+            </button>
+            ${expanded
+              ? html`
+                  <div class="multi-filter">
+                    <label class="checkbox-row">
+                      <input
+                        type="radio"
+                        name="filter-${label}"
+                        ?disabled=${disabled}
+                        .checked=${filterMode === 'all'}
+                        @change=${() => setFilter('all')}
+                      />
+                      <span>All</span>
+                    </label>
+                    <label class="checkbox-row">
+                      <input
+                        type="radio"
+                        name="filter-${label}"
+                        ?disabled=${disabled}
+                        .checked=${filterMode === 'selected'}
+                        @change=${() => setFilter('selected')}
+                      />
+                      <span>Selected only</span>
+                    </label>
+                  </div>
+                `
+              : nothing}
+          </div>
+          ${expanded
+            ? html`
+                <div class="checkbox-list">
+                  ${visibleOptions.length === 0 && visibleUnknown.length === 0
+                    ? html`<p class="empty">No entries.</p>`
+                    : nothing}
+                  ${visibleOptions.map(
+                    (o) => html`
+                      <label class="checkbox-row">
+                        <input
+                          type="checkbox"
+                          ?disabled=${disabled}
+                          .checked=${selected.has(o.alias)}
+                          @change=${(e: Event) =>
+                            toggle(o.alias, (e.target as HTMLInputElement).checked)}
+                        />
+                        <span>${o.name} (${o.alias})</span>
+                      </label>
+                    `,
+                  )}
+                  ${visibleUnknown.map(
+                    (alias) => html`
+                      <label class="checkbox-row">
+                        <input
+                          type="checkbox"
+                          ?disabled=${disabled}
+                          checked
+                          @change=${(e: Event) =>
+                            toggle(alias, (e.target as HTMLInputElement).checked)}
+                        />
+                        <span>${alias} (not found)</span>
+                      </label>
+                    `,
+                  )}
+                </div>
+              `
+            : nothing}
+        </div>
+      </label>
+    `;
+  }
+
+  private _aliasField(
+    label: string,
+    options: { name: string; alias: string }[],
+    value: string,
+    disabled: boolean,
+    onChange: (value: string) => void,
+  ) {
     const current = value ?? '';
-    const knownAliases = new Set(this._docTypes.map((d) => d.alias));
+    const knownAliases = new Set(options.map((o) => o.alias));
     return html`
       <label>
         <span>${label}</span>
@@ -808,10 +986,10 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
           @change=${(e: Event) => onChange((e.target as HTMLSelectElement).value)}
         >
           <option value="" ?selected=${current === ''}>-- Select --</option>
-          ${this._docTypes.map(
-            (d) => html`
-              <option value=${d.alias} ?selected=${d.alias === current}>
-                ${d.name} (${d.alias})
+          ${options.map(
+            (o) => html`
+              <option value=${o.alias} ?selected=${o.alias === current}>
+                ${o.name} (${o.alias})
               </option>
             `,
           )}
@@ -997,6 +1175,82 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
       background: var(--uui-color-surface-alt, #f5f5f5);
       color: var(--uui-color-text-alt, #999);
       cursor: not-allowed;
+    }
+    .checkbox-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-height: 240px;
+      overflow-y: auto;
+      padding: var(--uui-size-space-2, 8px);
+      border: 1px solid var(--uui-color-border, #ccc);
+      border-radius: var(--uui-border-radius, 3px);
+      background: var(--uui-color-surface, #fff);
+    }
+    .checkbox-row {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: var(--uui-size-space-2, 8px);
+      cursor: pointer;
+    }
+    .checkbox-row input[type='checkbox'] {
+      cursor: pointer;
+    }
+    .checkbox-row input[type='checkbox']:disabled {
+      cursor: not-allowed;
+    }
+    .multi-box {
+      border: 1px solid var(--uui-color-border, #ccc);
+      border-radius: var(--uui-border-radius, 3px);
+      background: var(--uui-color-surface, #fff);
+      overflow: hidden;
+    }
+    .multi-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--uui-size-space-3, 12px);
+      padding: 0 var(--uui-size-space-3, 10px);
+      min-height: calc(var(--uui-size-11, 36px) - 2px);
+      box-sizing: border-box;
+    }
+    .multi-toggle {
+      appearance: none;
+      background: transparent;
+      border: none;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      gap: var(--uui-size-space-2, 8px);
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+    }
+    .multi-toggle:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+    .multi-toggle:hover:not(:disabled) .multi-action {
+      text-decoration: underline;
+    }
+    .multi-action {
+      color: var(--uui-color-selected, #3544b1);
+      font-weight: 500;
+    }
+    .multi-count {
+      color: var(--uui-color-text-alt, #666);
+      font-weight: normal;
+    }
+    .multi-filter {
+      display: flex;
+      gap: var(--uui-size-space-3, 12px);
+    }
+    .multi-box .checkbox-list {
+      border: none;
+      border-top: 1px solid var(--uui-color-border, #ccc);
+      border-radius: 0;
     }
   `;
 }
