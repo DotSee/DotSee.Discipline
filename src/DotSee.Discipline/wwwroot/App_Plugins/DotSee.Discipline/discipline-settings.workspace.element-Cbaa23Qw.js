@@ -1,12 +1,12 @@
 var _ = Object.defineProperty;
 var v = (l, t, e) => t in l ? _(l, t, { enumerable: !0, configurable: !0, writable: !0, value: e }) : l[t] = e;
 var c = (l, t, e) => v(l, typeof t != "symbol" ? t + "" : t, e);
-import { html as n, nothing as g, css as $, state as b, customElement as x } from "@umbraco-cms/backoffice/external/lit";
+import { html as n, nothing as p, css as $, state as b, customElement as x } from "@umbraco-cms/backoffice/external/lit";
 import { UmbLitElement as T } from "@umbraco-cms/backoffice/lit-element";
 import { UMB_AUTH_CONTEXT as N } from "@umbraco-cms/backoffice/auth";
-import { UMB_MODAL_MANAGER_CONTEXT as w, UMB_CONFIRM_MODAL as A } from "@umbraco-cms/backoffice/modal";
+import { UMB_MODAL_MANAGER_CONTEXT as A, UMB_CONFIRM_MODAL as w } from "@umbraco-cms/backoffice/modal";
 import { UMB_NOTIFICATION_CONTEXT as S } from "@umbraco-cms/backoffice/notification";
-import { c as F, b as k, d as C } from "./index-QBYXPy7o.js";
+import { c as k, b as F, d as C } from "./index-NUOrvrcQ.js";
 const m = "/umbraco/api/discipline";
 class D {
   constructor(t) {
@@ -57,7 +57,7 @@ class D {
     return await t.json();
   }
 }
-var f = Object.defineProperty, R = Object.getOwnPropertyDescriptor, P = (l, t, e) => t in l ? f(l, t, { enumerable: !0, configurable: !0, writable: !0, value: e }) : l[t] = e, h = (l, t, e, s) => {
+var f = Object.defineProperty, R = Object.getOwnPropertyDescriptor, P = (l, t, e) => t in l ? f(l, t, { enumerable: !0, configurable: !0, writable: !0, value: e }) : l[t] = e, g = (l, t, e, s) => {
   for (var i = s > 1 ? void 0 : s ? R(t, e) : t, a = l.length - 1, r; a >= 0; a--)
     (r = l[a]) && (i = (s ? r(t, e, i) : r(i)) || i);
   return s && i && f(t, e, i), i;
@@ -99,7 +99,7 @@ function y() {
     }
   };
 }
-let u = class extends T {
+let d = class extends T {
   constructor() {
     super(...arguments);
     c(this, "_loading", !0);
@@ -150,9 +150,9 @@ let u = class extends T {
   }
   async _onImportClick() {
     if (!this._hasAppSettings || !this._repository) return;
-    const t = await this.getContext(w);
+    const t = await this.getContext(A);
     if (!t) return;
-    const e = t.open(this, A, {
+    const e = t.open(this, w, {
       data: {
         headline: "Load from appsettings.json",
         content: "This will replace every field in this page with the values from appsettings.json. Your current backoffice settings will be lost. Continue?",
@@ -210,66 +210,60 @@ let u = class extends T {
       return n`<umb-body-layout headline="DotSee Discipline Settings">
         <div class="center"><uui-loader></uui-loader></div>
       </umb-body-layout>`;
-    const t = this._fieldsDisabled;
+    const t = this._fieldsDisabled, e = this._settings.useBackoffice;
     return n`
       <umb-body-layout headline="DotSee Discipline Settings">
         ${this._renderSourceBanner()}
-        <div class="tab-bar">
-          ${M.map(
-      (e) => n`
-              <button
-                type="button"
-                class="tab-button ${this._activeTab === e.alias ? "active" : ""}"
-                @click=${() => {
-        this._activeTab = e.alias, this.requestUpdate();
+        ${e ? n`
+              <div class="tab-bar">
+                ${M.map(
+      (s) => n`
+                    <button
+                      type="button"
+                      class="tab-button ${this._activeTab === s.alias ? "active" : ""}"
+                      @click=${() => {
+        this._activeTab = s.alias, this.requestUpdate();
       }}
-              >
-                ${e.label}
-              </button>
-            `
+                    >
+                      ${s.label}
+                    </button>
+                  `
     )}
-        </div>
-        <div class="tab-content">
-          <div ?hidden=${this._activeTab !== "autoNode"}>${this._renderAutoNodeTab(t)}</div>
-          <div ?hidden=${this._activeTab !== "nodeRestrict"}>${this._renderNodeRestrictTab(t)}</div>
-          <div ?hidden=${this._activeTab !== "virtualNodes"}>${this._renderVirtualNodesTab(t)}</div>
-          <div ?hidden=${this._activeTab !== "variantsHider"}>${this._renderVariantsHiderTab(t)}</div>
-          <div ?hidden=${this._activeTab !== "nodeProtect"}>${this._renderNodeProtectTab(t)}</div>
-          <div ?hidden=${this._activeTab !== "aiSummary"}>${this._renderAiSummaryTab(t)}</div>
-          <div ?hidden=${this._activeTab !== "propertyVersions"}>${this._renderPropertyVersionsTab(t)}</div>
-        </div>
-        ${this._renderFooter()}
+              </div>
+              <div class="tab-content">
+                <div ?hidden=${this._activeTab !== "autoNode"}>${this._renderAutoNodeTab(t)}</div>
+                <div ?hidden=${this._activeTab !== "nodeRestrict"}>${this._renderNodeRestrictTab(t)}</div>
+                <div ?hidden=${this._activeTab !== "virtualNodes"}>${this._renderVirtualNodesTab(t)}</div>
+                <div ?hidden=${this._activeTab !== "variantsHider"}>${this._renderVariantsHiderTab(t)}</div>
+                <div ?hidden=${this._activeTab !== "nodeProtect"}>${this._renderNodeProtectTab(t)}</div>
+                <div ?hidden=${this._activeTab !== "aiSummary"}>${this._renderAiSummaryTab(t)}</div>
+                <div ?hidden=${this._activeTab !== "propertyVersions"}>${this._renderPropertyVersionsTab(t)}</div>
+              </div>
+              ${this._renderFooter()}
+            ` : p}
       </umb-body-layout>
     `;
   }
   _renderSourceBanner() {
     return this._hasAppSettings ? n`
       <uui-box headline="Settings source">
-        <div class="banner">
-          <div class="banner-row">
-            <label class="toggle-label">
-              <uui-toggle
-                .checked=${this._settings.useBackoffice}
-                @change=${this._onMasterToggleChange}
-              ></uui-toggle>
-              <span>Manage settings from the backoffice</span>
-            </label>
-            <small>
-              When off, settings come from <code>appsettings.json</code> and this form is read-only.
-            </small>
-          </div>
-          <div class="banner-row">
-            <uui-button
-              look="secondary"
-              color="danger"
-              label="Load from appsettings.json"
-              ?disabled=${this._saving}
-              @click=${this._onImportClick}
-            >
-              Load from appsettings.json
-            </uui-button>
-            <small>Overwrites every field below with the values from <code>appsettings.json</code>.</small>
-          </div>
+        <div class="banner-row">
+          <label class="toggle-label">
+            <uui-toggle
+              .checked=${this._settings.useBackoffice}
+              @change=${this._onMasterToggleChange}
+            ></uui-toggle>
+            <span>Manage settings from the backoffice</span>
+          </label>
+          ${this._settings.useBackoffice ? n`
+                <uui-button
+                  look="primary"
+                  color="positive"
+                  label="Load from appsettings.json"
+                  ?disabled=${this._saving}
+                  @click=${this._onImportClick}
+                ></uui-button>
+              ` : p}
         </div>
       </uui-box>
     ` : n`
@@ -299,7 +293,7 @@ let u = class extends T {
       <div slot="footer" class="footer">
         ${t.length > 0 && this._settings.useBackoffice ? n`<ul class="errors">
               ${t.map((e) => n`<li>${e}</li>`)}
-            </ul>` : g}
+            </ul>` : p}
         <uui-button
           look="primary"
           color="positive"
@@ -319,7 +313,7 @@ let u = class extends T {
     const e = this._settings.autoNode, s = (a) => {
       this._patchSettings("autoNode", { ...e, ...a });
     }, i = (a, r) => {
-      const o = e.rules.map((d, p) => p === a ? { ...d, ...r } : d);
+      const o = e.rules.map((u, h) => h === a ? { ...u, ...r } : u);
       s({ rules: o });
     };
     return n`
@@ -347,7 +341,7 @@ let u = class extends T {
           </label>
         </div>
         <h4>Rules</h4>
-        ${e.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : g}
+        ${e.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : p}
         ${e.rules.map(
       (a, r) => n`
             <uui-box class="rule-card">
@@ -358,7 +352,7 @@ let u = class extends T {
                   color="danger"
                   label="Remove"
                   ?disabled=${t || !e.enabled}
-                  @click=${() => s({ rules: e.rules.filter((o, d) => d !== r) })}
+                  @click=${() => s({ rules: e.rules.filter((o, u) => u !== r) })}
                 >Remove</uui-button>
               </div>
               <div class="grid">
@@ -424,7 +418,7 @@ let u = class extends T {
           look="secondary"
           label="Add rule"
           ?disabled=${t || !e.enabled}
-          @click=${() => s({ rules: [...e.rules, F()] })}
+          @click=${() => s({ rules: [...e.rules, k()] })}
         >+ Add rule</uui-button>
       </uui-box>
     `;
@@ -433,7 +427,7 @@ let u = class extends T {
     const e = this._settings.nodeRestrict, s = (a) => {
       this._patchSettings("nodeRestrict", { ...e, ...a });
     }, i = (a, r) => {
-      const o = e.rules.map((d, p) => p === a ? { ...d, ...r } : d);
+      const o = e.rules.map((u, h) => h === a ? { ...u, ...r } : u);
       s({ rules: o });
     };
     return n`
@@ -454,7 +448,7 @@ let u = class extends T {
     )}
         </div>
         <h4>Rules</h4>
-        ${e.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : g}
+        ${e.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : p}
         ${e.rules.map(
       (a, r) => n`
             <uui-box class="rule-card">
@@ -465,7 +459,7 @@ let u = class extends T {
                   color="danger"
                   label="Remove"
                   ?disabled=${t || !e.enabled}
-                  @click=${() => s({ rules: e.rules.filter((o, d) => d !== r) })}
+                  @click=${() => s({ rules: e.rules.filter((o, u) => u !== r) })}
                 >Remove</uui-button>
               </div>
               <div class="grid">
@@ -525,7 +519,7 @@ let u = class extends T {
           look="secondary"
           label="Add rule"
           ?disabled=${t || !e.enabled}
-          @click=${() => s({ rules: [...e.rules, k()] })}
+          @click=${() => s({ rules: [...e.rules, F()] })}
         >+ Add rule</uui-button>
       </uui-box>
     `;
@@ -538,12 +532,12 @@ let u = class extends T {
       <uui-box headline="VirtualNodes">
         ${this._renderFeatureToggle(e.enabled, t, (i) => s({ enabled: i }))}
         <p>List of document type aliases to be treated as virtual nodes.</p>
-        ${e.rules.length === 0 ? n`<p class="empty">No aliases defined.</p>` : g}
+        ${e.rules.length === 0 ? n`<p class="empty">No aliases defined.</p>` : p}
         ${e.rules.map(
       (i, a) => n`
             <div class="inline">
               ${this._docTypeField("DocType alias *", i, t || !e.enabled, (r) => {
-        const o = e.rules.map((d, p) => p === a ? r : d);
+        const o = e.rules.map((u, h) => h === a ? r : u);
         s({ rules: o });
       })}
               <uui-button
@@ -587,7 +581,7 @@ let u = class extends T {
     const e = this._settings.nodeProtect, s = (a) => {
       this._patchSettings("nodeProtect", { ...e, ...a });
     }, i = (a, r) => {
-      const o = e.rules.map((d, p) => p === a ? { ...d, ...r } : d);
+      const o = e.rules.map((u, h) => h === a ? { ...u, ...r } : u);
       s({ rules: o });
     };
     return n`
@@ -602,7 +596,7 @@ let u = class extends T {
     )}
         </div>
         <h4>Rules</h4>
-        ${e.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : g}
+        ${e.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : p}
         ${e.rules.map(
       (a, r) => n`
             <uui-box class="rule-card">
@@ -613,7 +607,7 @@ let u = class extends T {
                   color="danger"
                   label="Remove"
                   ?disabled=${t || !e.enabled}
-                  @click=${() => s({ rules: e.rules.filter((o, d) => d !== r) })}
+                  @click=${() => s({ rules: e.rules.filter((o, u) => u !== r) })}
                 >Remove</uui-button>
               </div>
               <div class="grid">
@@ -785,7 +779,7 @@ let u = class extends T {
               </option>
             `
     )}
-          ${a && !r.has(a) ? n`<option value=${a} selected>${a} (not found)</option>` : g}
+          ${a && !r.has(a) ? n`<option value=${a} selected>${a} (not found)</option>` : p}
         </select>
       </label>
     `;
@@ -819,7 +813,7 @@ let u = class extends T {
     `;
   }
 };
-E(u, "styles", $`
+E(d, "styles", $`
     :host {
       display: block;
       height: 100%;
@@ -833,15 +827,12 @@ E(u, "styles", $`
       margin-bottom: var(--uui-size-space-4, 16px);
       display: block;
     }
-    .banner {
-      display: flex;
-      flex-direction: column;
-      gap: var(--uui-size-space-3, 12px);
-    }
     .banner-row {
       display: flex;
-      flex-direction: column;
-      gap: 4px;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--uui-size-space-4, 16px);
+      justify-content: space-between;
     }
     .toggle-label {
       display: flex;
@@ -957,30 +948,30 @@ E(u, "styles", $`
       cursor: not-allowed;
     }
   `);
-h([
+g([
   b()
-], u.prototype, "_loading", 2);
-h([
+], d.prototype, "_loading", 2);
+g([
   b()
-], u.prototype, "_saving", 2);
-h([
+], d.prototype, "_saving", 2);
+g([
   b()
-], u.prototype, "_hasAppSettings", 2);
-h([
+], d.prototype, "_hasAppSettings", 2);
+g([
   b()
-], u.prototype, "_settings", 2);
-h([
+], d.prototype, "_settings", 2);
+g([
   b()
-], u.prototype, "_activeTab", 2);
-h([
+], d.prototype, "_activeTab", 2);
+g([
   b()
-], u.prototype, "_docTypes", 2);
-u = h([
+], d.prototype, "_docTypes", 2);
+d = g([
   x("dotsee-discipline-settings-workspace")
-], u);
-const O = u;
+], d);
+const O = d;
 export {
-  u as DisciplineSettingsWorkspaceElement,
+  d as DisciplineSettingsWorkspaceElement,
   O as default
 };
-//# sourceMappingURL=discipline-settings.workspace.element-CvNEP0p8.js.map
+//# sourceMappingURL=discipline-settings.workspace.element-Cbaa23Qw.js.map

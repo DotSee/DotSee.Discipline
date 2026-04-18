@@ -257,35 +257,40 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     }
 
     const disabled = this._fieldsDisabled;
+    const active = this._settings.useBackoffice;
     return html`
       <umb-body-layout headline="DotSee Discipline Settings">
         ${this._renderSourceBanner()}
-        <div class="tab-bar">
-          ${TABS.map(
-            (tab) => html`
-              <button
-                type="button"
-                class="tab-button ${this._activeTab === tab.alias ? 'active' : ''}"
-                @click=${() => {
-                  this._activeTab = tab.alias;
-                  this.requestUpdate();
-                }}
-              >
-                ${tab.label}
-              </button>
-            `,
-          )}
-        </div>
-        <div class="tab-content">
-          <div ?hidden=${this._activeTab !== 'autoNode'}>${this._renderAutoNodeTab(disabled)}</div>
-          <div ?hidden=${this._activeTab !== 'nodeRestrict'}>${this._renderNodeRestrictTab(disabled)}</div>
-          <div ?hidden=${this._activeTab !== 'virtualNodes'}>${this._renderVirtualNodesTab(disabled)}</div>
-          <div ?hidden=${this._activeTab !== 'variantsHider'}>${this._renderVariantsHiderTab(disabled)}</div>
-          <div ?hidden=${this._activeTab !== 'nodeProtect'}>${this._renderNodeProtectTab(disabled)}</div>
-          <div ?hidden=${this._activeTab !== 'aiSummary'}>${this._renderAiSummaryTab(disabled)}</div>
-          <div ?hidden=${this._activeTab !== 'propertyVersions'}>${this._renderPropertyVersionsTab(disabled)}</div>
-        </div>
-        ${this._renderFooter()}
+        ${active
+          ? html`
+              <div class="tab-bar">
+                ${TABS.map(
+                  (tab) => html`
+                    <button
+                      type="button"
+                      class="tab-button ${this._activeTab === tab.alias ? 'active' : ''}"
+                      @click=${() => {
+                        this._activeTab = tab.alias;
+                        this.requestUpdate();
+                      }}
+                    >
+                      ${tab.label}
+                    </button>
+                  `,
+                )}
+              </div>
+              <div class="tab-content">
+                <div ?hidden=${this._activeTab !== 'autoNode'}>${this._renderAutoNodeTab(disabled)}</div>
+                <div ?hidden=${this._activeTab !== 'nodeRestrict'}>${this._renderNodeRestrictTab(disabled)}</div>
+                <div ?hidden=${this._activeTab !== 'virtualNodes'}>${this._renderVirtualNodesTab(disabled)}</div>
+                <div ?hidden=${this._activeTab !== 'variantsHider'}>${this._renderVariantsHiderTab(disabled)}</div>
+                <div ?hidden=${this._activeTab !== 'nodeProtect'}>${this._renderNodeProtectTab(disabled)}</div>
+                <div ?hidden=${this._activeTab !== 'aiSummary'}>${this._renderAiSummaryTab(disabled)}</div>
+                <div ?hidden=${this._activeTab !== 'propertyVersions'}>${this._renderPropertyVersionsTab(disabled)}</div>
+              </div>
+              ${this._renderFooter()}
+            `
+          : nothing}
       </umb-body-layout>
     `;
   }
@@ -304,31 +309,25 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
 
     return html`
       <uui-box headline="Settings source">
-        <div class="banner">
-          <div class="banner-row">
-            <label class="toggle-label">
-              <uui-toggle
-                .checked=${this._settings.useBackoffice}
-                @change=${this._onMasterToggleChange}
-              ></uui-toggle>
-              <span>Manage settings from the backoffice</span>
-            </label>
-            <small>
-              When off, settings come from <code>appsettings.json</code> and this form is read-only.
-            </small>
-          </div>
-          <div class="banner-row">
-            <uui-button
-              look="secondary"
-              color="danger"
-              label="Load from appsettings.json"
-              ?disabled=${this._saving}
-              @click=${this._onImportClick}
-            >
-              Load from appsettings.json
-            </uui-button>
-            <small>Overwrites every field below with the values from <code>appsettings.json</code>.</small>
-          </div>
+        <div class="banner-row">
+          <label class="toggle-label">
+            <uui-toggle
+              .checked=${this._settings.useBackoffice}
+              @change=${this._onMasterToggleChange}
+            ></uui-toggle>
+            <span>Manage settings from the backoffice</span>
+          </label>
+          ${this._settings.useBackoffice
+            ? html`
+                <uui-button
+                  look="primary"
+                  color="positive"
+                  label="Load from appsettings.json"
+                  ?disabled=${this._saving}
+                  @click=${this._onImportClick}
+                ></uui-button>
+              `
+            : nothing}
         </div>
       </uui-box>
     `;
@@ -879,15 +878,12 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
       margin-bottom: var(--uui-size-space-4, 16px);
       display: block;
     }
-    .banner {
-      display: flex;
-      flex-direction: column;
-      gap: var(--uui-size-space-3, 12px);
-    }
     .banner-row {
       display: flex;
-      flex-direction: column;
-      gap: 4px;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--uui-size-space-4, 16px);
+      justify-content: space-between;
     }
     .toggle-label {
       display: flex;
