@@ -1,12 +1,12 @@
 var F = Object.defineProperty;
 var A = (u, e, t) => e in u ? F(u, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : u[e] = t;
 var p = (u, e, t) => A(u, typeof e != "symbol" ? e + "" : e, t);
-import { html as n, nothing as h, css as S, state as b, customElement as C } from "@umbraco-cms/backoffice/external/lit";
+import { html as n, nothing as g, css as S, state as b, customElement as C } from "@umbraco-cms/backoffice/external/lit";
 import { UmbLitElement as P } from "@umbraco-cms/backoffice/lit-element";
 import { UMB_AUTH_CONTEXT as D } from "@umbraco-cms/backoffice/auth";
 import { UMB_MODAL_MANAGER_CONTEXT as E, UMB_CONFIRM_MODAL as M } from "@umbraco-cms/backoffice/modal";
 import { UMB_NOTIFICATION_CONTEXT as R } from "@umbraco-cms/backoffice/notification";
-import { c as z, b as B, d as V } from "./index-jKwurXbw.js";
+import { c as z, b as B, d as V } from "./index-RXcxOCuC.js";
 const y = "/umbraco/api/discipline";
 class q {
   constructor(e) {
@@ -84,7 +84,7 @@ class q {
     return await e.json();
   }
 }
-var k = Object.defineProperty, I = Object.getOwnPropertyDescriptor, U = (u, e, t) => e in u ? k(u, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : u[e] = t, g = (u, e, t, s) => {
+var k = Object.defineProperty, I = Object.getOwnPropertyDescriptor, U = (u, e, t) => e in u ? k(u, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : u[e] = t, h = (u, e, t, s) => {
   for (var i = s > 1 ? void 0 : s ? I(e, t) : e, a = u.length - 1, o; a >= 0; a--)
     (o = u[a]) && (i = (s ? o(e, t, i) : o(i)) || i);
   return s && i && k(e, t, i), i;
@@ -276,7 +276,7 @@ let c = class extends P {
         this._activeTab = s.alias, this.requestUpdate();
       }}
                     >
-                      ${i ? n`<umb-icon name="icon-check" class="tab-icon"></umb-icon>` : h}
+                      ${i ? n`<umb-icon name="icon-check" class="tab-icon"></umb-icon>` : g}
                       <span>${s.label}</span>
                     </button>
                   `;
@@ -292,7 +292,7 @@ let c = class extends P {
                 <div ?hidden=${this._activeTab !== "propertyVersions"}>${this._renderPropertyVersionsTab(e)}</div>
               </div>
               ${this._renderFooter()}
-            ` : h}
+            ` : g}
       </umb-body-layout>
     `;
   }
@@ -315,7 +315,7 @@ let c = class extends P {
                   ?disabled=${this._saving}
                   @click=${this._onImportClick}
                 ></uui-button>
-              ` : h}
+              ` : g}
         </div>
       </uui-box>
     ` : n`
@@ -329,14 +329,14 @@ let c = class extends P {
   }
   _renderFeatureToggle(e, t, s) {
     return n`
-      <label class="feature-toggle">
-        <uui-toggle
-          .checked=${e}
-          ?disabled=${t}
-          @change=${(i) => s(i.target.checked)}
-        ></uui-toggle>
-        <span>Enable this feature</span>
-      </label>
+      <uui-toggle
+        class="feature-toggle"
+        .checked=${e}
+        ?disabled=${t}
+        label="Enable this feature"
+        label-position="right"
+        @change=${(i) => s(i.target.checked)}
+      ></uui-toggle>
     `;
   }
   _renderFooter() {
@@ -345,7 +345,7 @@ let c = class extends P {
       <div slot="footer" class="footer">
         ${e.length > 0 && this._settings.useBackoffice ? n`<ul class="errors">
               ${e.map((t) => n`<li>${t}</li>`)}
-            </ul>` : h}
+            </ul>` : g}
         <uui-button
           look="primary"
           color="positive"
@@ -393,7 +393,7 @@ let c = class extends P {
           </label>
         </div>
         <h4>Rules</h4>
-        ${t.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : h}
+        ${t.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : g}
         ${t.rules.map(
       (a, o) => n`
             <uui-box class="rule-card">
@@ -500,7 +500,7 @@ let c = class extends P {
     )}
         </div>
         <h4>Rules</h4>
-        ${t.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : h}
+        ${t.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : g}
         ${t.rules.map(
       (a, o) => n`
             <uui-box class="rule-card">
@@ -583,31 +583,19 @@ let c = class extends P {
     return n`
       <uui-box headline="VirtualNodes">
         ${this._renderFeatureToggle(t.enabled, e, (i) => s({ enabled: i }))}
-        <p>List of document type aliases to be treated as virtual nodes.</p>
-        ${t.rules.length === 0 ? n`<p class="empty">No aliases defined.</p>` : h}
-        ${t.rules.map(
-      (i, a) => n`
-            <div class="inline">
-              ${this._docTypeField("DocType alias *", i, e || !t.enabled, (o) => {
-        const r = t.rules.map((l, m) => m === a ? o : l);
-        s({ rules: r });
-      })}
-              <uui-button
-                look="secondary"
-                color="danger"
-                label="Remove"
-                ?disabled=${e || !t.enabled}
-                @click=${() => s({ rules: t.rules.filter((o, r) => r !== a) })}
-              >Remove</uui-button>
-            </div>
-          `
+        <p>Document types to be treated as virtual nodes.</p>
+        <div class="grid">
+          ${this._multiAliasField(
+      "Virtual node doctypes",
+      this._docTypes,
+      (t.rules ?? []).join(","),
+      e || !t.enabled,
+      (i) => {
+        const a = i ? i.split(",").map((o) => o.trim()).filter((o) => o.length > 0) : [];
+        s({ rules: a });
+      }
     )}
-        <uui-button
-          look="secondary"
-          label="Add alias"
-          ?disabled=${e || !t.enabled}
-          @click=${() => s({ rules: [...t.rules, ""] })}
-        >+ Add alias</uui-button>
+        </div>
       </uui-box>
     `;
   }
@@ -648,7 +636,7 @@ let c = class extends P {
     )}
         </div>
         <h4>Rules</h4>
-        ${t.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : h}
+        ${t.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : g}
         ${t.rules.map(
       (a, o) => n`
             <uui-box class="rule-card">
@@ -870,11 +858,11 @@ let c = class extends P {
                       <span>Selected only</span>
                     </label>
                   </div>
-                ` : h}
+                ` : g}
           </div>
           ${v ? n`
                 <div class="checkbox-list">
-                  ${$.length === 0 && w.length === 0 ? n`<p class="empty">No entries.</p>` : h}
+                  ${$.length === 0 && w.length === 0 ? n`<p class="empty">No entries.</p>` : g}
                   ${$.map(
       (d) => n`
                       <label class="checkbox-row">
@@ -902,7 +890,7 @@ let c = class extends P {
                     `
     )}
                 </div>
-              ` : h}
+              ` : g}
         </div>
       </label>
     `;
@@ -925,7 +913,7 @@ let c = class extends P {
               </option>
             `
     )}
-          ${o && !r.has(o) ? n`<option value=${o} selected>${o} (not found)</option>` : h}
+          ${o && !r.has(o) ? n`<option value=${o} selected>${o} (not found)</option>` : g}
         </select>
       </label>
     `;
@@ -1011,10 +999,8 @@ L(c, "styles", S`
       width: 100%;
     }
     .feature-toggle {
-      display: flex;
-      align-items: center;
-      gap: var(--uui-size-space-2, 8px);
-      margin-bottom: var(--uui-size-space-3, 12px);
+      display: block;
+      margin-bottom: calc(var(--uui-size-space-3, 12px) + 5px);
     }
     h4 {
       margin-top: var(--uui-size-space-4, 16px);
@@ -1187,40 +1173,40 @@ L(c, "styles", S`
       border-radius: 0;
     }
   `);
-g([
+h([
   b()
 ], c.prototype, "_loading", 2);
-g([
+h([
   b()
 ], c.prototype, "_saving", 2);
-g([
+h([
   b()
 ], c.prototype, "_hasAppSettings", 2);
-g([
+h([
   b()
 ], c.prototype, "_settings", 2);
-g([
+h([
   b()
 ], c.prototype, "_activeTab", 2);
-g([
+h([
   b()
 ], c.prototype, "_docTypes", 2);
-g([
+h([
   b()
 ], c.prototype, "_trueFalseProperties", 2);
-g([
+h([
   b()
 ], c.prototype, "_textContentProperties", 2);
-g([
+h([
   b()
 ], c.prototype, "_textInputProperties", 2);
-g([
+h([
   b()
 ], c.prototype, "_expandedFields", 2);
-g([
+h([
   b()
 ], c.prototype, "_filterModes", 2);
-c = g([
+c = h([
   C("dotsee-discipline-settings-workspace")
 ], c);
 const Y = c;
@@ -1228,4 +1214,4 @@ export {
   c as DisciplineSettingsWorkspaceElement,
   Y as default
 };
-//# sourceMappingURL=discipline-settings.workspace.element-Dkzahe6W.js.map
+//# sourceMappingURL=discipline-settings.workspace.element-sxSSts3e.js.map

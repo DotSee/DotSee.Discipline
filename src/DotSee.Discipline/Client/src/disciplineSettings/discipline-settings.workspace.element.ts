@@ -391,14 +391,14 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     onChange: (value: boolean) => void,
   ) {
     return html`
-      <label class="feature-toggle">
-        <uui-toggle
-          .checked=${checked}
-          ?disabled=${disabled}
-          @change=${(e: Event) => onChange((e.target as HTMLInputElement).checked)}
-        ></uui-toggle>
-        <span>Enable this feature</span>
-      </label>
+      <uui-toggle
+        class="feature-toggle"
+        .checked=${checked}
+        ?disabled=${disabled}
+        label="Enable this feature"
+        label-position="right"
+        @change=${(e: Event) => onChange((e.target as HTMLInputElement).checked)}
+      ></uui-toggle>
     `;
   }
 
@@ -615,31 +615,21 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     return html`
       <uui-box headline="VirtualNodes">
         ${this._renderFeatureToggle(feat.enabled, disabled, (v) => update({ enabled: v }))}
-        <p>List of document type aliases to be treated as virtual nodes.</p>
-        ${feat.rules.length === 0 ? html`<p class="empty">No aliases defined.</p>` : nothing}
-        ${feat.rules.map(
-          (alias, i) => html`
-            <div class="inline">
-              ${this._docTypeField('DocType alias *', alias, disabled || !feat.enabled, (v) => {
-                const rules = feat.rules.map((r, idx) => (idx === i ? v : r));
-                update({ rules });
-              })}
-              <uui-button
-                look="secondary"
-                color="danger"
-                label="Remove"
-                ?disabled=${disabled || !feat.enabled}
-                @click=${() => update({ rules: feat.rules.filter((_, idx) => idx !== i) })}
-              >Remove</uui-button>
-            </div>
-          `,
-        )}
-        <uui-button
-          look="secondary"
-          label="Add alias"
-          ?disabled=${disabled || !feat.enabled}
-          @click=${() => update({ rules: [...feat.rules, ''] })}
-        >+ Add alias</uui-button>
+        <p>Document types to be treated as virtual nodes.</p>
+        <div class="grid">
+          ${this._multiAliasField(
+            'Virtual node doctypes',
+            this._docTypes,
+            (feat.rules ?? []).join(','),
+            disabled || !feat.enabled,
+            (v) => {
+              const rules = v
+                ? v.split(',').map((s) => s.trim()).filter((s) => s.length > 0)
+                : [];
+              update({ rules });
+            },
+          )}
+        </div>
       </uui-box>
     `;
   }
@@ -1116,10 +1106,8 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
       width: 100%;
     }
     .feature-toggle {
-      display: flex;
-      align-items: center;
-      gap: var(--uui-size-space-2, 8px);
-      margin-bottom: var(--uui-size-space-3, 12px);
+      display: block;
+      margin-bottom: calc(var(--uui-size-space-3, 12px) + 5px);
     }
     h4 {
       margin-top: var(--uui-size-space-4, 16px);
