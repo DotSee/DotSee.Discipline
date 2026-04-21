@@ -2,11 +2,11 @@ var k = Object.defineProperty;
 var A = (y, e, t) => e in y ? k(y, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : y[e] = t;
 var m = (y, e, t) => A(y, typeof e != "symbol" ? e + "" : e, t);
 import { html as r, nothing as v, css as S, state as _, customElement as D } from "@umbraco-cms/backoffice/external/lit";
-import { UmbLitElement as C } from "@umbraco-cms/backoffice/lit-element";
-import { UMB_AUTH_CONTEXT as P } from "@umbraco-cms/backoffice/auth";
+import { UmbLitElement as P } from "@umbraco-cms/backoffice/lit-element";
+import { UMB_AUTH_CONTEXT as C } from "@umbraco-cms/backoffice/auth";
 import { UMB_MODAL_MANAGER_CONTEXT as F, UMB_CONFIRM_MODAL as E } from "@umbraco-cms/backoffice/modal";
 import { UMB_NOTIFICATION_CONTEXT as M } from "@umbraco-cms/backoffice/notification";
-import { c as z, b as B, d as I } from "./index-sfl4h-Se.js";
+import { c as z, b as B, d as I } from "./index-DpYSXpkb.js";
 const x = "/umbraco/api/discipline";
 class U {
   constructor(e) {
@@ -135,7 +135,7 @@ function N() {
     }
   };
 }
-let g = class extends C {
+let g = class extends P {
   constructor() {
     super(...arguments);
     m(this, "_loading", !0);
@@ -170,7 +170,7 @@ let g = class extends C {
     super.disconnectedCallback(), document.removeEventListener("mousedown", this._onDocumentMouseDown);
   }
   async _init() {
-    const t = await (await this.getContext(P)).getLatestToken();
+    const t = await (await this.getContext(C)).getLatestToken();
     this._repository = new U(t);
     try {
       const [s, i, o, a, n, d] = await Promise.all([
@@ -804,8 +804,9 @@ let g = class extends C {
           see a configurable message explaining why the node can't be deleted.
         </p>
         <div class="grid">
-          ${this._textField(
+          ${this._propertyField(
       "Property alias *",
+      this._trueFalseProperties,
       t.propertyAlias,
       e || !t.enabled,
       (o) => s({ propertyAlias: o })
@@ -1551,4 +1552,4 @@ export {
   g as DisciplineSettingsWorkspaceElement,
   J as default
 };
-//# sourceMappingURL=discipline-settings.workspace.element-8AmQZ9tY.js.map
+//# sourceMappingURL=discipline-settings.workspace.element-fQit3d19.js.map

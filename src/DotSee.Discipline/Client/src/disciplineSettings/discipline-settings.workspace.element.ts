@@ -946,8 +946,12 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
           see a configurable message explaining why the node can't be deleted.
         </p>
         <div class="grid">
-          ${this._textField('Property alias *', feat.propertyAlias, disabled || !feat.enabled, (v) =>
-            update({ propertyAlias: v }),
+          ${this._propertyField(
+            'Property alias *',
+            this._trueFalseProperties,
+            feat.propertyAlias,
+            disabled || !feat.enabled,
+            (v) => update({ propertyAlias: v }),
           )}
         </div>
         <h4>Rules</h4>
