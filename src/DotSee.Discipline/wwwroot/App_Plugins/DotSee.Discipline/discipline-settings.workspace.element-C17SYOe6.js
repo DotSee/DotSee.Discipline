@@ -1,12 +1,12 @@
 var F = Object.defineProperty;
 var A = (u, e, t) => e in u ? F(u, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : u[e] = t;
 var p = (u, e, t) => A(u, typeof e != "symbol" ? e + "" : e, t);
-import { html as n, nothing as h, css as S, state as b, customElement as C } from "@umbraco-cms/backoffice/external/lit";
+import { html as n, nothing as g, css as S, state as b, customElement as C } from "@umbraco-cms/backoffice/external/lit";
 import { UmbLitElement as P } from "@umbraco-cms/backoffice/lit-element";
 import { UMB_AUTH_CONTEXT as D } from "@umbraco-cms/backoffice/auth";
 import { UMB_MODAL_MANAGER_CONTEXT as E, UMB_CONFIRM_MODAL as M } from "@umbraco-cms/backoffice/modal";
 import { UMB_NOTIFICATION_CONTEXT as R } from "@umbraco-cms/backoffice/notification";
-import { c as z, b as B, d as V } from "./index-sW0cgNqt.js";
+import { c as z, b as B, d as V } from "./index-s8KFUofy.js";
 const y = "/umbraco/api/discipline";
 class q {
   constructor(e) {
@@ -65,6 +65,15 @@ class q {
       throw new Error(`Failed to load text content properties (${e.status})`);
     return await e.json();
   }
+  async getTextInputProperties() {
+    const e = await fetch(`${y}/properties/text-input`, {
+      method: "GET",
+      headers: this.headers()
+    });
+    if (!e.ok)
+      throw new Error(`Failed to load text input properties (${e.status})`);
+    return await e.json();
+  }
   async importFromAppSettings() {
     const e = await fetch(`${y}/import-from-appsettings`, {
       method: "POST",
@@ -75,11 +84,11 @@ class q {
     return await e.json();
   }
 }
-var k = Object.defineProperty, U = Object.getOwnPropertyDescriptor, L = (u, e, t) => e in u ? k(u, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : u[e] = t, g = (u, e, t, s) => {
-  for (var i = s > 1 ? void 0 : s ? U(e, t) : e, a = u.length - 1, o; a >= 0; a--)
-    (o = u[a]) && (i = (s ? o(e, t, i) : o(i)) || i);
+var k = Object.defineProperty, I = Object.getOwnPropertyDescriptor, U = (u, e, t) => e in u ? k(u, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : u[e] = t, h = (u, e, t, s) => {
+  for (var i = s > 1 ? void 0 : s ? I(e, t) : e, a = u.length - 1, r; a >= 0; a--)
+    (r = u[a]) && (i = (s ? r(e, t, i) : r(i)) || i);
   return s && i && k(e, t, i), i;
-}, I = (u, e, t) => L(u, e + "", t);
+}, L = (u, e, t) => U(u, e + "", t);
 const j = [
   { alias: "autoNode", label: "AutoNode" },
   { alias: "nodeRestrict", label: "NodeRestrict" },
@@ -128,6 +137,7 @@ let c = class extends P {
     p(this, "_docTypes", []);
     p(this, "_trueFalseProperties", []);
     p(this, "_textContentProperties", []);
+    p(this, "_textInputProperties", []);
     p(this, "_expandedFields", /* @__PURE__ */ new Set());
     p(this, "_filterModes", /* @__PURE__ */ new Map());
     p(this, "_repository");
@@ -149,13 +159,14 @@ let c = class extends P {
     const t = await (await this.getContext(D)).getLatestToken();
     this._repository = new q(t);
     try {
-      const [s, i, a, o] = await Promise.all([
+      const [s, i, a, r, o] = await Promise.all([
         this._repository.getSettings(),
         this._repository.getDocTypes().catch(() => []),
         this._repository.getTrueFalseProperties().catch(() => []),
-        this._repository.getTextContentProperties().catch(() => [])
+        this._repository.getTextContentProperties().catch(() => []),
+        this._repository.getTextInputProperties().catch(() => [])
       ]);
-      this._docTypes = i, this._trueFalseProperties = a, this._textContentProperties = o, this._applyResponse(s);
+      this._docTypes = i, this._trueFalseProperties = a, this._textContentProperties = r, this._textInputProperties = o, this._applyResponse(s);
     } catch (s) {
       await this._notify("danger", `Could not load settings: ${this._errorMessage(s)}`);
     } finally {
@@ -274,7 +285,7 @@ let c = class extends P {
                 <div ?hidden=${this._activeTab !== "propertyVersions"}>${this._renderPropertyVersionsTab(e)}</div>
               </div>
               ${this._renderFooter()}
-            ` : h}
+            ` : g}
       </umb-body-layout>
     `;
   }
@@ -297,7 +308,7 @@ let c = class extends P {
                   ?disabled=${this._saving}
                   @click=${this._onImportClick}
                 ></uui-button>
-              ` : h}
+              ` : g}
         </div>
       </uui-box>
     ` : n`
@@ -327,7 +338,7 @@ let c = class extends P {
       <div slot="footer" class="footer">
         ${e.length > 0 && this._settings.useBackoffice ? n`<ul class="errors">
               ${e.map((t) => n`<li>${t}</li>`)}
-            </ul>` : h}
+            </ul>` : g}
         <uui-button
           look="primary"
           color="positive"
@@ -346,9 +357,9 @@ let c = class extends P {
   _renderAutoNodeTab(e) {
     const t = this._settings.autoNode, s = (a) => {
       this._patchSettings("autoNode", { ...t, ...a });
-    }, i = (a, o) => {
-      const r = t.rules.map((l, m) => m === a ? { ...l, ...o } : l);
-      s({ rules: r });
+    }, i = (a, r) => {
+      const o = t.rules.map((l, m) => m === a ? { ...l, ...r } : l);
+      s({ rules: o });
     };
     return n`
       <uui-box headline="AutoNode">
@@ -375,18 +386,18 @@ let c = class extends P {
           </label>
         </div>
         <h4>Rules</h4>
-        ${t.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : h}
+        ${t.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : g}
         ${t.rules.map(
-      (a, o) => n`
+      (a, r) => n`
             <uui-box class="rule-card">
               <div slot="header" class="rule-header">
-                <strong>Rule ${o + 1}</strong>
+                <strong>Rule ${r + 1}</strong>
                 <uui-button
                   look="secondary"
                   color="danger"
                   label="Remove"
                   ?disabled=${e || !t.enabled}
-                  @click=${() => s({ rules: t.rules.filter((r, l) => l !== o) })}
+                  @click=${() => s({ rules: t.rules.filter((o, l) => l !== r) })}
                 >Remove</uui-button>
               </div>
               <div class="grid">
@@ -394,55 +405,55 @@ let c = class extends P {
         "Triggering doctype *",
         a.createdDocTypeAlias,
         e || !t.enabled,
-        (r) => i(o, { createdDocTypeAlias: r })
+        (o) => i(r, { createdDocTypeAlias: o })
       )}
                 ${this._docTypeField(
         "DocType to create *",
         a.docTypeAliasToCreate,
         e || !t.enabled,
-        (r) => i(o, { docTypeAliasToCreate: r })
+        (o) => i(r, { docTypeAliasToCreate: o })
       )}
                 ${this._textField(
         "Node name *",
         a.nodeName,
         e || !t.enabled,
-        (r) => i(o, { nodeName: r })
+        (o) => i(r, { nodeName: o })
       )}
                 ${this._textField(
         "Dictionary item for name",
         a.dictionaryItemForName,
         e || !t.enabled,
-        (r) => i(o, { dictionaryItemForName: r })
+        (o) => i(r, { dictionaryItemForName: o })
       )}
                 ${this._textField(
         "Blueprint",
         a.blueprint,
         e || !t.enabled,
-        (r) => i(o, { blueprint: r })
+        (o) => i(r, { blueprint: o })
       )}
                 ${this._toggleField(
         "Bring new node first",
         a.bringNewNodeFirst,
         e || !t.enabled,
-        (r) => i(o, { bringNewNodeFirst: r })
+        (o) => i(r, { bringNewNodeFirst: o })
       )}
                 ${this._toggleField(
         "Only create if no children",
         a.onlyCreateIfNoChildren,
         e || !t.enabled,
-        (r) => i(o, { onlyCreateIfNoChildren: r })
+        (o) => i(r, { onlyCreateIfNoChildren: o })
       )}
                 ${this._toggleField(
         "Create if exists with different name",
         a.createIfExistsWithDifferentName,
         e || !t.enabled,
-        (r) => i(o, { createIfExistsWithDifferentName: r })
+        (o) => i(r, { createIfExistsWithDifferentName: o })
       )}
                 ${this._toggleField(
         "Keep new node unpublished",
         a.keepNewNodeUnpublished,
         e || !t.enabled,
-        (r) => i(o, { keepNewNodeUnpublished: r })
+        (o) => i(r, { keepNewNodeUnpublished: o })
       )}
               </div>
             </uui-box>
@@ -460,9 +471,9 @@ let c = class extends P {
   _renderNodeRestrictTab(e) {
     const t = this._settings.nodeRestrict, s = (a) => {
       this._patchSettings("nodeRestrict", { ...t, ...a });
-    }, i = (a, o) => {
-      const r = t.rules.map((l, m) => m === a ? { ...l, ...o } : l);
-      s({ rules: r });
+    }, i = (a, r) => {
+      const o = t.rules.map((l, m) => m === a ? { ...l, ...r } : l);
+      s({ rules: o });
     };
     return n`
       <uui-box headline="NodeRestrict">
@@ -482,18 +493,18 @@ let c = class extends P {
     )}
         </div>
         <h4>Rules</h4>
-        ${t.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : h}
+        ${t.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : g}
         ${t.rules.map(
-      (a, o) => n`
+      (a, r) => n`
             <uui-box class="rule-card">
               <div slot="header" class="rule-header">
-                <strong>Rule ${o + 1}</strong>
+                <strong>Rule ${r + 1}</strong>
                 <uui-button
                   look="secondary"
                   color="danger"
                   label="Remove"
                   ?disabled=${e || !t.enabled}
-                  @click=${() => s({ rules: t.rules.filter((r, l) => l !== o) })}
+                  @click=${() => s({ rules: t.rules.filter((o, l) => l !== r) })}
                 >Remove</uui-button>
               </div>
               <div class="grid">
@@ -501,49 +512,49 @@ let c = class extends P {
         "Parent doctype *",
         a.parentDocType,
         e || !t.enabled,
-        (r) => i(o, { parentDocType: r })
+        (o) => i(r, { parentDocType: o })
       )}
                 ${this._docTypeField(
         "Child doctype *",
         a.childDocType,
         e || !t.enabled,
-        (r) => i(o, { childDocType: r })
+        (o) => i(r, { childDocType: o })
       )}
                 ${this._numberField(
         "Max nodes *",
         a.maxNodes,
         e || !t.enabled,
-        (r) => i(o, { maxNodes: r })
+        (o) => i(r, { maxNodes: o })
       )}
                 ${this._toggleField(
         "Show warnings",
         a.showWarnings,
         e || !t.enabled,
-        (r) => i(o, { showWarnings: r })
+        (o) => i(r, { showWarnings: o })
       )}
                 ${this._textField(
         "Custom limit message",
         a.customMessage,
         e || !t.enabled,
-        (r) => i(o, { customMessage: r })
+        (o) => i(r, { customMessage: o })
       )}
                 ${this._textField(
         "Custom limit category",
         a.customMessageCategory,
         e || !t.enabled,
-        (r) => i(o, { customMessageCategory: r })
+        (o) => i(r, { customMessageCategory: o })
       )}
                 ${this._textField(
         "Custom warning message",
         a.customWarningMessage,
         e || !t.enabled,
-        (r) => i(o, { customWarningMessage: r })
+        (o) => i(r, { customWarningMessage: o })
       )}
                 ${this._textField(
         "Custom warning category",
         a.customWarningMessageCategory,
         e || !t.enabled,
-        (r) => i(o, { customWarningMessageCategory: r })
+        (o) => i(r, { customWarningMessageCategory: o })
       )}
               </div>
             </uui-box>
@@ -566,20 +577,20 @@ let c = class extends P {
       <uui-box headline="VirtualNodes">
         ${this._renderFeatureToggle(t.enabled, e, (i) => s({ enabled: i }))}
         <p>List of document type aliases to be treated as virtual nodes.</p>
-        ${t.rules.length === 0 ? n`<p class="empty">No aliases defined.</p>` : h}
+        ${t.rules.length === 0 ? n`<p class="empty">No aliases defined.</p>` : g}
         ${t.rules.map(
       (i, a) => n`
             <div class="inline">
-              ${this._docTypeField("DocType alias *", i, e || !t.enabled, (o) => {
-        const r = t.rules.map((l, m) => m === a ? o : l);
-        s({ rules: r });
+              ${this._docTypeField("DocType alias *", i, e || !t.enabled, (r) => {
+        const o = t.rules.map((l, m) => m === a ? r : l);
+        s({ rules: o });
       })}
               <uui-button
                 look="secondary"
                 color="danger"
                 label="Remove"
                 ?disabled=${e || !t.enabled}
-                @click=${() => s({ rules: t.rules.filter((o, r) => r !== a) })}
+                @click=${() => s({ rules: t.rules.filter((r, o) => o !== a) })}
               >Remove</uui-button>
             </div>
           `
@@ -614,9 +625,9 @@ let c = class extends P {
   _renderNodeProtectTab(e) {
     const t = this._settings.nodeProtect, s = (a) => {
       this._patchSettings("nodeProtect", { ...t, ...a });
-    }, i = (a, o) => {
-      const r = t.rules.map((l, m) => m === a ? { ...l, ...o } : l);
-      s({ rules: r });
+    }, i = (a, r) => {
+      const o = t.rules.map((l, m) => m === a ? { ...l, ...r } : l);
+      s({ rules: o });
     };
     return n`
       <uui-box headline="NodeProtect">
@@ -630,18 +641,18 @@ let c = class extends P {
     )}
         </div>
         <h4>Rules</h4>
-        ${t.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : h}
+        ${t.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : g}
         ${t.rules.map(
-      (a, o) => n`
+      (a, r) => n`
             <uui-box class="rule-card">
               <div slot="header" class="rule-header">
-                <strong>Rule ${o + 1}</strong>
+                <strong>Rule ${r + 1}</strong>
                 <uui-button
                   look="secondary"
                   color="danger"
                   label="Remove"
                   ?disabled=${e || !t.enabled}
-                  @click=${() => s({ rules: t.rules.filter((r, l) => l !== o) })}
+                  @click=${() => s({ rules: t.rules.filter((o, l) => l !== r) })}
                 >Remove</uui-button>
               </div>
               <div class="grid">
@@ -649,25 +660,25 @@ let c = class extends P {
         "DocType alias",
         a.docTypeAlias,
         e || !t.enabled,
-        (r) => i(o, { docTypeAlias: r })
+        (o) => i(r, { docTypeAlias: o })
       )}
                 ${this._textField(
         "Document GUIDs (comma separated)",
         a.documentGuids,
         e || !t.enabled,
-        (r) => i(o, { documentGuids: r })
+        (o) => i(r, { documentGuids: o })
       )}
                 ${this._textField(
         "Custom message",
         a.customMessage,
         e || !t.enabled,
-        (r) => i(o, { customMessage: r })
+        (o) => i(r, { customMessage: o })
       )}
                 ${this._textField(
         "Custom message category",
         a.customMessageCategory,
         e || !t.enabled,
-        (r) => i(o, { customMessageCategory: r })
+        (o) => i(r, { customMessageCategory: o })
       )}
               </div>
             </uui-box>
@@ -714,8 +725,9 @@ let c = class extends P {
       e || !t.enabled,
       (i) => s({ maxChars: i })
     )}
-          ${this._textField(
+          ${this._propertyField(
       "Property alias *",
+      this._textInputProperties,
       t.propertyAlias,
       e || !t.enabled,
       (i) => s({ propertyAlias: i })
@@ -805,15 +817,15 @@ let c = class extends P {
     return this._aliasField(e, t, s, i, a);
   }
   _multiAliasField(e, t, s, i, a) {
-    const o = new Set(
+    const r = new Set(
       (s ?? "").split(",").map((d) => d.trim()).filter((d) => d.length > 0)
-    ), r = (d, _) => {
-      _ ? o.add(d) : o.delete(d), a(Array.from(o).join(","));
-    }, l = new Set(t.map((d) => d.alias)), m = Array.from(o).filter((d) => !l.has(d)), v = this._expandedFields.has(e), f = this._filterModes.get(e) ?? "all", N = (d) => {
+    ), o = (d, _) => {
+      _ ? r.add(d) : r.delete(d), a(Array.from(r).join(","));
+    }, l = new Set(t.map((d) => d.alias)), m = Array.from(r).filter((d) => !l.has(d)), v = this._expandedFields.has(e), f = this._filterModes.get(e) ?? "all", N = (d) => {
       d ? this._expandedFields.add(e) : this._expandedFields.delete(e), this.requestUpdate();
     }, x = (d) => {
       this._filterModes.set(e, d), this.requestUpdate();
-    }, $ = f === "selected" ? t.filter((d) => o.has(d.alias)) : t, w = f === "selected" || f === "all" ? m : [];
+    }, $ = f === "selected" ? t.filter((d) => r.has(d.alias)) : t, w = f === "selected" || f === "all" ? m : [];
     return n`
       <label>
         <span>${e}</span>
@@ -826,7 +838,7 @@ let c = class extends P {
               @click=${() => N(!v)}
             >
               <span class="multi-action">${v ? "Hide list" : "Show list"}</span>
-              <span class="multi-count">(${o.size} selected)</span>
+              <span class="multi-count">(${r.size} selected)</span>
             </button>
             ${v ? n`
                   <div class="multi-filter">
@@ -851,19 +863,19 @@ let c = class extends P {
                       <span>Selected only</span>
                     </label>
                   </div>
-                ` : h}
+                ` : g}
           </div>
           ${v ? n`
                 <div class="checkbox-list">
-                  ${$.length === 0 && w.length === 0 ? n`<p class="empty">No entries.</p>` : h}
+                  ${$.length === 0 && w.length === 0 ? n`<p class="empty">No entries.</p>` : g}
                   ${$.map(
       (d) => n`
                       <label class="checkbox-row">
                         <input
                           type="checkbox"
                           ?disabled=${i}
-                          .checked=${o.has(d.alias)}
-                          @change=${(_) => r(d.alias, _.target.checked)}
+                          .checked=${r.has(d.alias)}
+                          @change=${(_) => o(d.alias, _.target.checked)}
                         />
                         <span>${d.name} (${d.alias})</span>
                       </label>
@@ -876,20 +888,20 @@ let c = class extends P {
                           type="checkbox"
                           ?disabled=${i}
                           checked
-                          @change=${(_) => r(d, _.target.checked)}
+                          @change=${(_) => o(d, _.target.checked)}
                         />
                         <span>${d} (not found)</span>
                       </label>
                     `
     )}
                 </div>
-              ` : h}
+              ` : g}
         </div>
       </label>
     `;
   }
   _aliasField(e, t, s, i, a) {
-    const o = s ?? "", r = new Set(t.map((l) => l.alias));
+    const r = s ?? "", o = new Set(t.map((l) => l.alias));
     return n`
       <label>
         <span>${e}</span>
@@ -898,15 +910,15 @@ let c = class extends P {
           ?disabled=${i}
           @change=${(l) => a(l.target.value)}
         >
-          <option value="" ?selected=${o === ""}>-- Select --</option>
+          <option value="" ?selected=${r === ""}>-- Select --</option>
           ${t.map(
       (l) => n`
-              <option value=${l.alias} ?selected=${l.alias === o}>
+              <option value=${l.alias} ?selected=${l.alias === r}>
                 ${l.name} (${l.alias})
               </option>
             `
     )}
-          ${o && !r.has(o) ? n`<option value=${o} selected>${o} (not found)</option>` : h}
+          ${r && !o.has(r) ? n`<option value=${r} selected>${r} (not found)</option>` : g}
         </select>
       </label>
     `;
@@ -916,12 +928,15 @@ let c = class extends P {
       <label>
         <span>${e}</span>
         <uui-input
-          type="number"
+          .type=${"number"}
+          min="0"
+          step="1"
+          inputmode="numeric"
           .value=${(t == null ? void 0 : t.toString()) ?? "0"}
           ?disabled=${s}
           @input=${(a) => {
-      const o = a.target.value, r = o === "" ? 0 : Number(o);
-      i(Number.isNaN(r) ? 0 : r);
+      const r = a.target.value, o = r === "" ? 0 : Number(r);
+      i(Number.isNaN(o) ? 0 : o);
     }}
         ></uui-input>
       </label>
@@ -940,7 +955,7 @@ let c = class extends P {
     `;
   }
 };
-I(c, "styles", S`
+L(c, "styles", S`
     :host {
       display: block;
       height: 100%;
@@ -1151,37 +1166,40 @@ I(c, "styles", S`
       border-radius: 0;
     }
   `);
-g([
+h([
   b()
 ], c.prototype, "_loading", 2);
-g([
+h([
   b()
 ], c.prototype, "_saving", 2);
-g([
+h([
   b()
 ], c.prototype, "_hasAppSettings", 2);
-g([
+h([
   b()
 ], c.prototype, "_settings", 2);
-g([
+h([
   b()
 ], c.prototype, "_activeTab", 2);
-g([
+h([
   b()
 ], c.prototype, "_docTypes", 2);
-g([
+h([
   b()
 ], c.prototype, "_trueFalseProperties", 2);
-g([
+h([
   b()
 ], c.prototype, "_textContentProperties", 2);
-g([
+h([
+  b()
+], c.prototype, "_textInputProperties", 2);
+h([
   b()
 ], c.prototype, "_expandedFields", 2);
-g([
+h([
   b()
 ], c.prototype, "_filterModes", 2);
-c = g([
+c = h([
   C("dotsee-discipline-settings-workspace")
 ], c);
 const Y = c;
@@ -1189,4 +1207,4 @@ export {
   c as DisciplineSettingsWorkspaceElement,
   Y as default
 };
-//# sourceMappingURL=discipline-settings.workspace.element-DYpqUdi7.js.map
+//# sourceMappingURL=discipline-settings.workspace.element-C17SYOe6.js.map

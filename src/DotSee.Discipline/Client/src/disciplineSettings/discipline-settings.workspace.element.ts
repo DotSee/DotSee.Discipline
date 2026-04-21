@@ -94,6 +94,9 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
   private _textContentProperties: PropertyOption[] = [];
 
   @state()
+  private _textInputProperties: PropertyOption[] = [];
+
+  @state()
   private _expandedFields = new Set<string>();
 
   @state()
@@ -129,15 +132,17 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     this._repository = new DisciplineSettingsRepository(token);
 
     try {
-      const [response, docTypes, trueFalseProps, textContentProps] = await Promise.all([
+      const [response, docTypes, trueFalseProps, textContentProps, textInputProps] = await Promise.all([
         this._repository.getSettings(),
         this._repository.getDocTypes().catch(() => [] as DocTypeOption[]),
         this._repository.getTrueFalseProperties().catch(() => [] as PropertyOption[]),
         this._repository.getTextContentProperties().catch(() => [] as PropertyOption[]),
+        this._repository.getTextInputProperties().catch(() => [] as PropertyOption[]),
       ]);
       this._docTypes = docTypes;
       this._trueFalseProperties = trueFalseProps;
       this._textContentProperties = textContentProps;
+      this._textInputProperties = textInputProps;
       this._applyResponse(response);
     } catch (error) {
       await this._notify('danger', `Could not load settings: ${this._errorMessage(error)}`);
@@ -739,8 +744,12 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
           ${this._numberField('Max chars', feat.maxChars, disabled || !feat.enabled, (v) =>
             update({ maxChars: v }),
           )}
-          ${this._textField('Property alias *', feat.propertyAlias, disabled || !feat.enabled, (v) =>
-            update({ propertyAlias: v }),
+          ${this._propertyField(
+            'Property alias *',
+            this._textInputProperties,
+            feat.propertyAlias,
+            disabled || !feat.enabled,
+            (v) => update({ propertyAlias: v }),
           )}
           ${this._propertyField(
             'Toggle property alias',
@@ -1011,7 +1020,10 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
       <label>
         <span>${label}</span>
         <uui-input
-          type="number"
+          .type=${'number'}
+          min="0"
+          step="1"
+          inputmode="numeric"
           .value=${value?.toString() ?? '0'}
           ?disabled=${disabled}
           @input=${(e: Event) => {

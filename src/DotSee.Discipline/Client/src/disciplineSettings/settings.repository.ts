@@ -69,6 +69,17 @@ export class DisciplineSettingsRepository {
     return (await response.json()) as PropertyOption[];
   }
 
+  async getTextInputProperties(): Promise<PropertyOption[]> {
+    const response = await fetch(`${BASE}/properties/text-input`, {
+      method: 'GET',
+      headers: this.headers(),
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to load text input properties (${response.status})`);
+    }
+    return (await response.json()) as PropertyOption[];
+  }
+
   async importFromAppSettings(): Promise<DisciplineSettingsResponse> {
     const response = await fetch(`${BASE}/import-from-appsettings`, {
       method: 'POST',

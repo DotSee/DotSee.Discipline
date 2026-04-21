@@ -120,6 +120,13 @@ namespace DotSee.Discipline.Backoffice.ApiControllers
                 "Umbraco.TextArea"));
         }
 
+        [HttpGet("properties/text-input")]
+        [ProducesResponseType(typeof(IEnumerable<PropertyOption>), StatusCodes.Status200OK)]
+        public IActionResult GetTextInputProperties()
+        {
+            return Ok(GetPropertiesByEditorAliases("Umbraco.TextBox", "Umbraco.TextArea"));
+        }
+
         private List<PropertyOption> GetPropertiesByEditorAliases(params string[] editorAliases)
         {
             var aliasSet = new HashSet<string>(editorAliases, StringComparer.OrdinalIgnoreCase);
