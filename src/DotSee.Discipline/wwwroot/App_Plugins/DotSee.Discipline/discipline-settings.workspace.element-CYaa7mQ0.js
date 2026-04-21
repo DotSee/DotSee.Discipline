@@ -1,14 +1,14 @@
 var F = Object.defineProperty;
-var A = (u, e, t) => e in u ? F(u, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : u[e] = t;
-var p = (u, e, t) => A(u, typeof e != "symbol" ? e + "" : e, t);
+var A = (c, e, t) => e in c ? F(c, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : c[e] = t;
+var p = (c, e, t) => A(c, typeof e != "symbol" ? e + "" : e, t);
 import { html as n, nothing as g, css as S, state as b, customElement as C } from "@umbraco-cms/backoffice/external/lit";
 import { UmbLitElement as P } from "@umbraco-cms/backoffice/lit-element";
 import { UMB_AUTH_CONTEXT as D } from "@umbraco-cms/backoffice/auth";
 import { UMB_MODAL_MANAGER_CONTEXT as E, UMB_CONFIRM_MODAL as M } from "@umbraco-cms/backoffice/modal";
 import { UMB_NOTIFICATION_CONTEXT as R } from "@umbraco-cms/backoffice/notification";
-import { c as z, b as B, d as V } from "./index-RXcxOCuC.js";
+import { c as z, b as B, d as V } from "./index-DkTQWI8y.js";
 const y = "/umbraco/api/discipline";
-class q {
+class U {
   constructor(e) {
     this.authToken = e;
   }
@@ -84,11 +84,11 @@ class q {
     return await e.json();
   }
 }
-var k = Object.defineProperty, I = Object.getOwnPropertyDescriptor, U = (u, e, t) => e in u ? k(u, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : u[e] = t, h = (u, e, t, s) => {
-  for (var i = s > 1 ? void 0 : s ? I(e, t) : e, a = u.length - 1, o; a >= 0; a--)
-    (o = u[a]) && (i = (s ? o(e, t, i) : o(i)) || i);
+var k = Object.defineProperty, I = Object.getOwnPropertyDescriptor, L = (c, e, t) => e in c ? k(c, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : c[e] = t, h = (c, e, t, s) => {
+  for (var i = s > 1 ? void 0 : s ? I(e, t) : e, a = c.length - 1, o; a >= 0; a--)
+    (o = c[a]) && (i = (s ? o(e, t, i) : o(i)) || i);
   return s && i && k(e, t, i), i;
-}, L = (u, e, t) => U(u, e + "", t);
+}, q = (c, e, t) => L(c, e + "", t);
 const j = [
   { alias: "autoNode", label: "AutoNode" },
   { alias: "nodeRestrict", label: "NodeRestrict" },
@@ -126,7 +126,7 @@ function T() {
     }
   };
 }
-let c = class extends P {
+let u = class extends P {
   constructor() {
     super(...arguments);
     p(this, "_loading", !0);
@@ -157,7 +157,7 @@ let c = class extends P {
   }
   async _init() {
     const t = await (await this.getContext(D)).getLatestToken();
-    this._repository = new q(t);
+    this._repository = new U(t);
     try {
       const [s, i, a, o, r] = await Promise.all([
         this._repository.getSettings(),
@@ -300,13 +300,12 @@ let c = class extends P {
     return this._hasAppSettings ? n`
       <uui-box headline="Settings source">
         <div class="banner-row">
-          <label class="toggle-label">
-            <uui-toggle
-              .checked=${this._settings.useBackoffice}
-              @change=${this._onMasterToggleChange}
-            ></uui-toggle>
-            <span>Manage settings from the backoffice</span>
-          </label>
+          <uui-toggle
+            .checked=${this._settings.useBackoffice}
+            label="Manage settings from the backoffice"
+            label-position="right"
+            @change=${this._onMasterToggleChange}
+          ></uui-toggle>
           ${this._settings.useBackoffice ? n`
                 <uui-button
                   look="primary"
@@ -370,9 +369,14 @@ let c = class extends P {
     };
     return n`
       <uui-box headline="AutoNode">
+        <p class="feature-description">
+          Automatically creates child nodes when a parent is published, based on rules that match
+          document types. Useful for scaffolding required child structure (folders, landing pages)
+          the moment a content item is created.
+        </p>
         ${this._renderFeatureToggle(t.enabled, e, (a) => s({ enabled: a }))}
-        <div class="grid">
-          <label>
+        <div class="stack">
+          <label class="fit">
             <span>Log level</span>
             <uui-select
               ?disabled=${e || !t.enabled}
@@ -383,14 +387,20 @@ let c = class extends P {
               @change=${(a) => s({ logLevel: a.target.value })}
             ></uui-select>
           </label>
-          <label class="inline">
+          <div>
             <uui-toggle
               .checked=${t.republishExistingNodes}
               ?disabled=${e || !t.enabled}
+              label="Republish existing nodes"
+              label-position="right"
               @change=${(a) => s({ republishExistingNodes: a.target.checked })}
             ></uui-toggle>
-            <span>Republish existing nodes</span>
-          </label>
+            <p class="field-description">
+              When on, AutoNode will also process already-published parent nodes — any missing child
+              nodes defined by its rules will be created retroactively the next time the parent is
+              republished. Leave off to only apply rules to new nodes.
+            </p>
+          </div>
         </div>
         <h4>Rules</h4>
         ${t.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : g}
@@ -484,6 +494,10 @@ let c = class extends P {
     };
     return n`
       <uui-box headline="NodeRestrict">
+        <p class="feature-description">
+          Limits the number of child nodes of a given type that can be created under a parent node.
+          Editors see a configurable warning or error message when they try to exceed the limit.
+        </p>
         ${this._renderFeatureToggle(t.enabled, e, (a) => s({ enabled: a }))}
         <div class="grid">
           ${this._textField(
@@ -582,8 +596,12 @@ let c = class extends P {
     };
     return n`
       <uui-box headline="VirtualNodes">
+        <p class="feature-description">
+          Hides the URL segment of the selected document types so their children appear one level
+          higher in the site's public URLs. Useful for grouping content in the tree without that
+          grouping leaking into the URL.
+        </p>
         ${this._renderFeatureToggle(t.enabled, e, (i) => s({ enabled: i }))}
-        <p>Document types to be treated as virtual nodes.</p>
         <div class="grid">
           ${this._multiAliasField(
       "Virtual node doctypes",
@@ -605,6 +623,10 @@ let c = class extends P {
     };
     return n`
       <uui-box headline="VariantsHider">
+        <p class="feature-description">
+          Adds an entity action on the content tree that hides language variants that haven't been
+          created yet (those shown in parentheses), so editors only see variants that actually exist.
+        </p>
         ${this._renderFeatureToggle(t.enabled, e, (i) => s({ enabled: i }))}
         <div class="grid">
           ${this._textField(
@@ -626,6 +648,10 @@ let c = class extends P {
     };
     return n`
       <uui-box headline="NodeProtect">
+        <p class="feature-description">
+          Prevents deletion of important nodes, either by document type or by specific GUID. Editors
+          see a configurable message explaining why the node can't be deleted.
+        </p>
         ${this._renderFeatureToggle(t.enabled, e, (a) => s({ enabled: a }))}
         <div class="grid">
           ${this._textField(
@@ -694,6 +720,11 @@ let c = class extends P {
     };
     return n`
       <uui-box headline="AiSummary">
+        <p class="feature-description">
+          Generates AI-powered content summaries using OpenAI or Gemini and writes the result into a
+          configured property. A toggle property on the node controls whether a summary should be
+          produced for that item.
+        </p>
         ${this._renderFeatureToggle(t.enabled, e, (i) => s({ enabled: i }))}
         <div class="grid">
           <label>
@@ -766,6 +797,10 @@ let c = class extends P {
     };
     return n`
       <uui-box headline="PropertyVersions">
+        <p class="feature-description">
+          Adds navigation actions to properties so editors can step through previous saved versions
+          and roll individual properties back without restoring the whole document.
+        </p>
         ${this._renderFeatureToggle(t.enabled, e, (i) => s({ enabled: i }))}
         <div class="grid">
           ${this._textField(
@@ -814,9 +849,9 @@ let c = class extends P {
   _multiAliasField(e, t, s, i, a) {
     const o = new Set(
       (s ?? "").split(",").map((d) => d.trim()).filter((d) => d.length > 0)
-    ), r = (d, _) => {
-      _ ? o.add(d) : o.delete(d), a(Array.from(o).join(","));
-    }, l = new Set(t.map((d) => d.alias)), m = Array.from(o).filter((d) => !l.has(d)), v = this._expandedFields.has(e), f = this._filterModes.get(e) ?? "all", N = (d) => {
+    ), r = (d, v) => {
+      v ? o.add(d) : o.delete(d), a(Array.from(o).join(","));
+    }, l = new Set(t.map((d) => d.alias)), m = Array.from(o).filter((d) => !l.has(d)), _ = this._expandedFields.has(e), f = this._filterModes.get(e) ?? "all", N = (d) => {
       d ? this._expandedFields.add(e) : this._expandedFields.delete(e), this.requestUpdate();
     }, x = (d) => {
       this._filterModes.set(e, d), this.requestUpdate();
@@ -830,12 +865,12 @@ let c = class extends P {
               type="button"
               class="multi-toggle"
               ?disabled=${i}
-              @click=${() => N(!v)}
+              @click=${() => N(!_)}
             >
-              <span class="multi-action">${v ? "Hide list" : "Show list"}</span>
+              <span class="multi-action">${_ ? "Hide list" : "Show list"}</span>
               <span class="multi-count">(${o.size} selected)</span>
             </button>
-            ${v ? n`
+            ${_ ? n`
                   <div class="multi-filter">
                     <label class="checkbox-row">
                       <input
@@ -860,7 +895,7 @@ let c = class extends P {
                   </div>
                 ` : g}
           </div>
-          ${v ? n`
+          ${_ ? n`
                 <div class="checkbox-list">
                   ${$.length === 0 && w.length === 0 ? n`<p class="empty">No entries.</p>` : g}
                   ${$.map(
@@ -870,7 +905,7 @@ let c = class extends P {
                           type="checkbox"
                           ?disabled=${i}
                           .checked=${o.has(d.alias)}
-                          @change=${(_) => r(d.alias, _.target.checked)}
+                          @change=${(v) => r(d.alias, v.target.checked)}
                         />
                         <span>${d.name} (${d.alias})</span>
                       </label>
@@ -883,7 +918,7 @@ let c = class extends P {
                           type="checkbox"
                           ?disabled=${i}
                           checked
-                          @change=${(_) => r(d, _.target.checked)}
+                          @change=${(v) => r(d, v.target.checked)}
                         />
                         <span>${d} (not found)</span>
                       </label>
@@ -950,7 +985,7 @@ let c = class extends P {
     `;
   }
 };
-L(c, "styles", S`
+q(u, "styles", S`
     :host {
       display: block;
       height: 100%;
@@ -982,6 +1017,18 @@ L(c, "styles", S`
       gap: var(--uui-size-space-3, 12px);
       margin-top: var(--uui-size-space-3, 12px);
     }
+    .stack {
+      display: flex;
+      flex-direction: column;
+      gap: var(--uui-size-space-4, 16px);
+      margin-top: var(--uui-size-space-3, 12px);
+    }
+    .field-description {
+      color: var(--uui-color-text-alt, #666);
+      margin: 4px 0 0;
+      font-size: 0.9em;
+      line-height: 1.4;
+    }
     label {
       display: flex;
       flex-direction: column;
@@ -998,9 +1045,32 @@ L(c, "styles", S`
     label.block uui-textarea {
       width: 100%;
     }
+    label.fit {
+      flex-direction: row;
+      align-items: center;
+      align-self: flex-start;
+      width: auto;
+      gap: var(--uui-size-space-3, 12px);
+    }
+    label.fit uui-select {
+      width: auto;
+      min-width: fit-content;
+    }
     .feature-toggle {
       display: block;
       margin-bottom: calc(var(--uui-size-space-3, 12px) + 5px);
+      padding-bottom: calc(var(--uui-size-space-3, 12px) + 5px);
+      border-bottom: 1px solid #e9e9eb;
+    }
+    uui-box:has(.feature-description) {
+      --uui-color-divider-standalone: transparent;
+    }
+    .feature-description {
+      color: var(--uui-color-text-alt, #666);
+      margin: calc(-1 * var(--uui-size-space-4, 12px)) 0 var(--uui-size-space-4, 16px);
+      padding-bottom: var(--uui-size-space-4, 16px);
+      line-height: 1.5;
+      border-bottom: 1px solid #e9e9eb;
     }
     h4 {
       margin-top: var(--uui-size-space-4, 16px);
@@ -1175,43 +1245,43 @@ L(c, "styles", S`
   `);
 h([
   b()
-], c.prototype, "_loading", 2);
+], u.prototype, "_loading", 2);
 h([
   b()
-], c.prototype, "_saving", 2);
+], u.prototype, "_saving", 2);
 h([
   b()
-], c.prototype, "_hasAppSettings", 2);
+], u.prototype, "_hasAppSettings", 2);
 h([
   b()
-], c.prototype, "_settings", 2);
+], u.prototype, "_settings", 2);
 h([
   b()
-], c.prototype, "_activeTab", 2);
+], u.prototype, "_activeTab", 2);
 h([
   b()
-], c.prototype, "_docTypes", 2);
+], u.prototype, "_docTypes", 2);
 h([
   b()
-], c.prototype, "_trueFalseProperties", 2);
+], u.prototype, "_trueFalseProperties", 2);
 h([
   b()
-], c.prototype, "_textContentProperties", 2);
+], u.prototype, "_textContentProperties", 2);
 h([
   b()
-], c.prototype, "_textInputProperties", 2);
+], u.prototype, "_textInputProperties", 2);
 h([
   b()
-], c.prototype, "_expandedFields", 2);
+], u.prototype, "_expandedFields", 2);
 h([
   b()
-], c.prototype, "_filterModes", 2);
-c = h([
+], u.prototype, "_filterModes", 2);
+u = h([
   C("dotsee-discipline-settings-workspace")
-], c);
-const Y = c;
+], u);
+const Y = u;
 export {
-  c as DisciplineSettingsWorkspaceElement,
+  u as DisciplineSettingsWorkspaceElement,
   Y as default
 };
-//# sourceMappingURL=discipline-settings.workspace.element-sxSSts3e.js.map
+//# sourceMappingURL=discipline-settings.workspace.element-CYaa7mQ0.js.map
