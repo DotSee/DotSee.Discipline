@@ -6,7 +6,7 @@ import { UmbLitElement as P } from "@umbraco-cms/backoffice/lit-element";
 import { UMB_AUTH_CONTEXT as R } from "@umbraco-cms/backoffice/auth";
 import { UMB_MODAL_MANAGER_CONTEXT as D, UMB_CONFIRM_MODAL as E } from "@umbraco-cms/backoffice/modal";
 import { UMB_NOTIFICATION_CONTEXT as M } from "@umbraco-cms/backoffice/notification";
-import { c as z, b as B, d as U } from "./index-CawWpm5C.js";
+import { c as z, b as B, d as U } from "./index-BTwf-taD.js";
 const y = "/umbraco/api/discipline";
 class V {
   constructor(e) {
@@ -498,7 +498,8 @@ let u = class extends P {
         "Bring new node first",
         a.bringNewNodeFirst,
         e || !t.enabled,
-        (r) => i(o, { bringNewNodeFirst: r })
+        (r) => i(o, { bringNewNodeFirst: r }),
+        "row-break"
       )}
                     ${this._toggleField(
         "Only create if no children",
@@ -564,9 +565,15 @@ let u = class extends P {
         ${t.rules.map(
       (a, o) => n`
             <uui-box class="rule-card">
-              ${this._renderRuleHeader("nodeRestrict", o, e || !t.enabled, () => {
-        this._removeRuleAndReindex("nodeRestrict", o), s({ rules: t.rules.filter((r, l) => l !== o) });
-      })}
+              ${this._renderRuleHeader(
+        "nodeRestrict",
+        o,
+        e || !t.enabled,
+        () => {
+          this._removeRuleAndReindex("nodeRestrict", o), s({ rules: t.rules.filter((r, l) => l !== o) });
+        },
+        a.parentDocType && a.childDocType ? `(${a.parentDocType} → ${a.childDocType})` : void 0
+      )}
               ${this._isRuleCollapsed("nodeRestrict", o) ? h : n`<div class="grid">
                     ${this._docTypeField(
         "Parent doctype *",
@@ -705,9 +712,15 @@ let u = class extends P {
         ${t.rules.map(
       (a, o) => n`
             <uui-box class="rule-card">
-              ${this._renderRuleHeader("nodeProtect", o, e || !t.enabled, () => {
-        this._removeRuleAndReindex("nodeProtect", o), s({ rules: t.rules.filter((r, l) => l !== o) });
-      })}
+              ${this._renderRuleHeader(
+        "nodeProtect",
+        o,
+        e || !t.enabled,
+        () => {
+          this._removeRuleAndReindex("nodeProtect", o), s({ rules: t.rules.filter((r, l) => l !== o) });
+        },
+        a.docTypeAlias ? `(${a.docTypeAlias})` : void 0
+      )}
               ${this._isRuleCollapsed("nodeProtect", o) ? h : n`<div class="grid">
                     ${this._docTypeField(
         "DocType alias",
@@ -1004,13 +1017,13 @@ let u = class extends P {
       </label>
     `;
   }
-  _toggleField(e, t, s, i) {
+  _toggleField(e, t, s, i, a) {
     return n`
-      <label class="inline">
+      <label class=${`inline${a ? ` ${a}` : ""}`}>
         <uui-toggle
           .checked=${t}
           ?disabled=${s}
-          @change=${(a) => i(a.target.checked)}
+          @change=${(o) => i(o.target.checked)}
         ></uui-toggle>
         <span>${e}</span>
       </label>
@@ -1118,6 +1131,9 @@ L(u, "styles", S`
     }
     .rule-card .grid {
       margin-top: 0;
+    }
+    .row-break {
+      grid-column-start: 1;
     }
     .rule-header {
       display: flex;
@@ -1346,4 +1362,4 @@ export {
   u as DisciplineSettingsWorkspaceElement,
   Y as default
 };
-//# sourceMappingURL=discipline-settings.workspace.element-DB6f30zd.js.map
+//# sourceMappingURL=discipline-settings.workspace.element-HEOgaF_r.js.map

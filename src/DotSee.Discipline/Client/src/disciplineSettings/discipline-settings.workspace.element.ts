@@ -574,8 +574,12 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
                     ${this._textField('Blueprint', rule.blueprint, disabled || !feat.enabled, (v) =>
                       updateRuleAt(i, { blueprint: v }),
                     )}
-                    ${this._toggleField('Bring new node first', rule.bringNewNodeFirst, disabled || !feat.enabled, (v) =>
-                      updateRuleAt(i, { bringNewNodeFirst: v }),
+                    ${this._toggleField(
+                      'Bring new node first',
+                      rule.bringNewNodeFirst,
+                      disabled || !feat.enabled,
+                      (v) => updateRuleAt(i, { bringNewNodeFirst: v }),
+                      'row-break',
                     )}
                     ${this._toggleField('Only create if no children', rule.onlyCreateIfNoChildren, disabled || !feat.enabled, (v) =>
                       updateRuleAt(i, { onlyCreateIfNoChildren: v }),
@@ -636,10 +640,18 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
         ${feat.rules.map(
           (rule, i) => html`
             <uui-box class="rule-card">
-              ${this._renderRuleHeader('nodeRestrict', i, disabled || !feat.enabled, () => {
-                this._removeRuleAndReindex('nodeRestrict', i);
-                update({ rules: feat.rules.filter((_, idx) => idx !== i) });
-              })}
+              ${this._renderRuleHeader(
+                'nodeRestrict',
+                i,
+                disabled || !feat.enabled,
+                () => {
+                  this._removeRuleAndReindex('nodeRestrict', i);
+                  update({ rules: feat.rules.filter((_, idx) => idx !== i) });
+                },
+                rule.parentDocType && rule.childDocType
+                  ? `(${rule.parentDocType} \u2192 ${rule.childDocType})`
+                  : undefined,
+              )}
               ${this._isRuleCollapsed('nodeRestrict', i)
                 ? nothing
                 : html`<div class="grid">
@@ -765,10 +777,16 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
         ${feat.rules.map(
           (rule, i) => html`
             <uui-box class="rule-card">
-              ${this._renderRuleHeader('nodeProtect', i, disabled || !feat.enabled, () => {
-                this._removeRuleAndReindex('nodeProtect', i);
-                update({ rules: feat.rules.filter((_, idx) => idx !== i) });
-              })}
+              ${this._renderRuleHeader(
+                'nodeProtect',
+                i,
+                disabled || !feat.enabled,
+                () => {
+                  this._removeRuleAndReindex('nodeProtect', i);
+                  update({ rules: feat.rules.filter((_, idx) => idx !== i) });
+                },
+                rule.docTypeAlias ? `(${rule.docTypeAlias})` : undefined,
+              )}
               ${this._isRuleCollapsed('nodeProtect', i)
                 ? nothing
                 : html`<div class="grid">
@@ -1138,9 +1156,10 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     value: boolean,
     disabled: boolean,
     onChange: (value: boolean) => void,
+    extraClass?: string,
   ) {
     return html`
-      <label class="inline">
+      <label class=${`inline${extraClass ? ` ${extraClass}` : ''}`}>
         <uui-toggle
           .checked=${value}
           ?disabled=${disabled}
@@ -1252,6 +1271,9 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     }
     .rule-card .grid {
       margin-top: 0;
+    }
+    .row-break {
+      grid-column-start: 1;
     }
     .rule-header {
       display: flex;
