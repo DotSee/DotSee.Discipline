@@ -8,7 +8,7 @@ import { UMB_PROPERTY_CONTEXT as K, UMB_PROPERTY_DATASET_CONTEXT as B } from "@u
 import { UMB_AUTH_CONTEXT as N } from "@umbraco-cms/backoffice/auth";
 import { UMB_BLOCK_MANAGER_CONTEXT as O } from "@umbraco-cms/backoffice/block";
 import { g as x, p as S, h as M, c as R, n as I, b as L } from "./property-value-helpers-BF2x--js.js";
-import { a as X } from "./index-DbTG-A9H.js";
+import { a as X } from "./index-sfl4h-Se.js";
 function D() {
   const s = window.location.pathname.match(/\/workspace\/document\/edit\/([a-f0-9-]+)/i);
   return s == null ? void 0 : s[1];
@@ -101,4 +101,4 @@ export {
   J as PrevVersionAction,
   J as api
 };
-//# sourceMappingURL=prev-version.action-1wN5Nbv_.js.map
+//# sourceMappingURL=prev-version.action-C7Jb97tl.js.map

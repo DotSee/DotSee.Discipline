@@ -1,12 +1,12 @@
 var k = Object.defineProperty;
 var A = (y, e, t) => e in y ? k(y, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : y[e] = t;
 var m = (y, e, t) => A(y, typeof e != "symbol" ? e + "" : e, t);
-import { html as r, nothing as v, css as F, state as _, customElement as S } from "@umbraco-cms/backoffice/external/lit";
-import { UmbLitElement as D } from "@umbraco-cms/backoffice/lit-element";
-import { UMB_AUTH_CONTEXT as C } from "@umbraco-cms/backoffice/auth";
-import { UMB_MODAL_MANAGER_CONTEXT as P, UMB_CONFIRM_MODAL as E } from "@umbraco-cms/backoffice/modal";
-import { UMB_NOTIFICATION_CONTEXT as z } from "@umbraco-cms/backoffice/notification";
-import { c as M, b as I, d as B } from "./index-DbTG-A9H.js";
+import { html as r, nothing as v, css as S, state as _, customElement as D } from "@umbraco-cms/backoffice/external/lit";
+import { UmbLitElement as C } from "@umbraco-cms/backoffice/lit-element";
+import { UMB_AUTH_CONTEXT as P } from "@umbraco-cms/backoffice/auth";
+import { UMB_MODAL_MANAGER_CONTEXT as F, UMB_CONFIRM_MODAL as E } from "@umbraco-cms/backoffice/modal";
+import { UMB_NOTIFICATION_CONTEXT as M } from "@umbraco-cms/backoffice/notification";
+import { c as z, b as B, d as I } from "./index-sfl4h-Se.js";
 const x = "/umbraco/api/discipline";
 class U {
   constructor(e) {
@@ -94,8 +94,8 @@ class U {
   }
 }
 var R = Object.defineProperty, L = Object.getOwnPropertyDescriptor, V = (y, e, t) => e in y ? R(y, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : y[e] = t, f = (y, e, t, s) => {
-  for (var i = s > 1 ? void 0 : s ? L(e, t) : e, a = y.length - 1, o; a >= 0; a--)
-    (o = y[a]) && (i = (s ? o(e, t, i) : o(i)) || i);
+  for (var i = s > 1 ? void 0 : s ? L(e, t) : e, o = y.length - 1, a; o >= 0; o--)
+    (a = y[o]) && (i = (s ? a(e, t, i) : a(i)) || i);
   return s && i && R(e, t, i), i;
 }, O = (y, e, t) => V(y, e + "", t);
 const q = [
@@ -135,7 +135,7 @@ function N() {
     }
   };
 }
-let g = class extends D {
+let g = class extends C {
   constructor() {
     super(...arguments);
     m(this, "_loading", !0);
@@ -170,10 +170,10 @@ let g = class extends D {
     super.disconnectedCallback(), document.removeEventListener("mousedown", this._onDocumentMouseDown);
   }
   async _init() {
-    const t = await (await this.getContext(C)).getLatestToken();
+    const t = await (await this.getContext(P)).getLatestToken();
     this._repository = new U(t);
     try {
-      const [s, i, a, o, n, d] = await Promise.all([
+      const [s, i, o, a, n, d] = await Promise.all([
         this._repository.getSettings(),
         this._repository.getDocTypes().catch(() => []),
         this._repository.getTrueFalseProperties().catch(() => []),
@@ -181,7 +181,7 @@ let g = class extends D {
         this._repository.getTextInputProperties().catch(() => []),
         this._repository.getBlueprints().catch(() => [])
       ]);
-      this._docTypes = i, this._trueFalseProperties = a, this._textContentProperties = o, this._textInputProperties = n, this._blueprints = d, this._applyResponse(s), this._collapseAllRules();
+      this._docTypes = i, this._trueFalseProperties = o, this._textContentProperties = a, this._textInputProperties = n, this._blueprints = d, this._applyResponse(s), this._collapseAllRules();
     } catch (s) {
       await this._notify("danger", `Could not load settings: ${this._errorMessage(s)}`);
     } finally {
@@ -196,7 +196,7 @@ let g = class extends D {
   }
   async _notify(e, t) {
     try {
-      const s = await this.getContext(z);
+      const s = await this.getContext(M);
       s == null || s.peek(e, { data: { message: t } });
     } catch {
     }
@@ -210,7 +210,7 @@ let g = class extends D {
   }
   async _onImportClick() {
     if (!this._hasAppSettings || !this._repository) return;
-    const e = await this.getContext(P);
+    const e = await this.getContext(F);
     if (!e) return;
     const t = e.open(this, E, {
       data: {
@@ -277,8 +277,8 @@ let g = class extends D {
         ${t ? r`
               <div class="tab-bar">
                 ${q.map((s) => {
-      var o;
-      const i = !!((o = this._settings[s.alias]) != null && o.enabled), a = [
+      var a;
+      const i = !!((a = this._settings[s.alias]) != null && a.enabled), o = [
         "tab-button",
         this._activeTab === s.alias ? "active" : "",
         i ? "enabled" : ""
@@ -286,7 +286,7 @@ let g = class extends D {
       return r`
                     <button
                       type="button"
-                      class=${a}
+                      class=${o}
                       @click=${() => {
         this._activeTab = s.alias, this.requestUpdate();
       }}
@@ -341,16 +341,16 @@ let g = class extends D {
         </uui-box>
       `;
   }
-  _renderFeatureToggle(e, t, s) {
+  _renderEnableButton(e, t, s) {
     return r`
-      <uui-toggle
-        class="feature-toggle"
-        .checked=${e}
+      <uui-button
+        slot="header-actions"
+        look=${e ? "secondary" : "primary"}
+        color=${e ? "default" : "positive"}
+        label=${e ? "Disable" : "Enable"}
         ?disabled=${t}
-        label="Enable this feature"
-        label-position="right"
-        @change=${(i) => s(i.target.checked)}
-      ></uui-toggle>
+        @click=${() => s(!e)}
+      ></uui-button>
     `;
   }
   _isRuleCollapsed(e, t) {
@@ -362,12 +362,12 @@ let g = class extends D {
   }
   _remapCollapsedRules(e, t) {
     const s = `${e}:`, i = /* @__PURE__ */ new Set();
-    for (const a of this._collapsedRules) {
-      if (!a.startsWith(s)) {
-        i.add(a);
+    for (const o of this._collapsedRules) {
+      if (!o.startsWith(s)) {
+        i.add(o);
         continue;
       }
-      const o = Number(a.slice(s.length)), n = t.get(o);
+      const a = Number(o.slice(s.length)), n = t.get(a);
       n !== void 0 && i.add(`${s}${n}`);
     }
     this._collapsedRules = i;
@@ -377,10 +377,10 @@ let g = class extends D {
     if (e === t || e < 0 || e >= s.rules.length) return;
     const i = Math.max(0, Math.min(t, s.rules.length - 1));
     if (e === i) return;
-    const a = s.rules.slice(), [o] = a.splice(e, 1);
-    a.splice(i, 0, o);
+    const o = s.rules.slice(), [a] = o.splice(e, 1);
+    o.splice(i, 0, a);
     const n = /* @__PURE__ */ new Map(), d = s.rules.map((b, l) => l), [h] = d.splice(e, 1);
-    d.splice(i, 0, h), d.forEach((b, l) => n.set(b, l)), this._remapCollapsedRules("autoNode", n), this._patchSettings("autoNode", { ...s, rules: a });
+    d.splice(i, 0, h), d.forEach((b, l) => n.set(b, l)), this._remapCollapsedRules("autoNode", n), this._patchSettings("autoNode", { ...s, rules: o });
   }
   _onRuleDragStart(e, t) {
     this._dragIndex = t, e.dataTransfer && (e.dataTransfer.effectAllowed = "move", e.dataTransfer.setData("text/plain", String(t)));
@@ -388,8 +388,8 @@ let g = class extends D {
   _onRuleDragOver(e, t) {
     if (this._dragIndex === null) return;
     e.preventDefault(), e.dataTransfer && (e.dataTransfer.dropEffect = "move");
-    const i = e.currentTarget.getBoundingClientRect(), a = i.top + i.height / 2, o = e.clientY < a ? "before" : "after";
-    (this._dragOverIndex !== t || this._dragPosition !== o) && (this._dragOverIndex = t, this._dragPosition = o);
+    const i = e.currentTarget.getBoundingClientRect(), o = i.top + i.height / 2, a = e.clientY < o ? "before" : "after";
+    (this._dragOverIndex !== t || this._dragPosition !== a) && (this._dragOverIndex = t, this._dragPosition = a);
   }
   _onRuleDragLeave(e) {
     this._dragOverIndex === e && (this._dragOverIndex = null, this._dragPosition = null);
@@ -397,21 +397,21 @@ let g = class extends D {
   _onRuleDrop(e, t) {
     if (e.preventDefault(), this._dragIndex === null) return;
     const s = this._dragIndex, i = this._dragPosition ?? "after";
-    let a = t + (i === "after" ? 1 : 0);
-    s < a && a--, this._reorderAutoNodeRules(s, a), this._dragIndex = null, this._dragOverIndex = null, this._dragPosition = null;
+    let o = t + (i === "after" ? 1 : 0);
+    s < o && o--, this._reorderAutoNodeRules(s, o), this._dragIndex = null, this._dragOverIndex = null, this._dragPosition = null;
   }
   _onRuleDragEnd() {
     this._dragIndex = null, this._dragOverIndex = null, this._dragPosition = null;
   }
   _removeRuleAndReindex(e, t) {
     const s = `${e}:`, i = /* @__PURE__ */ new Set();
-    for (const a of this._collapsedRules) {
-      if (!a.startsWith(s)) {
-        i.add(a);
+    for (const o of this._collapsedRules) {
+      if (!o.startsWith(s)) {
+        i.add(o);
         continue;
       }
-      const o = Number(a.slice(s.length));
-      o < t ? i.add(a) : o > t && i.add(`${s}${o - 1}`);
+      const a = Number(o.slice(s.length));
+      a < t ? i.add(o) : a > t && i.add(`${s}${a - 1}`);
     }
     this._collapsedRules = i;
   }
@@ -419,13 +419,13 @@ let g = class extends D {
     const e = /* @__PURE__ */ new Set();
     this._settings.autoNode.rules.forEach((t, s) => e.add(`autoNode:${s}`)), this._settings.nodeRestrict.rules.forEach((t, s) => e.add(`nodeRestrict:${s}`)), this._settings.nodeProtect.rules.forEach((t, s) => e.add(`nodeProtect:${s}`)), this._collapsedRules = e, this.requestUpdate();
   }
-  _renderCollapsedRule(e, t, s, i, a, o) {
+  _renderCollapsedRule(e, t, s, i, o, a) {
     return r`
       <uui-ref-node
         class="rule-ref"
         name=${s}
         detail=${i}
-        ?disabled=${a}
+        ?disabled=${o}
         @open=${() => this._toggleRuleCollapsed(e, t)}
       >
         <umb-icon slot="icon" name="icon-navigation-right"></umb-icon>
@@ -434,29 +434,29 @@ let g = class extends D {
             look="secondary"
             color="danger"
             label="Remove"
-            ?disabled=${a}
-            @click=${o}
+            ?disabled=${o}
+            @click=${a}
           ></uui-button>
         </uui-action-bar>
       </uui-ref-node>
     `;
   }
-  _renderRuleHeader(e, t, s, i, a) {
-    const o = this._isRuleCollapsed(e, t);
+  _renderRuleHeader(e, t, s, i, o) {
+    const a = this._isRuleCollapsed(e, t);
     return r`
       <div slot="header" class="rule-header">
         <button
           type="button"
           class="rule-toggle"
-          aria-label=${o ? "Expand rule" : "Collapse rule"}
-          aria-expanded=${!o}
+          aria-label=${a ? "Expand rule" : "Collapse rule"}
+          aria-expanded=${!a}
           @click=${() => this._toggleRuleCollapsed(e, t)}
         >
           <umb-icon
-            name=${o ? "icon-navigation-right" : "icon-navigation-down"}
+            name=${a ? "icon-navigation-right" : "icon-navigation-down"}
           ></umb-icon>
           <strong>Rule ${t + 1}</strong>
-          ${a ? r`<span class="rule-suffix">${a}</span>` : v}
+          ${o ? r`<span class="rule-suffix">${o}</span>` : v}
         </button>
         <uui-button
           look="secondary"
@@ -491,21 +491,21 @@ let g = class extends D {
   /* Tab renderers                                                      */
   /* ------------------------------------------------------------------ */
   _renderAutoNodeTab(e) {
-    const t = this._settings.autoNode, s = (a) => {
-      this._patchSettings("autoNode", { ...t, ...a });
-    }, i = (a, o) => {
-      const n = t.rules.map((d, h) => h === a ? { ...d, ...o } : d);
+    const t = this._settings.autoNode, s = (o) => {
+      this._patchSettings("autoNode", { ...t, ...o });
+    }, i = (o, a) => {
+      const n = t.rules.map((d, h) => h === o ? { ...d, ...a } : d);
       s({ rules: n });
     };
     return r`
       <uui-box>
         <h3 slot="headline" class="uui-h3">AutoNode</h3>
-        <p class="feature-description">
+        ${this._renderEnableButton(t.enabled, e, (o) => s({ enabled: o }))}
+        <p class="feature-description no-divider">
           Automatically creates child nodes when a parent is published, based on rules that match
           document types. Useful for scaffolding required child structure (folders, landing pages)
           the moment a content item is created.
         </p>
-        ${this._renderFeatureToggle(t.enabled, e, (a) => s({ enabled: a }))}
         <div class="stack">
           <label class="fit">
             <span>Log level</span>
@@ -515,7 +515,7 @@ let g = class extends D {
       { name: "Normal", value: "Normal", selected: t.logLevel === "Normal" },
       { name: "Verbose", value: "Verbose", selected: t.logLevel === "Verbose" }
     ]}
-              @change=${(a) => s({ logLevel: a.target.value })}
+              @change=${(o) => s({ logLevel: o.target.value })}
             ></uui-select>
           </label>
           <div>
@@ -524,7 +524,7 @@ let g = class extends D {
               ?disabled=${e || !t.enabled}
               label="Republish existing nodes"
               label-position="right"
-              @change=${(a) => s({ republishExistingNodes: a.target.checked })}
+              @change=${(o) => s({ republishExistingNodes: o.target.checked })}
             ></uui-toggle>
             <p class="field-description">
               When on, AutoNode will also process already-published parent nodes — any missing child
@@ -535,90 +535,90 @@ let g = class extends D {
         </div>
         <h4>Rules</h4>
         ${t.rules.length === 0 ? r`<p class="empty">No rules defined.</p>` : v}
-        ${t.rules.map((a, o) => {
-      const n = a.createdDocTypeAlias && a.docTypeAliasToCreate ? `(${a.createdDocTypeAlias} → ${a.docTypeAliasToCreate})` : "", d = n ? `Rule ${o + 1} ${n}` : `Rule ${o + 1}`, h = a.nodeName ?? "", b = () => {
-        this._removeRuleAndReindex("autoNode", o), s({ rules: t.rules.filter((u, T) => T !== o) });
-      }, l = this._isRuleCollapsed("autoNode", o) ? this._renderCollapsedRule("autoNode", o, d, h, e || !t.enabled, b) : r`
+        ${t.rules.map((o, a) => {
+      const n = o.createdDocTypeAlias && o.docTypeAliasToCreate ? `(${o.createdDocTypeAlias} → ${o.docTypeAliasToCreate})` : "", d = n ? `Rule ${a + 1} ${n}` : `Rule ${a + 1}`, h = o.nodeName ?? "", b = () => {
+        this._removeRuleAndReindex("autoNode", a), s({ rules: t.rules.filter((u, T) => T !== a) });
+      }, l = this._isRuleCollapsed("autoNode", a) ? this._renderCollapsedRule("autoNode", a, d, h, e || !t.enabled, b) : r`
                 <uui-box class="rule-card">
-                  ${this._renderRuleHeader("autoNode", o, e || !t.enabled, b, n || void 0)}
+                  ${this._renderRuleHeader("autoNode", a, e || !t.enabled, b, n || void 0)}
                   <div class="grid">
                     ${this._docTypeField(
         "Triggering doctype *",
-        a.createdDocTypeAlias,
+        o.createdDocTypeAlias,
         e || !t.enabled,
-        (u) => i(o, { createdDocTypeAlias: u })
+        (u) => i(a, { createdDocTypeAlias: u })
       )}
                     ${this._docTypeField(
         "DocType to create *",
-        a.docTypeAliasToCreate,
+        o.docTypeAliasToCreate,
         e || !t.enabled,
-        (u) => i(o, { docTypeAliasToCreate: u })
+        (u) => i(a, { docTypeAliasToCreate: u })
       )}
                     ${this._textField(
         "Node name *",
-        a.nodeName,
+        o.nodeName,
         e || !t.enabled,
-        (u) => i(o, { nodeName: u })
+        (u) => i(a, { nodeName: u })
       )}
                     ${this._textField(
         "Dictionary item for name",
-        a.dictionaryItemForName,
+        o.dictionaryItemForName,
         e || !t.enabled,
-        (u) => i(o, { dictionaryItemForName: u })
+        (u) => i(a, { dictionaryItemForName: u })
       )}
                     ${this._blueprintField(
         "Blueprint",
-        a.docTypeAliasToCreate,
-        a.blueprint,
+        o.docTypeAliasToCreate,
+        o.blueprint,
         e || !t.enabled,
-        (u) => i(o, { blueprint: u })
+        (u) => i(a, { blueprint: u })
       )}
                     ${this._toggleField(
         "Bring new node first",
-        a.bringNewNodeFirst,
+        o.bringNewNodeFirst,
         e || !t.enabled,
-        (u) => i(o, { bringNewNodeFirst: u }),
+        (u) => i(a, { bringNewNodeFirst: u }),
         "row-break"
       )}
                     ${this._toggleField(
         "Only create if no children",
-        a.onlyCreateIfNoChildren,
+        o.onlyCreateIfNoChildren,
         e || !t.enabled,
-        (u) => i(o, { onlyCreateIfNoChildren: u })
+        (u) => i(a, { onlyCreateIfNoChildren: u })
       )}
                     ${this._toggleField(
         "Create if exists with different name",
-        a.createIfExistsWithDifferentName,
+        o.createIfExistsWithDifferentName,
         e || !t.enabled,
-        (u) => i(o, { createIfExistsWithDifferentName: u })
+        (u) => i(a, { createIfExistsWithDifferentName: u })
       )}
                     ${this._toggleField(
         "Keep new node unpublished",
-        a.keepNewNodeUnpublished,
+        o.keepNewNodeUnpublished,
         e || !t.enabled,
-        (u) => i(o, { keepNewNodeUnpublished: u })
+        (u) => i(a, { keepNewNodeUnpublished: u })
       )}
                   </div>
                 </uui-box>
               `, p = [
         "rule-wrapper",
-        this._dragIndex === o ? "dragging" : "",
-        this._dragOverIndex === o && this._dragPosition === "before" ? "drop-before" : "",
-        this._dragOverIndex === o && this._dragPosition === "after" ? "drop-after" : ""
+        this._dragIndex === a ? "dragging" : "",
+        this._dragOverIndex === a && this._dragPosition === "before" ? "drop-before" : "",
+        this._dragOverIndex === a && this._dragPosition === "after" ? "drop-after" : ""
       ].filter(Boolean).join(" "), $ = e || !t.enabled;
       return r`
             <div
               class=${p}
-              @dragover=${(u) => this._onRuleDragOver(u, o)}
-              @dragleave=${() => this._onRuleDragLeave(o)}
-              @drop=${(u) => this._onRuleDrop(u, o)}
+              @dragover=${(u) => this._onRuleDragOver(u, a)}
+              @dragleave=${() => this._onRuleDragLeave(a)}
+              @drop=${(u) => this._onRuleDrop(u, a)}
             >
               <span
                 class="drag-handle"
                 draggable=${$ ? "false" : "true"}
                 aria-label="Drag to reorder"
                 title="Drag to reorder"
-                @dragstart=${(u) => this._onRuleDragStart(u, o)}
+                @dragstart=${(u) => this._onRuleDragStart(u, a)}
                 @dragend=${() => this._onRuleDragEnd()}
               >
                 <umb-icon name="icon-navigation"></umb-icon>
@@ -631,219 +631,98 @@ let g = class extends D {
           look="secondary"
           label="Add rule"
           ?disabled=${e || !t.enabled}
-          @click=${() => s({ rules: [...t.rules, M()] })}
+          @click=${() => s({ rules: [...t.rules, z()] })}
         >+ Add rule</uui-button>
       </uui-box>
     `;
   }
   _renderNodeRestrictTab(e) {
-    const t = this._settings.nodeRestrict, s = (a) => {
-      this._patchSettings("nodeRestrict", { ...t, ...a });
-    }, i = (a, o) => {
-      const n = t.rules.map((d, h) => h === a ? { ...d, ...o } : d);
+    const t = this._settings.nodeRestrict, s = (o) => {
+      this._patchSettings("nodeRestrict", { ...t, ...o });
+    }, i = (o, a) => {
+      const n = t.rules.map((d, h) => h === o ? { ...d, ...a } : d);
       s({ rules: n });
     };
     return r`
       <uui-box>
         <h3 slot="headline" class="uui-h3">NodeRestrict</h3>
-        <p class="feature-description">
+        ${this._renderEnableButton(t.enabled, e, (o) => s({ enabled: o }))}
+        <p class="feature-description no-divider">
           Limits the number of child nodes of a given type that can be created under a parent node.
           Editors see a configurable warning or error message when they try to exceed the limit.
         </p>
-        ${this._renderFeatureToggle(t.enabled, e, (a) => s({ enabled: a }))}
         <div class="grid">
           ${this._textField(
       "Property alias *",
       t.propertyAlias,
       e || !t.enabled,
-      (a) => s({ propertyAlias: a })
+      (o) => s({ propertyAlias: o })
     )}
           ${this._toggleField(
       "Show warnings",
       t.showWarnings,
       e || !t.enabled,
-      (a) => s({ showWarnings: a })
+      (o) => s({ showWarnings: o })
     )}
         </div>
         <h4>Rules</h4>
         ${t.rules.length === 0 ? r`<p class="empty">No rules defined.</p>` : v}
-        ${t.rules.map((a, o) => {
-      const n = !a.childDocType || a.childDocType === "*" ? "any" : a.childDocType, d = a.parentDocType ? `(${a.parentDocType} → ${n})` : "", h = d ? `Rule ${o + 1} ${d}` : `Rule ${o + 1}`, b = `Max ${a.maxNodes ?? 0}`, l = () => {
-        this._removeRuleAndReindex("nodeRestrict", o), s({ rules: t.rules.filter((p, $) => $ !== o) });
+        ${t.rules.map((o, a) => {
+      const n = !o.childDocType || o.childDocType === "*" ? "any" : o.childDocType, d = o.parentDocType ? `(${o.parentDocType} → ${n})` : "", h = d ? `Rule ${a + 1} ${d}` : `Rule ${a + 1}`, b = `Max ${o.maxNodes ?? 0}`, l = () => {
+        this._removeRuleAndReindex("nodeRestrict", a), s({ rules: t.rules.filter((p, $) => $ !== a) });
       };
-      return this._isRuleCollapsed("nodeRestrict", o) ? this._renderCollapsedRule("nodeRestrict", o, h, b, e || !t.enabled, l) : r`
+      return this._isRuleCollapsed("nodeRestrict", a) ? this._renderCollapsedRule("nodeRestrict", a, h, b, e || !t.enabled, l) : r`
             <uui-box class="rule-card">
-              ${this._renderRuleHeader("nodeRestrict", o, e || !t.enabled, l, d || void 0)}
+              ${this._renderRuleHeader("nodeRestrict", a, e || !t.enabled, l, d || void 0)}
               <div class="grid">
                 ${this._docTypeField(
         "Parent doctype *",
-        a.parentDocType,
+        o.parentDocType,
         e || !t.enabled,
-        (p) => i(o, { parentDocType: p })
+        (p) => i(a, { parentDocType: p })
       )}
                 ${this._docTypeField(
         "Child doctype",
-        a.childDocType || "*",
+        o.childDocType || "*",
         e || !t.enabled,
-        (p) => i(o, { childDocType: p }),
+        (p) => i(a, { childDocType: p }),
         { label: "Any doctype", value: "*" }
       )}
                 ${this._numberField(
         "Max nodes *",
-        a.maxNodes,
+        o.maxNodes,
         e || !t.enabled,
-        (p) => i(o, { maxNodes: p })
+        (p) => i(a, { maxNodes: p })
       )}
                 ${this._toggleField(
         "Show warnings",
-        a.showWarnings,
+        o.showWarnings,
         e || !t.enabled,
-        (p) => i(o, { showWarnings: p })
+        (p) => i(a, { showWarnings: p })
       )}
                 ${this._textField(
         "Custom limit message",
-        a.customMessage,
+        o.customMessage,
         e || !t.enabled,
-        (p) => i(o, { customMessage: p })
+        (p) => i(a, { customMessage: p })
       )}
                 ${this._textField(
         "Custom limit category",
-        a.customMessageCategory,
+        o.customMessageCategory,
         e || !t.enabled,
-        (p) => i(o, { customMessageCategory: p })
+        (p) => i(a, { customMessageCategory: p })
       )}
                 ${this._textField(
         "Custom warning message",
-        a.customWarningMessage,
+        o.customWarningMessage,
         e || !t.enabled,
-        (p) => i(o, { customWarningMessage: p })
+        (p) => i(a, { customWarningMessage: p })
       )}
                 ${this._textField(
         "Custom warning category",
-        a.customWarningMessageCategory,
+        o.customWarningMessageCategory,
         e || !t.enabled,
-        (p) => i(o, { customWarningMessageCategory: p })
-      )}
-              </div>
-            </uui-box>
-          `;
-    })}
-        <uui-button
-          look="secondary"
-          label="Add rule"
-          ?disabled=${e || !t.enabled}
-          @click=${() => s({ rules: [...t.rules, I()] })}
-        >+ Add rule</uui-button>
-      </uui-box>
-    `;
-  }
-  _renderVirtualNodesTab(e) {
-    const t = this._settings.virtualNodes, s = (i) => {
-      this._patchSettings("virtualNodes", { ...t, ...i });
-    };
-    return r`
-      <uui-box>
-        <h3 slot="headline" class="uui-h3">VirtualNodes</h3>
-        <p class="feature-description">
-          Hides the URL segment of the selected document types so their children appear one level
-          higher in the site's public URLs. Useful for grouping content in the tree without that
-          grouping leaking into the URL.
-        </p>
-        ${this._renderFeatureToggle(t.enabled, e, (i) => s({ enabled: i }))}
-        <div class="grid">
-          ${this._multiAliasField(
-      "Virtual node doctypes",
-      this._docTypes,
-      (t.rules ?? []).join(","),
-      e || !t.enabled,
-      (i) => {
-        const a = i ? i.split(",").map((o) => o.trim()).filter((o) => o.length > 0) : [];
-        s({ rules: a });
-      }
-    )}
-        </div>
-      </uui-box>
-    `;
-  }
-  _renderVariantsHiderTab(e) {
-    const t = this._settings.variantsHider, s = (i) => {
-      this._patchSettings("variantsHider", { ...t, ...i });
-    };
-    return r`
-      <uui-box>
-        <h3 slot="headline" class="uui-h3">VariantsHider</h3>
-        <p class="feature-description">
-          Adds an entity action on the content tree that hides language variants that haven't been
-          created yet (those shown in parentheses), so editors only see variants that actually exist.
-        </p>
-        ${this._renderFeatureToggle(t.enabled, e, (i) => s({ enabled: i }))}
-        <div class="grid">
-          ${this._textField(
-      "Caption",
-      t.caption,
-      e || !t.enabled,
-      (i) => s({ caption: i })
-    )}
-        </div>
-      </uui-box>
-    `;
-  }
-  _renderNodeProtectTab(e) {
-    const t = this._settings.nodeProtect, s = (a) => {
-      this._patchSettings("nodeProtect", { ...t, ...a });
-    }, i = (a, o) => {
-      const n = t.rules.map((d, h) => h === a ? { ...d, ...o } : d);
-      s({ rules: n });
-    };
-    return r`
-      <uui-box>
-        <h3 slot="headline" class="uui-h3">NodeProtect</h3>
-        <p class="feature-description">
-          Prevents deletion of important nodes, either by document type or by specific GUID. Editors
-          see a configurable message explaining why the node can't be deleted.
-        </p>
-        ${this._renderFeatureToggle(t.enabled, e, (a) => s({ enabled: a }))}
-        <div class="grid">
-          ${this._textField(
-      "Property alias *",
-      t.propertyAlias,
-      e || !t.enabled,
-      (a) => s({ propertyAlias: a })
-    )}
-        </div>
-        <h4>Rules</h4>
-        ${t.rules.length === 0 ? r`<p class="empty">No rules defined.</p>` : v}
-        ${t.rules.map((a, o) => {
-      const n = a.docTypeAlias ? `(${a.docTypeAlias})` : "", d = n ? `Rule ${o + 1} ${n}` : `Rule ${o + 1}`, h = a.documentGuids ? "By GUIDs" : a.docTypeAlias ? "By doctype" : "", b = () => {
-        this._removeRuleAndReindex("nodeProtect", o), s({ rules: t.rules.filter((l, p) => p !== o) });
-      };
-      return this._isRuleCollapsed("nodeProtect", o) ? this._renderCollapsedRule("nodeProtect", o, d, h, e || !t.enabled, b) : r`
-            <uui-box class="rule-card">
-              ${this._renderRuleHeader("nodeProtect", o, e || !t.enabled, b, n || void 0)}
-              <div class="grid">
-                ${this._docTypeField(
-        "DocType alias",
-        a.docTypeAlias,
-        e || !t.enabled,
-        (l) => i(o, { docTypeAlias: l })
-      )}
-                ${this._textField(
-        "Document GUIDs (comma separated)",
-        a.documentGuids,
-        e || !t.enabled,
-        (l) => i(o, { documentGuids: l })
-      )}
-                ${this._textField(
-        "Custom message",
-        a.customMessage,
-        e || !t.enabled,
-        (l) => i(o, { customMessage: l })
-      )}
-                ${this._textField(
-        "Custom message category",
-        a.customMessageCategory,
-        e || !t.enabled,
-        (l) => i(o, { customMessageCategory: l })
+        (p) => i(a, { customWarningMessageCategory: p })
       )}
               </div>
             </uui-box>
@@ -858,6 +737,127 @@ let g = class extends D {
       </uui-box>
     `;
   }
+  _renderVirtualNodesTab(e) {
+    const t = this._settings.virtualNodes, s = (i) => {
+      this._patchSettings("virtualNodes", { ...t, ...i });
+    };
+    return r`
+      <uui-box>
+        <h3 slot="headline" class="uui-h3">VirtualNodes</h3>
+        ${this._renderEnableButton(t.enabled, e, (i) => s({ enabled: i }))}
+        <p class="feature-description no-divider">
+          Hides the URL segment of the selected document types so their children appear one level
+          higher in the site's public URLs. Useful for grouping content in the tree without that
+          grouping leaking into the URL.
+        </p>
+        <div class="grid">
+          ${this._multiAliasField(
+      "Virtual node doctypes",
+      this._docTypes,
+      (t.rules ?? []).join(","),
+      e || !t.enabled,
+      (i) => {
+        const o = i ? i.split(",").map((a) => a.trim()).filter((a) => a.length > 0) : [];
+        s({ rules: o });
+      }
+    )}
+        </div>
+      </uui-box>
+    `;
+  }
+  _renderVariantsHiderTab(e) {
+    const t = this._settings.variantsHider, s = (i) => {
+      this._patchSettings("variantsHider", { ...t, ...i });
+    };
+    return r`
+      <uui-box>
+        <h3 slot="headline" class="uui-h3">VariantsHider</h3>
+        ${this._renderEnableButton(t.enabled, e, (i) => s({ enabled: i }))}
+        <p class="feature-description no-divider">
+          Adds an entity action on the content tree that hides language variants that haven't been
+          created yet (those shown in parentheses), so editors only see variants that actually exist.
+        </p>
+        <div class="grid">
+          ${this._textField(
+      "Caption",
+      t.caption,
+      e || !t.enabled,
+      (i) => s({ caption: i })
+    )}
+        </div>
+      </uui-box>
+    `;
+  }
+  _renderNodeProtectTab(e) {
+    const t = this._settings.nodeProtect, s = (o) => {
+      this._patchSettings("nodeProtect", { ...t, ...o });
+    }, i = (o, a) => {
+      const n = t.rules.map((d, h) => h === o ? { ...d, ...a } : d);
+      s({ rules: n });
+    };
+    return r`
+      <uui-box>
+        <h3 slot="headline" class="uui-h3">NodeProtect</h3>
+        ${this._renderEnableButton(t.enabled, e, (o) => s({ enabled: o }))}
+        <p class="feature-description no-divider">
+          Prevents deletion of important nodes, either by document type or by specific GUID. Editors
+          see a configurable message explaining why the node can't be deleted.
+        </p>
+        <div class="grid">
+          ${this._textField(
+      "Property alias *",
+      t.propertyAlias,
+      e || !t.enabled,
+      (o) => s({ propertyAlias: o })
+    )}
+        </div>
+        <h4>Rules</h4>
+        ${t.rules.length === 0 ? r`<p class="empty">No rules defined.</p>` : v}
+        ${t.rules.map((o, a) => {
+      const n = o.docTypeAlias ? `(${o.docTypeAlias})` : "", d = n ? `Rule ${a + 1} ${n}` : `Rule ${a + 1}`, h = o.documentGuids ? "By GUIDs" : o.docTypeAlias ? "By doctype" : "", b = () => {
+        this._removeRuleAndReindex("nodeProtect", a), s({ rules: t.rules.filter((l, p) => p !== a) });
+      };
+      return this._isRuleCollapsed("nodeProtect", a) ? this._renderCollapsedRule("nodeProtect", a, d, h, e || !t.enabled, b) : r`
+            <uui-box class="rule-card">
+              ${this._renderRuleHeader("nodeProtect", a, e || !t.enabled, b, n || void 0)}
+              <div class="grid">
+                ${this._docTypeField(
+        "DocType alias",
+        o.docTypeAlias,
+        e || !t.enabled,
+        (l) => i(a, { docTypeAlias: l })
+      )}
+                ${this._textField(
+        "Document GUIDs (comma separated)",
+        o.documentGuids,
+        e || !t.enabled,
+        (l) => i(a, { documentGuids: l })
+      )}
+                ${this._textField(
+        "Custom message",
+        o.customMessage,
+        e || !t.enabled,
+        (l) => i(a, { customMessage: l })
+      )}
+                ${this._textField(
+        "Custom message category",
+        o.customMessageCategory,
+        e || !t.enabled,
+        (l) => i(a, { customMessageCategory: l })
+      )}
+              </div>
+            </uui-box>
+          `;
+    })}
+        <uui-button
+          look="secondary"
+          label="Add rule"
+          ?disabled=${e || !t.enabled}
+          @click=${() => s({ rules: [...t.rules, I()] })}
+        >+ Add rule</uui-button>
+      </uui-box>
+    `;
+  }
   _renderAiSummaryTab(e) {
     const t = this._settings.aiSummary, s = (i) => {
       this._patchSettings("aiSummary", { ...t, ...i });
@@ -865,12 +865,12 @@ let g = class extends D {
     return r`
       <uui-box>
         <h3 slot="headline" class="uui-h3">AiSummary</h3>
-        <p class="feature-description">
+        ${this._renderEnableButton(t.enabled, e, (i) => s({ enabled: i }))}
+        <p class="feature-description no-divider">
           Generates AI-powered content summaries using OpenAI or Gemini and writes the result into a
           configured property. A toggle property on the node controls whether a summary should be
           produced for that item.
         </p>
-        ${this._renderFeatureToggle(t.enabled, e, (i) => s({ enabled: i }))}
         <div class="grid">
           <label>
             <span>LLM *</span>
@@ -943,11 +943,11 @@ let g = class extends D {
     return r`
       <uui-box>
         <h3 slot="headline" class="uui-h3">PropertyVersions</h3>
-        <p class="feature-description">
+        ${this._renderEnableButton(t.enabled, e, (i) => s({ enabled: i }))}
+        <p class="feature-description no-divider">
           Adds navigation actions to properties so editors can step through previous saved versions
           and roll individual properties back without restoring the whole document.
         </p>
-        ${this._renderFeatureToggle(t.enabled, e, (i) => s({ enabled: i }))}
         <div class="grid">
           ${this._textField(
       "Next version dictionary entry",
@@ -981,27 +981,27 @@ let g = class extends D {
         <uui-input
           .value=${t ?? ""}
           ?disabled=${s}
-          @input=${(a) => i(a.target.value)}
+          @input=${(o) => i(o.target.value)}
         ></uui-input>
       </label>
     `;
   }
-  _docTypeField(e, t, s, i, a) {
-    return this._aliasField(e, this._docTypes, t, s, i, a);
+  _docTypeField(e, t, s, i, o) {
+    return this._aliasField(e, this._docTypes, t, s, i, o);
   }
-  _propertyField(e, t, s, i, a) {
-    return this._aliasField(e, t, s, i, a);
+  _propertyField(e, t, s, i, o) {
+    return this._aliasField(e, t, s, i, o);
   }
-  _multiAliasField(e, t, s, i, a) {
-    const o = new Set(
+  _multiAliasField(e, t, s, i, o) {
+    const a = new Set(
       (s ?? "").split(",").map((c) => c.trim()).filter((c) => c.length > 0)
     ), n = (c, w) => {
-      w ? o.add(c) : o.delete(c), a(Array.from(o).join(","));
-    }, d = new Set(t.map((c) => c.alias)), h = Array.from(o).filter((c) => !d.has(c)), b = this._expandedFields.has(e), l = this._filterModes.get(e) ?? "all", p = (c) => {
+      w ? a.add(c) : a.delete(c), o(Array.from(a).join(","));
+    }, d = new Set(t.map((c) => c.alias)), h = Array.from(a).filter((c) => !d.has(c)), b = this._expandedFields.has(e), l = this._filterModes.get(e) ?? "all", p = (c) => {
       c ? this._expandedFields.add(e) : this._expandedFields.delete(e), this.requestUpdate();
     }, $ = (c) => {
       this._filterModes.set(e, c), this.requestUpdate();
-    }, u = l === "selected" ? t.filter((c) => o.has(c.alias)) : t, T = l === "selected" || l === "all" ? h : [];
+    }, u = l === "selected" ? t.filter((c) => a.has(c.alias)) : t, T = l === "selected" || l === "all" ? h : [];
     return r`
       <label>
         <span>${e}</span>
@@ -1014,7 +1014,7 @@ let g = class extends D {
               @click=${() => p(!b)}
             >
               <span class="multi-action">${b ? "Hide list" : "Show list"}</span>
-              <span class="multi-count">(${o.size} selected)</span>
+              <span class="multi-count">(${a.size} selected)</span>
             </button>
             ${b ? r`
                   <div class="multi-filter">
@@ -1050,7 +1050,7 @@ let g = class extends D {
                         <input
                           type="checkbox"
                           ?disabled=${i}
-                          .checked=${o.has(c.alias)}
+                          .checked=${a.has(c.alias)}
                           @change=${(w) => n(c.alias, w.target.checked)}
                         />
                         <span>${c.name} (${c.alias})</span>
@@ -1076,15 +1076,15 @@ let g = class extends D {
       </label>
     `;
   }
-  _aliasField(e, t, s, i, a, o) {
-    const n = s ?? "", d = new Set(t.map((l) => l.alias)), h = (o == null ? void 0 : o.value) ?? "", b = (o == null ? void 0 : o.label) ?? "-- Select --";
+  _aliasField(e, t, s, i, o, a) {
+    const n = s ?? "", d = new Set(t.map((l) => l.alias)), h = (a == null ? void 0 : a.value) ?? "", b = (a == null ? void 0 : a.label) ?? "-- Select --";
     return r`
       <label>
         <span>${e}</span>
         <select
           class="doctype-select"
           ?disabled=${i}
-          @change=${(l) => a(l.target.value)}
+          @change=${(l) => o(l.target.value)}
         >
           <option value=${h} ?selected=${n === h || n === ""}>
             ${b}
@@ -1101,8 +1101,8 @@ let g = class extends D {
       </label>
     `;
   }
-  _blueprintField(e, t, s, i, a) {
-    const o = s ?? "", n = t ? this._blueprints.filter(
+  _blueprintField(e, t, s, i, o) {
+    const a = s ?? "", n = t ? this._blueprints.filter(
       (l) => l.docTypeAlias.localeCompare(t, void 0, { sensitivity: "accent" }) === 0
     ) : [], d = new Set(n.map((l) => l.name)), h = i || !t, b = t ? n.length === 0 ? "-- No blueprints available --" : "-- Select --" : "-- Select a doctype first --";
     return r`
@@ -1111,15 +1111,15 @@ let g = class extends D {
         <select
           class="doctype-select"
           ?disabled=${h}
-          @change=${(l) => a(l.target.value)}
+          @change=${(l) => o(l.target.value)}
         >
-          <option value="" ?selected=${o === ""}>${b}</option>
+          <option value="" ?selected=${a === ""}>${b}</option>
           ${n.map(
       (l) => r`
-              <option value=${l.name} ?selected=${l.name === o}>${l.name}</option>
+              <option value=${l.name} ?selected=${l.name === a}>${l.name}</option>
             `
     )}
-          ${o && !d.has(o) ? r`<option value=${o} selected>${o} (not found)</option>` : v}
+          ${a && !d.has(a) ? r`<option value=${a} selected>${a} (not found)</option>` : v}
         </select>
       </label>
     `;
@@ -1135,28 +1135,28 @@ let g = class extends D {
           inputmode="numeric"
           .value=${(t == null ? void 0 : t.toString()) ?? "0"}
           ?disabled=${s}
-          @input=${(a) => {
-      const o = a.target.value, n = o === "" ? 0 : Number(o);
+          @input=${(o) => {
+      const a = o.target.value, n = a === "" ? 0 : Number(a);
       i(Number.isNaN(n) ? 0 : n);
     }}
         ></uui-input>
       </label>
     `;
   }
-  _toggleField(e, t, s, i, a) {
+  _toggleField(e, t, s, i, o) {
     return r`
-      <label class=${`inline${a ? ` ${a}` : ""}`}>
+      <label class=${`inline${o ? ` ${o}` : ""}`}>
         <uui-toggle
           .checked=${t}
           ?disabled=${s}
-          @change=${(o) => i(o.target.checked)}
+          @change=${(a) => i(a.target.checked)}
         ></uui-toggle>
         <span>${e}</span>
       </label>
     `;
   }
 };
-O(g, "styles", F`
+O(g, "styles", S`
     :host {
       display: block;
       height: 100%;
@@ -1227,21 +1227,19 @@ O(g, "styles", F`
       width: auto;
       min-width: fit-content;
     }
-    .feature-toggle {
-      display: block;
-      margin-bottom: calc(var(--uui-size-space-3, 12px) + 5px);
-      padding-bottom: calc(var(--uui-size-space-3, 12px) + 5px);
-      border-bottom: 1px solid #e9e9eb;
-    }
     uui-box:has(.feature-description) {
       --uui-color-divider-standalone: transparent;
     }
-    .feature-description {
+.feature-description {
       color: var(--uui-color-text-alt, #666);
       margin: calc(-1 * var(--uui-size-space-4, 12px)) 0 var(--uui-size-space-4, 16px);
       padding-bottom: var(--uui-size-space-4, 16px);
       line-height: 1.5;
       border-bottom: 1px solid #e9e9eb;
+    }
+    .feature-description.no-divider {
+      padding-bottom: 0;
+      border-bottom: none;
     }
     h4 {
       margin-top: var(--uui-size-space-4, 16px);
@@ -1546,11 +1544,11 @@ f([
   _()
 ], g.prototype, "_dragPosition", 2);
 g = f([
-  S("dotsee-discipline-settings-workspace")
+  D("dotsee-discipline-settings-workspace")
 ], g);
 const J = g;
 export {
   g as DisciplineSettingsWorkspaceElement,
   J as default
 };
-//# sourceMappingURL=discipline-settings.workspace.element-BDz9gjK8.js.map
+//# sourceMappingURL=discipline-settings.workspace.element-8AmQZ9tY.js.map

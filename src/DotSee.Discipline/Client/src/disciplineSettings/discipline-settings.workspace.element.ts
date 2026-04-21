@@ -402,20 +402,20 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     `;
   }
 
-  private _renderFeatureToggle(
-    checked: boolean,
+  private _renderEnableButton(
+    enabled: boolean,
     disabled: boolean,
     onChange: (value: boolean) => void,
   ) {
     return html`
-      <uui-toggle
-        class="feature-toggle"
-        .checked=${checked}
+      <uui-button
+        slot="header-actions"
+        look=${enabled ? 'secondary' : 'primary'}
+        color=${enabled ? 'default' : 'positive'}
+        label=${enabled ? 'Disable' : 'Enable'}
         ?disabled=${disabled}
-        label="Enable this feature"
-        label-position="right"
-        @change=${(e: Event) => onChange((e.target as HTMLInputElement).checked)}
-      ></uui-toggle>
+        @click=${() => onChange(!enabled)}
+      ></uui-button>
     `;
   }
 
@@ -642,12 +642,12 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     return html`
       <uui-box>
         <h3 slot="headline" class="uui-h3">AutoNode</h3>
-        <p class="feature-description">
+        ${this._renderEnableButton(feat.enabled, disabled, (v) => update({ enabled: v }))}
+        <p class="feature-description no-divider">
           Automatically creates child nodes when a parent is published, based on rules that match
           document types. Useful for scaffolding required child structure (folders, landing pages)
           the moment a content item is created.
         </p>
-        ${this._renderFeatureToggle(feat.enabled, disabled, (v) => update({ enabled: v }))}
         <div class="stack">
           <label class="fit">
             <span>Log level</span>
@@ -792,11 +792,11 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     return html`
       <uui-box>
         <h3 slot="headline" class="uui-h3">NodeRestrict</h3>
-        <p class="feature-description">
+        ${this._renderEnableButton(feat.enabled, disabled, (v) => update({ enabled: v }))}
+        <p class="feature-description no-divider">
           Limits the number of child nodes of a given type that can be created under a parent node.
           Editors see a configurable warning or error message when they try to exceed the limit.
         </p>
-        ${this._renderFeatureToggle(feat.enabled, disabled, (v) => update({ enabled: v }))}
         <div class="grid">
           ${this._textField('Property alias *', feat.propertyAlias, disabled || !feat.enabled, (v) =>
             update({ propertyAlias: v }),
@@ -880,12 +880,12 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     return html`
       <uui-box>
         <h3 slot="headline" class="uui-h3">VirtualNodes</h3>
-        <p class="feature-description">
+        ${this._renderEnableButton(feat.enabled, disabled, (v) => update({ enabled: v }))}
+        <p class="feature-description no-divider">
           Hides the URL segment of the selected document types so their children appear one level
           higher in the site's public URLs. Useful for grouping content in the tree without that
           grouping leaking into the URL.
         </p>
-        ${this._renderFeatureToggle(feat.enabled, disabled, (v) => update({ enabled: v }))}
         <div class="grid">
           ${this._multiAliasField(
             'Virtual node doctypes',
@@ -913,11 +913,11 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     return html`
       <uui-box>
         <h3 slot="headline" class="uui-h3">VariantsHider</h3>
-        <p class="feature-description">
+        ${this._renderEnableButton(feat.enabled, disabled, (v) => update({ enabled: v }))}
+        <p class="feature-description no-divider">
           Adds an entity action on the content tree that hides language variants that haven't been
           created yet (those shown in parentheses), so editors only see variants that actually exist.
         </p>
-        ${this._renderFeatureToggle(feat.enabled, disabled, (v) => update({ enabled: v }))}
         <div class="grid">
           ${this._textField('Caption', feat.caption, disabled || !feat.enabled, (v) =>
             update({ caption: v }),
@@ -940,11 +940,11 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     return html`
       <uui-box>
         <h3 slot="headline" class="uui-h3">NodeProtect</h3>
-        <p class="feature-description">
+        ${this._renderEnableButton(feat.enabled, disabled, (v) => update({ enabled: v }))}
+        <p class="feature-description no-divider">
           Prevents deletion of important nodes, either by document type or by specific GUID. Editors
           see a configurable message explaining why the node can't be deleted.
         </p>
-        ${this._renderFeatureToggle(feat.enabled, disabled, (v) => update({ enabled: v }))}
         <div class="grid">
           ${this._textField('Property alias *', feat.propertyAlias, disabled || !feat.enabled, (v) =>
             update({ propertyAlias: v }),
@@ -1008,12 +1008,12 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     return html`
       <uui-box>
         <h3 slot="headline" class="uui-h3">AiSummary</h3>
-        <p class="feature-description">
+        ${this._renderEnableButton(feat.enabled, disabled, (v) => update({ enabled: v }))}
+        <p class="feature-description no-divider">
           Generates AI-powered content summaries using OpenAI or Gemini and writes the result into a
           configured property. A toggle property on the node controls whether a summary should be
           produced for that item.
         </p>
-        ${this._renderFeatureToggle(feat.enabled, disabled, (v) => update({ enabled: v }))}
         <div class="grid">
           <label>
             <span>LLM *</span>
@@ -1083,11 +1083,11 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     return html`
       <uui-box>
         <h3 slot="headline" class="uui-h3">PropertyVersions</h3>
-        <p class="feature-description">
+        ${this._renderEnableButton(feat.enabled, disabled, (v) => update({ enabled: v }))}
+        <p class="feature-description no-divider">
           Adds navigation actions to properties so editors can step through previous saved versions
           and roll individual properties back without restoring the whole document.
         </p>
-        ${this._renderFeatureToggle(feat.enabled, disabled, (v) => update({ enabled: v }))}
         <div class="grid">
           ${this._textField(
             'Next version dictionary entry',
@@ -1468,21 +1468,19 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
       width: auto;
       min-width: fit-content;
     }
-    .feature-toggle {
-      display: block;
-      margin-bottom: calc(var(--uui-size-space-3, 12px) + 5px);
-      padding-bottom: calc(var(--uui-size-space-3, 12px) + 5px);
-      border-bottom: 1px solid #e9e9eb;
-    }
     uui-box:has(.feature-description) {
       --uui-color-divider-standalone: transparent;
     }
-    .feature-description {
+.feature-description {
       color: var(--uui-color-text-alt, #666);
       margin: calc(-1 * var(--uui-size-space-4, 12px)) 0 var(--uui-size-space-4, 16px);
       padding-bottom: var(--uui-size-space-4, 16px);
       line-height: 1.5;
       border-bottom: 1px solid #e9e9eb;
+    }
+    .feature-description.no-divider {
+      padding-bottom: 0;
+      border-bottom: none;
     }
     h4 {
       margin-top: var(--uui-size-space-4, 16px);
