@@ -1,14 +1,14 @@
-var k = Object.defineProperty;
-var A = (y, e, t) => e in y ? k(y, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : y[e] = t;
-var m = (y, e, t) => A(y, typeof e != "symbol" ? e + "" : e, t);
-import { html as r, nothing as v, css as S, state as _, customElement as D } from "@umbraco-cms/backoffice/external/lit";
-import { UmbLitElement as P } from "@umbraco-cms/backoffice/lit-element";
-import { UMB_AUTH_CONTEXT as C } from "@umbraco-cms/backoffice/auth";
-import { UMB_MODAL_MANAGER_CONTEXT as F, UMB_CONFIRM_MODAL as E } from "@umbraco-cms/backoffice/modal";
-import { UMB_NOTIFICATION_CONTEXT as M } from "@umbraco-cms/backoffice/notification";
-import { c as z, b as B, d as I } from "./index-DpYSXpkb.js";
+var F = Object.defineProperty;
+var R = (y, e, t) => e in y ? F(y, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : y[e] = t;
+var b = (y, e, t) => R(y, typeof e != "symbol" ? e + "" : e, t);
+import { html as r, nothing as _, css as A, state as v, customElement as D } from "@umbraco-cms/backoffice/external/lit";
+import { UmbLitElement as S } from "@umbraco-cms/backoffice/lit-element";
+import { UMB_AUTH_CONTEXT as P } from "@umbraco-cms/backoffice/auth";
+import { UMB_MODAL_MANAGER_CONTEXT as C, UMB_CONFIRM_MODAL as E } from "@umbraco-cms/backoffice/modal";
+import { UMB_NOTIFICATION_CONTEXT as H } from "@umbraco-cms/backoffice/notification";
+import { c as M, b as z, d as I } from "./index-DXKvopVq.js";
 const x = "/umbraco/api/discipline";
-class U {
+class L {
   constructor(e) {
     this.authToken = e;
   }
@@ -93,12 +93,12 @@ class U {
     return await e.json();
   }
 }
-var R = Object.defineProperty, L = Object.getOwnPropertyDescriptor, V = (y, e, t) => e in y ? R(y, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : y[e] = t, f = (y, e, t, s) => {
-  for (var i = s > 1 ? void 0 : s ? L(e, t) : e, o = y.length - 1, a; o >= 0; o--)
-    (a = y[o]) && (i = (s ? a(e, t, i) : a(i)) || i);
-  return s && i && R(e, t, i), i;
-}, O = (y, e, t) => V(y, e + "", t);
-const q = [
+var N = Object.defineProperty, U = Object.getOwnPropertyDescriptor, B = (y, e, t) => e in y ? N(y, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : y[e] = t, f = (y, e, t, s) => {
+  for (var i = s > 1 ? void 0 : s ? U(e, t) : e, a = y.length - 1, o; a >= 0; a--)
+    (o = y[a]) && (i = (s ? o(e, t, i) : o(i)) || i);
+  return s && i && N(e, t, i), i;
+}, O = (y, e, t) => B(y, e + "", t);
+const V = [
   { alias: "autoNode", label: "AutoNode" },
   { alias: "nodeRestrict", label: "NodeRestrict" },
   { alias: "virtualNodes", label: "VirtualNodes" },
@@ -107,7 +107,7 @@ const q = [
   { alias: "aiSummary", label: "AiSummary" },
   { alias: "propertyVersions", label: "PropertyVersions" }
 ];
-function N() {
+function T() {
   return {
     useBackoffice: !1,
     autoNode: { enabled: !1, logLevel: "Normal", republishExistingNodes: !1, rules: [] },
@@ -135,27 +135,27 @@ function N() {
     }
   };
 }
-let g = class extends P {
+let g = class extends S {
   constructor() {
     super(...arguments);
-    m(this, "_loading", !0);
-    m(this, "_saving", !1);
-    m(this, "_hasAppSettings", !1);
-    m(this, "_settings", N());
-    m(this, "_activeTab", "autoNode");
-    m(this, "_docTypes", []);
-    m(this, "_trueFalseProperties", []);
-    m(this, "_textContentProperties", []);
-    m(this, "_textInputProperties", []);
-    m(this, "_blueprints", []);
-    m(this, "_expandedFields", /* @__PURE__ */ new Set());
-    m(this, "_filterModes", /* @__PURE__ */ new Map());
-    m(this, "_collapsedRules", /* @__PURE__ */ new Set());
-    m(this, "_dragIndex", null);
-    m(this, "_dragOverIndex", null);
-    m(this, "_dragPosition", null);
-    m(this, "_repository");
-    m(this, "_onDocumentMouseDown", (e) => {
+    b(this, "_loading", !0);
+    b(this, "_saving", !1);
+    b(this, "_hasAppSettings", !1);
+    b(this, "_settings", T());
+    b(this, "_activeTab", "autoNode");
+    b(this, "_docTypes", []);
+    b(this, "_trueFalseProperties", []);
+    b(this, "_textContentProperties", []);
+    b(this, "_textInputProperties", []);
+    b(this, "_blueprints", []);
+    b(this, "_expandedFields", /* @__PURE__ */ new Set());
+    b(this, "_filterModes", /* @__PURE__ */ new Map());
+    b(this, "_collapsedRules", /* @__PURE__ */ new Set());
+    b(this, "_dragIndex", null);
+    b(this, "_dragOverIndex", null);
+    b(this, "_dragPosition", null);
+    b(this, "_repository");
+    b(this, "_onDocumentMouseDown", (e) => {
       if (this._expandedFields.size === 0) return;
       e.composedPath().some((s) => {
         var i;
@@ -170,10 +170,10 @@ let g = class extends P {
     super.disconnectedCallback(), document.removeEventListener("mousedown", this._onDocumentMouseDown);
   }
   async _init() {
-    const t = await (await this.getContext(C)).getLatestToken();
-    this._repository = new U(t);
+    const t = await (await this.getContext(P)).getLatestToken();
+    this._repository = new L(t);
     try {
-      const [s, i, o, a, n, d] = await Promise.all([
+      const [s, i, a, o, n, d] = await Promise.all([
         this._repository.getSettings(),
         this._repository.getDocTypes().catch(() => []),
         this._repository.getTrueFalseProperties().catch(() => []),
@@ -181,7 +181,7 @@ let g = class extends P {
         this._repository.getTextInputProperties().catch(() => []),
         this._repository.getBlueprints().catch(() => [])
       ]);
-      this._docTypes = i, this._trueFalseProperties = o, this._textContentProperties = a, this._textInputProperties = n, this._blueprints = d, this._applyResponse(s), this._collapseAllRules();
+      this._docTypes = i, this._trueFalseProperties = a, this._textContentProperties = o, this._textInputProperties = n, this._blueprints = d, this._applyResponse(s), this._collapseAllRules();
     } catch (s) {
       await this._notify("danger", `Could not load settings: ${this._errorMessage(s)}`);
     } finally {
@@ -189,14 +189,14 @@ let g = class extends P {
     }
   }
   _applyResponse(e) {
-    this._hasAppSettings = e.hasAppSettings, this._settings = e.settings ?? N(), this.requestUpdate();
+    this._hasAppSettings = e.hasAppSettings, this._settings = e.settings ?? T(), this.requestUpdate();
   }
   _errorMessage(e) {
     return e instanceof Error ? e.message : String(e);
   }
   async _notify(e, t) {
     try {
-      const s = await this.getContext(M);
+      const s = await this.getContext(H);
       s == null || s.peek(e, { data: { message: t } });
     } catch {
     }
@@ -210,7 +210,7 @@ let g = class extends P {
   }
   async _onImportClick() {
     if (!this._hasAppSettings || !this._repository) return;
-    const e = await this.getContext(F);
+    const e = await this.getContext(C);
     if (!e) return;
     const t = e.open(this, E, {
       data: {
@@ -276,9 +276,9 @@ let g = class extends P {
         ${this._renderSourceBanner()}
         ${t ? r`
               <div class="tab-bar">
-                ${q.map((s) => {
-      var a;
-      const i = !!((a = this._settings[s.alias]) != null && a.enabled), o = [
+                ${V.map((s) => {
+      var o;
+      const i = !!((o = this._settings[s.alias]) != null && o.enabled), a = [
         "tab-button",
         this._activeTab === s.alias ? "active" : "",
         i ? "enabled" : ""
@@ -286,12 +286,12 @@ let g = class extends P {
       return r`
                     <button
                       type="button"
-                      class=${o}
+                      class=${a}
                       @click=${() => {
         this._activeTab = s.alias, this.requestUpdate();
       }}
                     >
-                      ${i ? r`<umb-icon name="icon-check" class="tab-icon"></umb-icon>` : v}
+                      ${i ? r`<umb-icon name="icon-check" class="tab-icon"></umb-icon>` : _}
                       <span>${s.label}</span>
                     </button>
                   `;
@@ -307,7 +307,7 @@ let g = class extends P {
                 <div ?hidden=${this._activeTab !== "propertyVersions"}>${this._renderPropertyVersionsTab(e)}</div>
               </div>
               ${this._renderFooter()}
-            ` : v}
+            ` : _}
       </umb-body-layout>
     `;
   }
@@ -329,7 +329,7 @@ let g = class extends P {
                   ?disabled=${this._saving}
                   @click=${this._onImportClick}
                 ></uui-button>
-              ` : v}
+              ` : _}
         </div>
       </uui-box>
     ` : r`
@@ -362,12 +362,12 @@ let g = class extends P {
   }
   _remapCollapsedRules(e, t) {
     const s = `${e}:`, i = /* @__PURE__ */ new Set();
-    for (const o of this._collapsedRules) {
-      if (!o.startsWith(s)) {
-        i.add(o);
+    for (const a of this._collapsedRules) {
+      if (!a.startsWith(s)) {
+        i.add(a);
         continue;
       }
-      const a = Number(o.slice(s.length)), n = t.get(a);
+      const o = Number(a.slice(s.length)), n = t.get(o);
       n !== void 0 && i.add(`${s}${n}`);
     }
     this._collapsedRules = i;
@@ -377,19 +377,30 @@ let g = class extends P {
     if (e === t || e < 0 || e >= s.rules.length) return;
     const i = Math.max(0, Math.min(t, s.rules.length - 1));
     if (e === i) return;
-    const o = s.rules.slice(), [a] = o.splice(e, 1);
-    o.splice(i, 0, a);
-    const n = /* @__PURE__ */ new Map(), d = s.rules.map((b, l) => l), [h] = d.splice(e, 1);
-    d.splice(i, 0, h), d.forEach((b, l) => n.set(b, l)), this._remapCollapsedRules("autoNode", n), this._patchSettings("autoNode", { ...s, rules: o });
+    const a = s.rules.slice(), [o] = a.splice(e, 1);
+    a.splice(i, 0, o);
+    const n = /* @__PURE__ */ new Map(), d = s.rules.map((m, l) => l), [h] = d.splice(e, 1);
+    d.splice(i, 0, h), d.forEach((m, l) => n.set(m, l)), this._remapCollapsedRules("autoNode", n), this._patchSettings("autoNode", { ...s, rules: a });
   }
   _onRuleDragStart(e, t) {
-    this._dragIndex = t, e.dataTransfer && (e.dataTransfer.effectAllowed = "move", e.dataTransfer.setData("text/plain", String(t)));
+    if (this._dragIndex = t, e.dataTransfer) {
+      e.dataTransfer.effectAllowed = "move", e.dataTransfer.setData("text/plain", String(t));
+      const s = e.currentTarget, i = s == null ? void 0 : s.closest(".rule-wrapper");
+      if (i) {
+        const a = i.getBoundingClientRect();
+        e.dataTransfer.setDragImage(
+          i,
+          e.clientX - a.left,
+          e.clientY - a.top
+        );
+      }
+    }
   }
   _onRuleDragOver(e, t) {
     if (this._dragIndex === null) return;
     e.preventDefault(), e.dataTransfer && (e.dataTransfer.dropEffect = "move");
-    const i = e.currentTarget.getBoundingClientRect(), o = i.top + i.height / 2, a = e.clientY < o ? "before" : "after";
-    (this._dragOverIndex !== t || this._dragPosition !== a) && (this._dragOverIndex = t, this._dragPosition = a);
+    const i = e.currentTarget.getBoundingClientRect(), a = i.top + i.height / 2, o = e.clientY < a ? "before" : "after";
+    (this._dragOverIndex !== t || this._dragPosition !== o) && (this._dragOverIndex = t, this._dragPosition = o);
   }
   _onRuleDragLeave(e) {
     this._dragOverIndex === e && (this._dragOverIndex = null, this._dragPosition = null);
@@ -397,21 +408,21 @@ let g = class extends P {
   _onRuleDrop(e, t) {
     if (e.preventDefault(), this._dragIndex === null) return;
     const s = this._dragIndex, i = this._dragPosition ?? "after";
-    let o = t + (i === "after" ? 1 : 0);
-    s < o && o--, this._reorderAutoNodeRules(s, o), this._dragIndex = null, this._dragOverIndex = null, this._dragPosition = null;
+    let a = t + (i === "after" ? 1 : 0);
+    s < a && a--, this._reorderAutoNodeRules(s, a), this._dragIndex = null, this._dragOverIndex = null, this._dragPosition = null;
   }
   _onRuleDragEnd() {
     this._dragIndex = null, this._dragOverIndex = null, this._dragPosition = null;
   }
   _removeRuleAndReindex(e, t) {
     const s = `${e}:`, i = /* @__PURE__ */ new Set();
-    for (const o of this._collapsedRules) {
-      if (!o.startsWith(s)) {
-        i.add(o);
+    for (const a of this._collapsedRules) {
+      if (!a.startsWith(s)) {
+        i.add(a);
         continue;
       }
-      const a = Number(o.slice(s.length));
-      a < t ? i.add(o) : a > t && i.add(`${s}${a - 1}`);
+      const o = Number(a.slice(s.length));
+      o < t ? i.add(a) : o > t && i.add(`${s}${o - 1}`);
     }
     this._collapsedRules = i;
   }
@@ -419,13 +430,13 @@ let g = class extends P {
     const e = /* @__PURE__ */ new Set();
     this._settings.autoNode.rules.forEach((t, s) => e.add(`autoNode:${s}`)), this._settings.nodeRestrict.rules.forEach((t, s) => e.add(`nodeRestrict:${s}`)), this._settings.nodeProtect.rules.forEach((t, s) => e.add(`nodeProtect:${s}`)), this._collapsedRules = e, this.requestUpdate();
   }
-  _renderCollapsedRule(e, t, s, i, o, a) {
+  _renderCollapsedRule(e, t, s, i, a, o) {
     return r`
       <uui-ref-node
         class="rule-ref"
         name=${s}
         detail=${i}
-        ?disabled=${o}
+        ?disabled=${a}
         @open=${() => this._toggleRuleCollapsed(e, t)}
       >
         <umb-icon slot="icon" name="icon-navigation-right"></umb-icon>
@@ -434,29 +445,29 @@ let g = class extends P {
             look="secondary"
             color="danger"
             label="Remove"
-            ?disabled=${o}
-            @click=${a}
+            ?disabled=${a}
+            @click=${o}
           ></uui-button>
         </uui-action-bar>
       </uui-ref-node>
     `;
   }
-  _renderRuleHeader(e, t, s, i, o) {
-    const a = this._isRuleCollapsed(e, t);
+  _renderRuleHeader(e, t, s, i, a) {
+    const o = this._isRuleCollapsed(e, t);
     return r`
       <div slot="header" class="rule-header">
         <button
           type="button"
           class="rule-toggle"
-          aria-label=${a ? "Expand rule" : "Collapse rule"}
-          aria-expanded=${!a}
+          aria-label=${o ? "Expand rule" : "Collapse rule"}
+          aria-expanded=${!o}
           @click=${() => this._toggleRuleCollapsed(e, t)}
         >
           <umb-icon
-            name=${a ? "icon-navigation-right" : "icon-navigation-down"}
+            name=${o ? "icon-navigation-right" : "icon-navigation-down"}
           ></umb-icon>
           <strong>Rule ${t + 1}</strong>
-          ${o ? r`<span class="rule-suffix">${o}</span>` : v}
+          ${a ? r`<span class="rule-suffix">${a}</span>` : _}
         </button>
         <uui-button
           look="secondary"
@@ -474,7 +485,7 @@ let g = class extends P {
       <div slot="footer" class="footer">
         ${e.length > 0 && this._settings.useBackoffice ? r`<ul class="errors">
               ${e.map((t) => r`<li>${t}</li>`)}
-            </ul>` : v}
+            </ul>` : _}
         <uui-button
           look="primary"
           color="positive"
@@ -491,41 +502,55 @@ let g = class extends P {
   /* Tab renderers                                                      */
   /* ------------------------------------------------------------------ */
   _renderAutoNodeTab(e) {
-    const t = this._settings.autoNode, s = (o) => {
-      this._patchSettings("autoNode", { ...t, ...o });
-    }, i = (o, a) => {
-      const n = t.rules.map((d, h) => h === o ? { ...d, ...a } : d);
+    const t = this._settings.autoNode, s = (a) => {
+      this._patchSettings("autoNode", { ...t, ...a });
+    }, i = (a, o) => {
+      const n = t.rules.map((d, h) => h === a ? { ...d, ...o } : d);
       s({ rules: n });
     };
     return r`
       <uui-box>
         <h3 slot="headline" class="uui-h3">AutoNode</h3>
-        ${this._renderEnableButton(t.enabled, e, (o) => s({ enabled: o }))}
+        ${this._renderEnableButton(t.enabled, e, (a) => s({ enabled: a }))}
         <p class="feature-description no-divider">
           Automatically creates child nodes when a parent is published, based on rules that match
           document types. Useful for scaffolding required child structure (folders, landing pages)
           the moment a content item is created.
         </p>
         <div class="stack">
-          <label class="fit">
-            <span>Log level</span>
-            <uui-select
-              ?disabled=${e || !t.enabled}
-              .options=${[
-      { name: "Normal", value: "Normal", selected: t.logLevel === "Normal" },
-      { name: "Verbose", value: "Verbose", selected: t.logLevel === "Verbose" }
-    ]}
-              @change=${(o) => s({ logLevel: o.target.value })}
-            ></uui-select>
-          </label>
+          ${this._withFieldHelp(
+      r`
+              <label class="fit">
+                <span>Log level</span>
+                <uui-select
+                  ?disabled=${e || !t.enabled}
+                  .options=${[
+        { name: "Normal", value: "Normal", selected: t.logLevel === "Normal" },
+        { name: "Verbose", value: "Verbose", selected: t.logLevel === "Verbose" }
+      ]}
+                  @change=${(a) => s({ logLevel: a.target.value })}
+                ></uui-select>
+              </label>
+            `,
+      "autonode-loglevel-help",
+      "Controls how chatty AutoNode is in the Umbraco log. Use Verbose when diagnosing rule behaviour; switch back to Normal for production to keep the log clean.",
+      "inline"
+    )}
           <div>
-            <uui-toggle
-              .checked=${t.republishExistingNodes}
-              ?disabled=${e || !t.enabled}
-              label="Republish existing nodes"
-              label-position="right"
-              @change=${(o) => s({ republishExistingNodes: o.target.checked })}
-            ></uui-toggle>
+            ${this._withFieldHelp(
+      r`
+                <uui-toggle
+                  .checked=${t.republishExistingNodes}
+                  ?disabled=${e || !t.enabled}
+                  label="Republish existing nodes"
+                  label-position="right"
+                  @change=${(a) => s({ republishExistingNodes: a.target.checked })}
+                ></uui-toggle>
+              `,
+      "autonode-republish-help",
+      "When on, AutoNode will also process already-published parent nodes — any missing child nodes defined by its rules will be created retroactively the next time the parent is republished. Leave off to only apply rules to newly published nodes.",
+      "inline"
+    )}
             <p class="field-description">
               When on, AutoNode will also process already-published parent nodes — any missing child
               nodes defined by its rules will be created retroactively the next time the parent is
@@ -534,91 +559,133 @@ let g = class extends P {
           </div>
         </div>
         <h4>Rules</h4>
-        ${t.rules.length === 0 ? r`<p class="empty">No rules defined.</p>` : v}
-        ${t.rules.map((o, a) => {
-      const n = o.createdDocTypeAlias && o.docTypeAliasToCreate ? `(${o.createdDocTypeAlias} → ${o.docTypeAliasToCreate})` : "", d = n ? `Rule ${a + 1} ${n}` : `Rule ${a + 1}`, h = o.nodeName ?? "", b = () => {
-        this._removeRuleAndReindex("autoNode", a), s({ rules: t.rules.filter((u, T) => T !== a) });
-      }, l = this._isRuleCollapsed("autoNode", a) ? this._renderCollapsedRule("autoNode", a, d, h, e || !t.enabled, b) : r`
+        ${t.rules.length === 0 ? r`<p class="empty">No rules defined.</p>` : _}
+        ${t.rules.map((a, o) => {
+      const n = a.createdDocTypeAlias && a.docTypeAliasToCreate ? `(${a.createdDocTypeAlias} → ${a.docTypeAliasToCreate})` : "", d = n ? `Rule ${o + 1} ${n}` : `Rule ${o + 1}`, h = a.nodeName ?? "", m = () => {
+        this._removeRuleAndReindex("autoNode", o), s({ rules: t.rules.filter((u, k) => k !== o) });
+      }, l = this._isRuleCollapsed("autoNode", o) ? this._renderCollapsedRule("autoNode", o, d, h, e || !t.enabled, m) : r`
                 <uui-box class="rule-card">
-                  ${this._renderRuleHeader("autoNode", a, e || !t.enabled, b, n || void 0)}
+                  ${this._renderRuleHeader("autoNode", o, e || !t.enabled, m, n || void 0)}
                   <div class="grid">
-                    ${this._docTypeField(
-        "Triggering doctype *",
-        o.createdDocTypeAlias,
-        e || !t.enabled,
-        (u) => i(a, { createdDocTypeAlias: u })
+                    ${this._withFieldHelp(
+        this._docTypeField(
+          "Triggering doctype *",
+          a.createdDocTypeAlias,
+          e || !t.enabled,
+          (u) => i(o, { createdDocTypeAlias: u })
+        ),
+        `autonode-rule-${o}-trigger-help`,
+        "The parent doctype whose publish event triggers this rule. When a node of this type is published, AutoNode will evaluate the rule against it."
       )}
-                    ${this._docTypeField(
-        "DocType to create *",
-        o.docTypeAliasToCreate,
-        e || !t.enabled,
-        (u) => i(a, { docTypeAliasToCreate: u })
+                    ${this._withFieldHelp(
+        this._docTypeField(
+          "DocType to create *",
+          a.docTypeAliasToCreate,
+          e || !t.enabled,
+          (u) => i(o, { docTypeAliasToCreate: u })
+        ),
+        `autonode-rule-${o}-create-help`,
+        "The doctype of the child node that will be created under the triggering node. Must be allowed as a child of the triggering doctype in Umbraco."
       )}
-                    ${this._textField(
-        "Node name *",
-        o.nodeName,
-        e || !t.enabled,
-        (u) => i(a, { nodeName: u })
+                    ${this._withFieldHelp(
+        this._textField(
+          "Node name *",
+          a.nodeName,
+          e || !t.enabled,
+          (u) => i(o, { nodeName: u })
+        ),
+        `autonode-rule-${o}-nodename-help`,
+        "Literal name for the created child node. Ignored when a dictionary item is set below."
       )}
-                    ${this._textField(
-        "Dictionary item for name",
-        o.dictionaryItemForName,
-        e || !t.enabled,
-        (u) => i(a, { dictionaryItemForName: u })
-      )}
-                    ${this._blueprintField(
-        "Blueprint",
-        o.docTypeAliasToCreate,
-        o.blueprint,
-        e || !t.enabled,
-        (u) => i(a, { blueprint: u })
-      )}
-                    ${this._toggleField(
-        "Bring new node first",
-        o.bringNewNodeFirst,
-        e || !t.enabled,
-        (u) => i(a, { bringNewNodeFirst: u }),
+                    ${this._withFieldHelp(
+        this._textField(
+          "Dictionary item for name",
+          a.dictionaryItemForName,
+          e || !t.enabled,
+          (u) => i(o, { dictionaryItemForName: u })
+        ),
+        `autonode-rule-${o}-dictionary-help`,
+        "Umbraco dictionary key used to translate the child node name per culture. Takes precedence over the literal Node name when set and the key exists.",
+        "stretch",
         "row-break"
       )}
-                    ${this._toggleField(
-        "Only create if no children",
-        o.onlyCreateIfNoChildren,
-        e || !t.enabled,
-        (u) => i(a, { onlyCreateIfNoChildren: u })
+                    ${this._withFieldHelp(
+        this._blueprintField(
+          "Blueprint",
+          a.docTypeAliasToCreate,
+          a.blueprint,
+          e || !t.enabled,
+          (u) => i(o, { blueprint: u })
+        ),
+        `autonode-rule-${o}-blueprint-help`,
+        'Optional content template (blueprint) to prefill the new node. Only blueprints of the doctype selected in "DocType to create" are listed.'
       )}
-                    ${this._toggleField(
-        "Create if exists with different name",
-        o.createIfExistsWithDifferentName,
-        e || !t.enabled,
-        (u) => i(a, { createIfExistsWithDifferentName: u })
+                    ${this._withFieldHelp(
+        this._toggleField(
+          "Bring new node first",
+          a.bringNewNodeFirst,
+          e || !t.enabled,
+          (u) => i(o, { bringNewNodeFirst: u })
+        ),
+        `autonode-rule-${o}-bringfirst-help`,
+        "When on, the new child is inserted as the first sibling in the tree. When off, it is appended at the end.",
+        "inline",
+        "row-break"
       )}
-                    ${this._toggleField(
-        "Keep new node unpublished",
-        o.keepNewNodeUnpublished,
-        e || !t.enabled,
-        (u) => i(a, { keepNewNodeUnpublished: u })
+                    ${this._withFieldHelp(
+        this._toggleField(
+          "Only create if no children",
+          a.onlyCreateIfNoChildren,
+          e || !t.enabled,
+          (u) => i(o, { onlyCreateIfNoChildren: u })
+        ),
+        `autonode-rule-${o}-nochildren-help`,
+        "When on, the rule only fires if the triggering node has no existing children. Use for one-off scaffolding where the rule should not keep creating siblings later.",
+        "inline"
+      )}
+                    ${this._withFieldHelp(
+        this._toggleField(
+          "Create if exists with different name",
+          a.createIfExistsWithDifferentName,
+          e || !t.enabled,
+          (u) => i(o, { createIfExistsWithDifferentName: u })
+        ),
+        `autonode-rule-${o}-existsdiffname-help`,
+        "When on, AutoNode will create a new child even if a sibling of the same doctype already exists under a different name. When off, an existing child of that doctype is treated as already satisfying the rule.",
+        "inline"
+      )}
+                    ${this._withFieldHelp(
+        this._toggleField(
+          "Keep new node unpublished",
+          a.keepNewNodeUnpublished,
+          e || !t.enabled,
+          (u) => i(o, { keepNewNodeUnpublished: u })
+        ),
+        `autonode-rule-${o}-unpublished-help`,
+        "When on, the created child is saved as a draft only. When off, it is published immediately after creation.",
+        "inline"
       )}
                   </div>
                 </uui-box>
               `, p = [
         "rule-wrapper",
-        this._dragIndex === a ? "dragging" : "",
-        this._dragOverIndex === a && this._dragPosition === "before" ? "drop-before" : "",
-        this._dragOverIndex === a && this._dragPosition === "after" ? "drop-after" : ""
+        this._dragIndex === o ? "dragging" : "",
+        this._dragOverIndex === o && this._dragPosition === "before" ? "drop-before" : "",
+        this._dragOverIndex === o && this._dragPosition === "after" ? "drop-after" : ""
       ].filter(Boolean).join(" "), $ = e || !t.enabled;
       return r`
             <div
               class=${p}
-              @dragover=${(u) => this._onRuleDragOver(u, a)}
-              @dragleave=${() => this._onRuleDragLeave(a)}
-              @drop=${(u) => this._onRuleDrop(u, a)}
+              @dragover=${(u) => this._onRuleDragOver(u, o)}
+              @dragleave=${() => this._onRuleDragLeave(o)}
+              @drop=${(u) => this._onRuleDrop(u, o)}
             >
               <span
                 class="drag-handle"
                 draggable=${$ ? "false" : "true"}
                 aria-label="Drag to reorder"
                 title="Drag to reorder"
-                @dragstart=${(u) => this._onRuleDragStart(u, a)}
+                @dragstart=${(u) => this._onRuleDragStart(u, o)}
                 @dragend=${() => this._onRuleDragEnd()}
               >
                 <umb-icon name="icon-navigation"></umb-icon>
@@ -631,98 +698,140 @@ let g = class extends P {
           look="secondary"
           label="Add rule"
           ?disabled=${e || !t.enabled}
-          @click=${() => s({ rules: [...t.rules, z()] })}
+          @click=${() => s({ rules: [...t.rules, M()] })}
         >+ Add rule</uui-button>
       </uui-box>
     `;
   }
   _renderNodeRestrictTab(e) {
-    const t = this._settings.nodeRestrict, s = (o) => {
-      this._patchSettings("nodeRestrict", { ...t, ...o });
-    }, i = (o, a) => {
-      const n = t.rules.map((d, h) => h === o ? { ...d, ...a } : d);
+    const t = this._settings.nodeRestrict, s = (a) => {
+      this._patchSettings("nodeRestrict", { ...t, ...a });
+    }, i = (a, o) => {
+      const n = t.rules.map((d, h) => h === a ? { ...d, ...o } : d);
       s({ rules: n });
     };
     return r`
       <uui-box>
         <h3 slot="headline" class="uui-h3">NodeRestrict</h3>
-        ${this._renderEnableButton(t.enabled, e, (o) => s({ enabled: o }))}
+        ${this._renderEnableButton(t.enabled, e, (a) => s({ enabled: a }))}
         <p class="feature-description no-divider">
           Limits the number of child nodes of a given type that can be created under a parent node.
           Editors see a configurable warning or error message when they try to exceed the limit.
         </p>
         <div class="grid">
-          ${this._textField(
-      "Property alias *",
-      t.propertyAlias,
-      e || !t.enabled,
-      (o) => s({ propertyAlias: o })
+          ${this._withFieldHelp(
+      this._textField(
+        "Property alias *",
+        t.propertyAlias,
+        e || !t.enabled,
+        (a) => s({ propertyAlias: a })
+      ),
+      "noderestrict-propertyalias-help",
+      "Optional property alias that, when present on a node and set to true, excludes that node from NodeRestrict limits. Leave empty to apply limits to every node that matches a rule."
     )}
-          ${this._toggleField(
-      "Show warnings",
-      t.showWarnings,
-      e || !t.enabled,
-      (o) => s({ showWarnings: o })
+          ${this._withFieldHelp(
+      this._toggleField(
+        "Show warnings",
+        t.showWarnings,
+        e || !t.enabled,
+        (a) => s({ showWarnings: a })
+      ),
+      "noderestrict-showwarnings-help",
+      "Global default. When on, NodeRestrict surfaces warning messages to editors as they approach a limit. Individual rules can override this.",
+      "inline"
     )}
         </div>
         <h4>Rules</h4>
-        ${t.rules.length === 0 ? r`<p class="empty">No rules defined.</p>` : v}
-        ${t.rules.map((o, a) => {
-      const n = !o.childDocType || o.childDocType === "*" ? "any" : o.childDocType, d = o.parentDocType ? `(${o.parentDocType} → ${n})` : "", h = d ? `Rule ${a + 1} ${d}` : `Rule ${a + 1}`, b = `Max ${o.maxNodes ?? 0}`, l = () => {
-        this._removeRuleAndReindex("nodeRestrict", a), s({ rules: t.rules.filter((p, $) => $ !== a) });
+        ${t.rules.length === 0 ? r`<p class="empty">No rules defined.</p>` : _}
+        ${t.rules.map((a, o) => {
+      const n = !a.childDocType || a.childDocType === "*" ? "any" : a.childDocType, d = a.parentDocType ? `(${a.parentDocType} → ${n})` : "", h = d ? `Rule ${o + 1} ${d}` : `Rule ${o + 1}`, m = `Max ${a.maxNodes ?? 0}`, l = () => {
+        this._removeRuleAndReindex("nodeRestrict", o), s({ rules: t.rules.filter((p, $) => $ !== o) });
       };
-      return this._isRuleCollapsed("nodeRestrict", a) ? this._renderCollapsedRule("nodeRestrict", a, h, b, e || !t.enabled, l) : r`
+      return this._isRuleCollapsed("nodeRestrict", o) ? this._renderCollapsedRule("nodeRestrict", o, h, m, e || !t.enabled, l) : r`
             <uui-box class="rule-card">
-              ${this._renderRuleHeader("nodeRestrict", a, e || !t.enabled, l, d || void 0)}
+              ${this._renderRuleHeader("nodeRestrict", o, e || !t.enabled, l, d || void 0)}
               <div class="grid">
-                ${this._docTypeField(
-        "Parent doctype *",
-        o.parentDocType,
-        e || !t.enabled,
-        (p) => i(a, { parentDocType: p })
+                ${this._withFieldHelp(
+        this._docTypeField(
+          "Parent doctype *",
+          a.parentDocType,
+          e || !t.enabled,
+          (p) => i(o, { parentDocType: p })
+        ),
+        `noderestrict-rule-${o}-parent-help`,
+        "The doctype of the parent node under which the limit is enforced. The rule counts children of this parent."
       )}
-                ${this._docTypeField(
-        "Child doctype",
-        o.childDocType || "*",
-        e || !t.enabled,
-        (p) => i(a, { childDocType: p }),
-        { label: "Any doctype", value: "*" }
+                ${this._withFieldHelp(
+        this._docTypeField(
+          "Child doctype",
+          a.childDocType || "*",
+          e || !t.enabled,
+          (p) => i(o, { childDocType: p }),
+          { label: "Any doctype", value: "*" }
+        ),
+        `noderestrict-rule-${o}-child-help`,
+        'The doctype of children that count towards the limit. Choose "Any doctype" to cap the total number of children regardless of type.'
       )}
-                ${this._numberField(
-        "Max nodes *",
-        o.maxNodes,
-        e || !t.enabled,
-        (p) => i(a, { maxNodes: p })
+                ${this._withFieldHelp(
+        this._numberField(
+          "Max nodes *",
+          a.maxNodes,
+          e || !t.enabled,
+          (p) => i(o, { maxNodes: p })
+        ),
+        `noderestrict-rule-${o}-max-help`,
+        "Maximum number of matching children allowed under a single parent. Editors are blocked from creating more than this many."
       )}
-                ${this._toggleField(
-        "Show warnings",
-        o.showWarnings,
-        e || !t.enabled,
-        (p) => i(a, { showWarnings: p })
+                ${this._withFieldHelp(
+        this._toggleField(
+          "Show warnings",
+          a.showWarnings,
+          e || !t.enabled,
+          (p) => i(o, { showWarnings: p })
+        ),
+        `noderestrict-rule-${o}-warnings-help`,
+        "When on, editors see the warning message as they approach the limit. Overrides the feature-level default for this rule only.",
+        "inline"
       )}
-                ${this._textField(
-        "Custom limit message",
-        o.customMessage,
-        e || !t.enabled,
-        (p) => i(a, { customMessage: p })
+                ${this._withFieldHelp(
+        this._textField(
+          "Custom limit message",
+          a.customMessage,
+          e || !t.enabled,
+          (p) => i(o, { customMessage: p })
+        ),
+        `noderestrict-rule-${o}-limitmsg-help`,
+        "Plain text (or dictionary key — see category below) shown to editors when they hit the hard limit. Leave empty to use the default."
       )}
-                ${this._textField(
-        "Custom limit category",
-        o.customMessageCategory,
-        e || !t.enabled,
-        (p) => i(a, { customMessageCategory: p })
+                ${this._withFieldHelp(
+        this._textField(
+          "Custom limit category",
+          a.customMessageCategory,
+          e || !t.enabled,
+          (p) => i(o, { customMessageCategory: p })
+        ),
+        `noderestrict-rule-${o}-limitcat-help`,
+        "Optional Umbraco dictionary category used to localise the Custom limit message. When set, the message value is treated as a dictionary key within this category."
       )}
-                ${this._textField(
-        "Custom warning message",
-        o.customWarningMessage,
-        e || !t.enabled,
-        (p) => i(a, { customWarningMessage: p })
+                ${this._withFieldHelp(
+        this._textField(
+          "Custom warning message",
+          a.customWarningMessage,
+          e || !t.enabled,
+          (p) => i(o, { customWarningMessage: p })
+        ),
+        `noderestrict-rule-${o}-warnmsg-help`,
+        "Text shown to editors as they approach — but have not yet reached — the limit. Leave empty to use the default warning."
       )}
-                ${this._textField(
-        "Custom warning category",
-        o.customWarningMessageCategory,
-        e || !t.enabled,
-        (p) => i(a, { customWarningMessageCategory: p })
+                ${this._withFieldHelp(
+        this._textField(
+          "Custom warning category",
+          a.customWarningMessageCategory,
+          e || !t.enabled,
+          (p) => i(o, { customWarningMessageCategory: p })
+        ),
+        `noderestrict-rule-${o}-warncat-help`,
+        "Optional Umbraco dictionary category used to localise the Custom warning message. When set, the message value is treated as a dictionary key within this category."
       )}
               </div>
             </uui-box>
@@ -732,7 +841,7 @@ let g = class extends P {
           look="secondary"
           label="Add rule"
           ?disabled=${e || !t.enabled}
-          @click=${() => s({ rules: [...t.rules, B()] })}
+          @click=${() => s({ rules: [...t.rules, z()] })}
         >+ Add rule</uui-button>
       </uui-box>
     `;
@@ -751,15 +860,19 @@ let g = class extends P {
           grouping leaking into the URL.
         </p>
         <div class="grid">
-          ${this._multiAliasField(
-      "Virtual node doctypes",
-      this._docTypes,
-      (t.rules ?? []).join(","),
-      e || !t.enabled,
-      (i) => {
-        const o = i ? i.split(",").map((a) => a.trim()).filter((a) => a.length > 0) : [];
-        s({ rules: o });
-      }
+          ${this._withFieldHelp(
+      this._multiAliasField(
+        "Virtual node doctypes",
+        this._docTypes,
+        (t.rules ?? []).join(","),
+        e || !t.enabled,
+        (i) => {
+          const a = i ? i.split(",").map((o) => o.trim()).filter((o) => o.length > 0) : [];
+          s({ rules: a });
+        }
+      ),
+      "virtualnodes-rules-help",
+      "Doctypes whose URL segment should be skipped in the frontend. Nodes of these doctypes still appear in the tree as containers, but their children are served one level up in the public URL."
     )}
         </div>
       </uui-box>
@@ -778,73 +891,97 @@ let g = class extends P {
           created yet (those shown in parentheses), so editors only see variants that actually exist.
         </p>
         <div class="grid">
-          ${this._textField(
-      "Caption",
-      t.caption,
-      e || !t.enabled,
-      (i) => s({ caption: i })
+          ${this._withFieldHelp(
+      this._textField(
+        "Caption",
+        t.caption,
+        e || !t.enabled,
+        (i) => s({ caption: i })
+      ),
+      "variantshider-caption-help",
+      "Label shown on the Hide/Show variants entity action in the content tree context menu. Leave empty to use the default caption."
     )}
         </div>
       </uui-box>
     `;
   }
   _renderNodeProtectTab(e) {
-    const t = this._settings.nodeProtect, s = (o) => {
-      this._patchSettings("nodeProtect", { ...t, ...o });
-    }, i = (o, a) => {
-      const n = t.rules.map((d, h) => h === o ? { ...d, ...a } : d);
+    const t = this._settings.nodeProtect, s = (a) => {
+      this._patchSettings("nodeProtect", { ...t, ...a });
+    }, i = (a, o) => {
+      const n = t.rules.map((d, h) => h === a ? { ...d, ...o } : d);
       s({ rules: n });
     };
     return r`
       <uui-box>
         <h3 slot="headline" class="uui-h3">NodeProtect</h3>
-        ${this._renderEnableButton(t.enabled, e, (o) => s({ enabled: o }))}
+        ${this._renderEnableButton(t.enabled, e, (a) => s({ enabled: a }))}
         <p class="feature-description no-divider">
           Prevents deletion of important nodes, either by document type or by specific GUID. Editors
           see a configurable message explaining why the node can't be deleted.
         </p>
         <div class="grid">
-          ${this._propertyField(
-      "Property alias *",
-      this._trueFalseProperties,
-      t.propertyAlias,
-      e || !t.enabled,
-      (o) => s({ propertyAlias: o })
+          ${this._withFieldHelp(
+      this._propertyField(
+        "Property alias *",
+        this._trueFalseProperties,
+        t.propertyAlias,
+        e || !t.enabled,
+        (a) => s({ propertyAlias: a })
+      ),
+      "nodeprotect-propertyalias-help",
+      "The alias of a true/false property on your document types. When a node has this property set to true, NodeProtect will treat it as protected and block deletion."
     )}
         </div>
         <h4>Rules</h4>
-        ${t.rules.length === 0 ? r`<p class="empty">No rules defined.</p>` : v}
-        ${t.rules.map((o, a) => {
-      const n = o.docTypeAlias ? `(${o.docTypeAlias})` : "", d = n ? `Rule ${a + 1} ${n}` : `Rule ${a + 1}`, h = o.documentGuids ? "By GUIDs" : o.docTypeAlias ? "By doctype" : "", b = () => {
-        this._removeRuleAndReindex("nodeProtect", a), s({ rules: t.rules.filter((l, p) => p !== a) });
+        ${t.rules.length === 0 ? r`<p class="empty">No rules defined.</p>` : _}
+        ${t.rules.map((a, o) => {
+      const n = a.docTypeAlias ? `(${a.docTypeAlias})` : "", d = n ? `Rule ${o + 1} ${n}` : `Rule ${o + 1}`, h = a.documentGuids ? "By GUIDs" : a.docTypeAlias ? "By doctype" : "", m = () => {
+        this._removeRuleAndReindex("nodeProtect", o), s({ rules: t.rules.filter((l, p) => p !== o) });
       };
-      return this._isRuleCollapsed("nodeProtect", a) ? this._renderCollapsedRule("nodeProtect", a, d, h, e || !t.enabled, b) : r`
+      return this._isRuleCollapsed("nodeProtect", o) ? this._renderCollapsedRule("nodeProtect", o, d, h, e || !t.enabled, m) : r`
             <uui-box class="rule-card">
-              ${this._renderRuleHeader("nodeProtect", a, e || !t.enabled, b, n || void 0)}
+              ${this._renderRuleHeader("nodeProtect", o, e || !t.enabled, m, n || void 0)}
               <div class="grid">
-                ${this._docTypeField(
-        "DocType alias",
-        o.docTypeAlias,
-        e || !t.enabled,
-        (l) => i(a, { docTypeAlias: l })
+                ${this._withFieldHelp(
+        this._docTypeField(
+          "DocType alias",
+          a.docTypeAlias,
+          e || !t.enabled,
+          (l) => i(o, { docTypeAlias: l })
+        ),
+        `nodeprotect-rule-${o}-doctype-help`,
+        "Protect every node of this doctype from deletion. Leave empty if you want to protect specific nodes by GUID instead."
       )}
-                ${this._textField(
-        "Document GUIDs (comma separated)",
-        o.documentGuids,
-        e || !t.enabled,
-        (l) => i(a, { documentGuids: l })
+                ${this._withFieldHelp(
+        this._textField(
+          "Document GUIDs (comma separated)",
+          a.documentGuids,
+          e || !t.enabled,
+          (l) => i(o, { documentGuids: l })
+        ),
+        `nodeprotect-rule-${o}-guids-help`,
+        "Comma-separated list of specific content GUIDs to protect. Use alongside or instead of the doctype alias to protect individual important nodes."
       )}
-                ${this._textField(
-        "Custom message",
-        o.customMessage,
-        e || !t.enabled,
-        (l) => i(a, { customMessage: l })
+                ${this._withFieldHelp(
+        this._textField(
+          "Custom message",
+          a.customMessage,
+          e || !t.enabled,
+          (l) => i(o, { customMessage: l })
+        ),
+        `nodeprotect-rule-${o}-msg-help`,
+        "Text (or dictionary key — see category below) shown to editors who try to delete a protected node. Leave empty to use the default message."
       )}
-                ${this._textField(
-        "Custom message category",
-        o.customMessageCategory,
-        e || !t.enabled,
-        (l) => i(a, { customMessageCategory: l })
+                ${this._withFieldHelp(
+        this._textField(
+          "Custom message category",
+          a.customMessageCategory,
+          e || !t.enabled,
+          (l) => i(o, { customMessageCategory: l })
+        ),
+        `nodeprotect-rule-${o}-msgcat-help`,
+        "Optional Umbraco dictionary category used to localise the Custom message. When set, the message value is treated as a dictionary key within this category."
       )}
               </div>
             </uui-box>
@@ -873,67 +1010,107 @@ let g = class extends P {
           produced for that item.
         </p>
         <div class="grid">
-          <label>
-            <span>LLM *</span>
-            <uui-select
-              ?disabled=${e || !t.enabled}
-              .options=${[
-      { name: "OpenAI", value: "openai", selected: t.llm === "openai" },
-      { name: "Gemini", value: "gemini", selected: t.llm === "gemini" }
-    ]}
-              @change=${(i) => s({ llm: i.target.value })}
-            ></uui-select>
-          </label>
-          ${this._textField(
-      "API key *",
-      t.apiKey,
-      e || !t.enabled,
-      (i) => s({ apiKey: i })
+          ${this._withFieldHelp(
+      r`
+              <label>
+                <span>LLM *</span>
+                <uui-select
+                  ?disabled=${e || !t.enabled}
+                  .options=${[
+        { name: "OpenAI", value: "openai", selected: t.llm === "openai" },
+        { name: "Gemini", value: "gemini", selected: t.llm === "gemini" }
+      ]}
+                  @change=${(i) => s({ llm: i.target.value })}
+                ></uui-select>
+              </label>
+            `,
+      "aisummary-llm-help",
+      "Which large-language-model provider to use for summaries. Determines which Model names and API key format are valid."
     )}
-          ${this._textField("Model *", t.model, e || !t.enabled, (i) => s({ model: i }))}
-          ${this._numberField(
-      "Max chars",
-      t.maxChars,
-      e || !t.enabled,
-      (i) => s({ maxChars: i })
+          ${this._withFieldHelp(
+      this._textField(
+        "API key *",
+        t.apiKey,
+        e || !t.enabled,
+        (i) => s({ apiKey: i })
+      ),
+      "aisummary-apikey-help",
+      "Secret key issued by the selected LLM provider. Stored as plain text in settings — protect access to this screen accordingly."
     )}
-          ${this._propertyField(
-      "Property alias *",
-      this._textInputProperties,
-      t.propertyAlias,
-      e || !t.enabled,
-      (i) => s({ propertyAlias: i })
+          ${this._withFieldHelp(
+      this._textField("Model *", t.model, e || !t.enabled, (i) => s({ model: i })),
+      "aisummary-model-help",
+      "The exact model identifier to call, e.g. gpt-4o-mini or gemini-1.5-flash. Must match a model your API key is entitled to use."
     )}
-          ${this._propertyField(
-      "Toggle property alias",
-      this._trueFalseProperties,
-      t.togglePropertyAlias,
-      e || !t.enabled,
-      (i) => s({ togglePropertyAlias: i })
+          ${this._withFieldHelp(
+      this._numberField(
+        "Max chars",
+        t.maxChars,
+        e || !t.enabled,
+        (i) => s({ maxChars: i })
+      ),
+      "aisummary-maxchars-help",
+      "Upper bound for the generated summary length in characters. The prompt asks the model to stay under this limit; set it to match the space available in your front-end."
     )}
-          ${this._multiAliasField(
-      "DocTypes",
-      this._docTypes,
-      t.docTypes,
-      e || !t.enabled,
-      (i) => s({ docTypes: i })
+          ${this._withFieldHelp(
+      this._propertyField(
+        "Property alias *",
+        this._textInputProperties,
+        t.propertyAlias,
+        e || !t.enabled,
+        (i) => s({ propertyAlias: i })
+      ),
+      "aisummary-propertyalias-help",
+      "Alias of the text property on your doctypes where the generated summary will be written. Must exist on every doctype selected below."
     )}
-          ${this._multiAliasField(
-      "Exclude properties",
-      this._textContentProperties,
-      t.excludeProperties,
-      e || !t.enabled,
-      (i) => s({ excludeProperties: i })
+          ${this._withFieldHelp(
+      this._propertyField(
+        "Toggle property alias",
+        this._trueFalseProperties,
+        t.togglePropertyAlias,
+        e || !t.enabled,
+        (i) => s({ togglePropertyAlias: i })
+      ),
+      "aisummary-toggleproperty-help",
+      "Optional true/false property alias that editors use to opt a specific node in or out of summary generation. Leave empty to summarise every matching node on save."
+    )}
+          ${this._withFieldHelp(
+      this._multiAliasField(
+        "DocTypes",
+        this._docTypes,
+        t.docTypes,
+        e || !t.enabled,
+        (i) => s({ docTypes: i })
+      ),
+      "aisummary-doctypes-help",
+      "Doctypes whose content should be eligible for AI summaries. Nodes of other doctypes are ignored entirely."
+    )}
+          ${this._withFieldHelp(
+      this._multiAliasField(
+        "Exclude properties",
+        this._textContentProperties,
+        t.excludeProperties,
+        e || !t.enabled,
+        (i) => s({ excludeProperties: i })
+      ),
+      "aisummary-excludeproperties-help",
+      "Text properties on the node that should not be sent to the LLM when building the summary prompt. Use this to exclude internal notes, sidebars, or already-summarised fields."
     )}
         </div>
-        <label class="block">
-          <span>Tone</span>
-          <uui-textarea
-            .value=${t.tone}
-            ?disabled=${e || !t.enabled}
-            @input=${(i) => s({ tone: i.target.value })}
-          ></uui-textarea>
-        </label>
+        ${this._withFieldHelp(
+      r`
+            <label class="block">
+              <span>Tone</span>
+              <uui-textarea
+                .value=${t.tone}
+                ?disabled=${e || !t.enabled}
+                @input=${(i) => s({ tone: i.target.value })}
+              ></uui-textarea>
+            </label>
+          `,
+      "aisummary-tone-help",
+      'Free-text instructions appended to the prompt that steer the voice of the generated summary, e.g. "formal, no marketing fluff" or "friendly, second person, max two sentences".'
+    )}
       </uui-box>
     `;
   }
@@ -950,23 +1127,35 @@ let g = class extends P {
           and roll individual properties back without restoring the whole document.
         </p>
         <div class="grid">
-          ${this._textField(
-      "Next version dictionary entry",
-      t.nextVersionButtonCaptionDictionaryEntry,
-      e || !t.enabled,
-      (i) => s({ nextVersionButtonCaptionDictionaryEntry: i })
+          ${this._withFieldHelp(
+      this._textField(
+        "Next version dictionary entry",
+        t.nextVersionButtonCaptionDictionaryEntry,
+        e || !t.enabled,
+        (i) => s({ nextVersionButtonCaptionDictionaryEntry: i })
+      ),
+      "propertyversions-next-help",
+      'Umbraco dictionary key used as the caption for the "Next version" property action. Leave empty to use the built-in English label.'
     )}
-          ${this._textField(
-      "Previous version dictionary entry",
-      t.previousVersionButtonCaptionDictionaryEntry,
-      e || !t.enabled,
-      (i) => s({ previousVersionButtonCaptionDictionaryEntry: i })
+          ${this._withFieldHelp(
+      this._textField(
+        "Previous version dictionary entry",
+        t.previousVersionButtonCaptionDictionaryEntry,
+        e || !t.enabled,
+        (i) => s({ previousVersionButtonCaptionDictionaryEntry: i })
+      ),
+      "propertyversions-previous-help",
+      'Umbraco dictionary key used as the caption for the "Previous version" property action. Leave empty to use the built-in English label.'
     )}
-          ${this._textField(
-      "No versions dictionary entry",
-      t.noVersionsButtonCaptionDictionaryEntry,
-      e || !t.enabled,
-      (i) => s({ noVersionsButtonCaptionDictionaryEntry: i })
+          ${this._withFieldHelp(
+      this._textField(
+        "No versions dictionary entry",
+        t.noVersionsButtonCaptionDictionaryEntry,
+        e || !t.enabled,
+        (i) => s({ noVersionsButtonCaptionDictionaryEntry: i })
+      ),
+      "propertyversions-none-help",
+      "Umbraco dictionary key used for the disabled state when no earlier versions are available. Leave empty to use the built-in English label."
     )}
         </div>
       </uui-box>
@@ -982,27 +1171,47 @@ let g = class extends P {
         <uui-input
           .value=${t ?? ""}
           ?disabled=${s}
-          @input=${(o) => i(o.target.value)}
+          @input=${(a) => i(a.target.value)}
         ></uui-input>
       </label>
     `;
   }
-  _docTypeField(e, t, s, i, o) {
-    return this._aliasField(e, this._docTypes, t, s, i, o);
+  _docTypeField(e, t, s, i, a) {
+    return this._aliasField(e, this._docTypes, t, s, i, a);
   }
-  _propertyField(e, t, s, i, o) {
-    return this._aliasField(e, t, s, i, o);
+  _propertyField(e, t, s, i, a) {
+    return this._aliasField(e, t, s, i, a);
   }
-  _multiAliasField(e, t, s, i, o) {
-    const a = new Set(
+  _withFieldHelp(e, t, s, i = "stretch", a) {
+    const o = `field-with-help ${i}${a ? ` ${a}` : ""}`;
+    return r`
+      <div class=${o}>
+        ${e}
+        <uui-button
+          class="help-button"
+          look="secondary"
+          compact
+          label="Help"
+          popovertarget=${t}
+        >
+          <umb-icon name="icon-help-alt"></umb-icon>
+        </uui-button>
+        <uui-popover-container id=${t} placement="top-end">
+          <div class="help-bubble">${s}</div>
+        </uui-popover-container>
+      </div>
+    `;
+  }
+  _multiAliasField(e, t, s, i, a) {
+    const o = new Set(
       (s ?? "").split(",").map((c) => c.trim()).filter((c) => c.length > 0)
     ), n = (c, w) => {
-      w ? a.add(c) : a.delete(c), o(Array.from(a).join(","));
-    }, d = new Set(t.map((c) => c.alias)), h = Array.from(a).filter((c) => !d.has(c)), b = this._expandedFields.has(e), l = this._filterModes.get(e) ?? "all", p = (c) => {
+      w ? o.add(c) : o.delete(c), a(Array.from(o).join(","));
+    }, d = new Set(t.map((c) => c.alias)), h = Array.from(o).filter((c) => !d.has(c)), m = this._expandedFields.has(e), l = this._filterModes.get(e) ?? "all", p = (c) => {
       c ? this._expandedFields.add(e) : this._expandedFields.delete(e), this.requestUpdate();
     }, $ = (c) => {
       this._filterModes.set(e, c), this.requestUpdate();
-    }, u = l === "selected" ? t.filter((c) => a.has(c.alias)) : t, T = l === "selected" || l === "all" ? h : [];
+    }, u = l === "selected" ? t.filter((c) => o.has(c.alias)) : t, k = l === "selected" || l === "all" ? h : [];
     return r`
       <label>
         <span>${e}</span>
@@ -1012,12 +1221,12 @@ let g = class extends P {
               type="button"
               class="multi-toggle"
               ?disabled=${i}
-              @click=${() => p(!b)}
+              @click=${() => p(!m)}
             >
-              <span class="multi-action">${b ? "Hide list" : "Show list"}</span>
-              <span class="multi-count">(${a.size} selected)</span>
+              <span class="multi-action">${m ? "Hide list" : "Show list"}</span>
+              <span class="multi-count">(${o.size} selected)</span>
             </button>
-            ${b ? r`
+            ${m ? r`
                   <div class="multi-filter">
                     <label class="checkbox-row">
                       <input
@@ -1040,25 +1249,25 @@ let g = class extends P {
                       <span>Selected only</span>
                     </label>
                   </div>
-                ` : v}
+                ` : _}
           </div>
-          ${b ? r`
+          ${m ? r`
                 <div class="checkbox-list">
-                  ${u.length === 0 && T.length === 0 ? r`<p class="empty">No entries.</p>` : v}
+                  ${u.length === 0 && k.length === 0 ? r`<p class="empty">No entries.</p>` : _}
                   ${u.map(
       (c) => r`
                       <label class="checkbox-row">
                         <input
                           type="checkbox"
                           ?disabled=${i}
-                          .checked=${a.has(c.alias)}
+                          .checked=${o.has(c.alias)}
                           @change=${(w) => n(c.alias, w.target.checked)}
                         />
                         <span>${c.name} (${c.alias})</span>
                       </label>
                     `
     )}
-                  ${T.map(
+                  ${k.map(
       (c) => r`
                       <label class="checkbox-row">
                         <input
@@ -1072,23 +1281,23 @@ let g = class extends P {
                     `
     )}
                 </div>
-              ` : v}
+              ` : _}
         </div>
       </label>
     `;
   }
-  _aliasField(e, t, s, i, o, a) {
-    const n = s ?? "", d = new Set(t.map((l) => l.alias)), h = (a == null ? void 0 : a.value) ?? "", b = (a == null ? void 0 : a.label) ?? "-- Select --";
+  _aliasField(e, t, s, i, a, o) {
+    const n = s ?? "", d = new Set(t.map((l) => l.alias)), h = (o == null ? void 0 : o.value) ?? "", m = (o == null ? void 0 : o.label) ?? "-- Select --";
     return r`
       <label>
         <span>${e}</span>
         <select
           class="doctype-select"
           ?disabled=${i}
-          @change=${(l) => o(l.target.value)}
+          @change=${(l) => a(l.target.value)}
         >
           <option value=${h} ?selected=${n === h || n === ""}>
-            ${b}
+            ${m}
           </option>
           ${t.map(
       (l) => r`
@@ -1097,30 +1306,30 @@ let g = class extends P {
               </option>
             `
     )}
-          ${n && n !== h && !d.has(n) ? r`<option value=${n} selected>${n} (not found)</option>` : v}
+          ${n && n !== h && !d.has(n) ? r`<option value=${n} selected>${n} (not found)</option>` : _}
         </select>
       </label>
     `;
   }
-  _blueprintField(e, t, s, i, o) {
-    const a = s ?? "", n = t ? this._blueprints.filter(
+  _blueprintField(e, t, s, i, a) {
+    const o = s ?? "", n = t ? this._blueprints.filter(
       (l) => l.docTypeAlias.localeCompare(t, void 0, { sensitivity: "accent" }) === 0
-    ) : [], d = new Set(n.map((l) => l.name)), h = i || !t, b = t ? n.length === 0 ? "-- No blueprints available --" : "-- Select --" : "-- Select a doctype first --";
+    ) : [], d = new Set(n.map((l) => l.name)), h = i || !t, m = t ? n.length === 0 ? "-- No blueprints available --" : "-- Select --" : "-- Select a doctype first --";
     return r`
       <label>
         <span>${e}</span>
         <select
           class="doctype-select"
           ?disabled=${h}
-          @change=${(l) => o(l.target.value)}
+          @change=${(l) => a(l.target.value)}
         >
-          <option value="" ?selected=${a === ""}>${b}</option>
+          <option value="" ?selected=${o === ""}>${m}</option>
           ${n.map(
       (l) => r`
-              <option value=${l.name} ?selected=${l.name === a}>${l.name}</option>
+              <option value=${l.name} ?selected=${l.name === o}>${l.name}</option>
             `
     )}
-          ${a && !d.has(a) ? r`<option value=${a} selected>${a} (not found)</option>` : v}
+          ${o && !d.has(o) ? r`<option value=${o} selected>${o} (not found)</option>` : _}
         </select>
       </label>
     `;
@@ -1136,28 +1345,28 @@ let g = class extends P {
           inputmode="numeric"
           .value=${(t == null ? void 0 : t.toString()) ?? "0"}
           ?disabled=${s}
-          @input=${(o) => {
-      const a = o.target.value, n = a === "" ? 0 : Number(a);
+          @input=${(a) => {
+      const o = a.target.value, n = o === "" ? 0 : Number(o);
       i(Number.isNaN(n) ? 0 : n);
     }}
         ></uui-input>
       </label>
     `;
   }
-  _toggleField(e, t, s, i, o) {
+  _toggleField(e, t, s, i, a) {
     return r`
-      <label class=${`inline${o ? ` ${o}` : ""}`}>
+      <label class=${`inline${a ? ` ${a}` : ""}`}>
         <uui-toggle
           .checked=${t}
           ?disabled=${s}
-          @change=${(a) => i(a.target.checked)}
+          @change=${(o) => i(o.target.checked)}
         ></uui-toggle>
         <span>${e}</span>
       </label>
     `;
   }
 };
-O(g, "styles", S`
+O(g, "styles", A`
     :host {
       display: block;
       height: 100%;
@@ -1293,6 +1502,11 @@ O(g, "styles", S`
       justify-content: center;
       padding: var(--uui-size-space-1, 3px);
       color: var(--uui-color-text-alt, #999);
+      border-radius: var(--uui-border-radius, 3px);
+      background-color: transparent;
+      transition:
+        background-color 120ms ease-in-out,
+        color 120ms ease-in-out;
     }
     .drag-handle[draggable='false'] {
       cursor: not-allowed;
@@ -1301,8 +1515,9 @@ O(g, "styles", S`
     .drag-handle:active {
       cursor: grabbing;
     }
-    .drag-handle:hover {
+    .drag-handle:hover:not([draggable='false']) {
       color: var(--uui-color-selected, #3544b1);
+      background-color: var(--uui-color-surface-alt, #e9e9eb);
     }
     .row-break {
       grid-column-start: 1;
@@ -1337,6 +1552,44 @@ O(g, "styles", S`
     .rule-suffix {
       color: var(--uui-color-text-alt, #666);
       font-weight: normal;
+    }
+    .field-with-help {
+      position: relative;
+      display: flex;
+      gap: var(--uui-size-space-2, 6px);
+    }
+    .field-with-help.stretch {
+      align-items: flex-end;
+    }
+    .field-with-help.stretch > :first-child {
+      flex: 1;
+      min-width: 0;
+    }
+    .field-with-help.inline {
+      align-items: center;
+      align-self: flex-start;
+    }
+    .field-with-help .help-button {
+      opacity: 0;
+      transition: opacity 120ms ease-in-out;
+      --uui-button-height: var(--uui-size-11, 30px);
+    }
+    .field-with-help:hover .help-button,
+    .field-with-help:focus-within .help-button,
+    .field-with-help .help-button:focus-visible,
+    .field-with-help .help-button[active] {
+      opacity: 1;
+    }
+    .help-bubble {
+      max-width: 280px;
+      padding: var(--uui-size-space-3, 12px) var(--uui-size-space-4, 16px);
+      background: var(--uui-color-surface, #fff);
+      color: var(--uui-color-text, #1b264f);
+      border: 1px solid var(--uui-color-border, #d8d7d9);
+      border-radius: var(--uui-border-radius, 3px);
+      box-shadow: var(--uui-shadow-depth-2, 0 3px 10px rgba(0, 0, 0, 0.15));
+      font-size: var(--uui-type-small-size, 12px);
+      line-height: 1.45;
     }
     .empty {
       color: var(--uui-color-text-alt);
@@ -1497,52 +1750,52 @@ O(g, "styles", S`
     }
   `);
 f([
-  _()
+  v()
 ], g.prototype, "_loading", 2);
 f([
-  _()
+  v()
 ], g.prototype, "_saving", 2);
 f([
-  _()
+  v()
 ], g.prototype, "_hasAppSettings", 2);
 f([
-  _()
+  v()
 ], g.prototype, "_settings", 2);
 f([
-  _()
+  v()
 ], g.prototype, "_activeTab", 2);
 f([
-  _()
+  v()
 ], g.prototype, "_docTypes", 2);
 f([
-  _()
+  v()
 ], g.prototype, "_trueFalseProperties", 2);
 f([
-  _()
+  v()
 ], g.prototype, "_textContentProperties", 2);
 f([
-  _()
+  v()
 ], g.prototype, "_textInputProperties", 2);
 f([
-  _()
+  v()
 ], g.prototype, "_blueprints", 2);
 f([
-  _()
+  v()
 ], g.prototype, "_expandedFields", 2);
 f([
-  _()
+  v()
 ], g.prototype, "_filterModes", 2);
 f([
-  _()
+  v()
 ], g.prototype, "_collapsedRules", 2);
 f([
-  _()
+  v()
 ], g.prototype, "_dragIndex", 2);
 f([
-  _()
+  v()
 ], g.prototype, "_dragOverIndex", 2);
 f([
-  _()
+  v()
 ], g.prototype, "_dragPosition", 2);
 g = f([
   D("dotsee-discipline-settings-workspace")
@@ -1552,4 +1805,4 @@ export {
   g as DisciplineSettingsWorkspaceElement,
   J as default
 };
-//# sourceMappingURL=discipline-settings.workspace.element-fQit3d19.js.map
+//# sourceMappingURL=discipline-settings.workspace.element-BGU0AlSz.js.map

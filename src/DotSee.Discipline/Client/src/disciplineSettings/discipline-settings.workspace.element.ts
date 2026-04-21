@@ -472,6 +472,16 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     if (event.dataTransfer) {
       event.dataTransfer.effectAllowed = 'move';
       event.dataTransfer.setData('text/plain', String(index));
+      const handle = event.currentTarget as HTMLElement | null;
+      const wrapper = handle?.closest('.rule-wrapper') as HTMLElement | null;
+      if (wrapper) {
+        const rect = wrapper.getBoundingClientRect();
+        event.dataTransfer.setDragImage(
+          wrapper,
+          event.clientX - rect.left,
+          event.clientY - rect.top,
+        );
+      }
     }
   }
 
@@ -649,26 +659,40 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
           the moment a content item is created.
         </p>
         <div class="stack">
-          <label class="fit">
-            <span>Log level</span>
-            <uui-select
-              ?disabled=${disabled || !feat.enabled}
-              .options=${[
-                { name: 'Normal', value: 'Normal', selected: feat.logLevel === 'Normal' },
-                { name: 'Verbose', value: 'Verbose', selected: feat.logLevel === 'Verbose' },
-              ]}
-              @change=${(e: Event) => update({ logLevel: (e.target as HTMLSelectElement).value })}
-            ></uui-select>
-          </label>
+          ${this._withFieldHelp(
+            html`
+              <label class="fit">
+                <span>Log level</span>
+                <uui-select
+                  ?disabled=${disabled || !feat.enabled}
+                  .options=${[
+                    { name: 'Normal', value: 'Normal', selected: feat.logLevel === 'Normal' },
+                    { name: 'Verbose', value: 'Verbose', selected: feat.logLevel === 'Verbose' },
+                  ]}
+                  @change=${(e: Event) => update({ logLevel: (e.target as HTMLSelectElement).value })}
+                ></uui-select>
+              </label>
+            `,
+            'autonode-loglevel-help',
+            'Controls how chatty AutoNode is in the Umbraco log. Use Verbose when diagnosing rule behaviour; switch back to Normal for production to keep the log clean.',
+            'inline',
+          )}
           <div>
-            <uui-toggle
-              .checked=${feat.republishExistingNodes}
-              ?disabled=${disabled || !feat.enabled}
-              label="Republish existing nodes"
-              label-position="right"
-              @change=${(e: Event) =>
-                update({ republishExistingNodes: (e.target as HTMLInputElement).checked })}
-            ></uui-toggle>
+            ${this._withFieldHelp(
+              html`
+                <uui-toggle
+                  .checked=${feat.republishExistingNodes}
+                  ?disabled=${disabled || !feat.enabled}
+                  label="Republish existing nodes"
+                  label-position="right"
+                  @change=${(e: Event) =>
+                    update({ republishExistingNodes: (e.target as HTMLInputElement).checked })}
+                ></uui-toggle>
+              `,
+              'autonode-republish-help',
+              'When on, AutoNode will also process already-published parent nodes — any missing child nodes defined by its rules will be created retroactively the next time the parent is republished. Leave off to only apply rules to newly published nodes.',
+              'inline',
+            )}
             <p class="field-description">
               When on, AutoNode will also process already-published parent nodes — any missing child
               nodes defined by its rules will be created retroactively the next time the parent is
@@ -695,46 +719,88 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
                 <uui-box class="rule-card">
                   ${this._renderRuleHeader('autoNode', i, disabled || !feat.enabled, onRemove, suffix || undefined)}
                   <div class="grid">
-                    ${this._docTypeField('Triggering doctype *', rule.createdDocTypeAlias, disabled || !feat.enabled, (v) =>
-                      updateRuleAt(i, { createdDocTypeAlias: v }),
+                    ${this._withFieldHelp(
+                      this._docTypeField('Triggering doctype *', rule.createdDocTypeAlias, disabled || !feat.enabled, (v) =>
+                        updateRuleAt(i, { createdDocTypeAlias: v }),
+                      ),
+                      `autonode-rule-${i}-trigger-help`,
+                      'The parent doctype whose publish event triggers this rule. When a node of this type is published, AutoNode will evaluate the rule against it.',
                     )}
-                    ${this._docTypeField('DocType to create *', rule.docTypeAliasToCreate, disabled || !feat.enabled, (v) =>
-                      updateRuleAt(i, { docTypeAliasToCreate: v }),
+                    ${this._withFieldHelp(
+                      this._docTypeField('DocType to create *', rule.docTypeAliasToCreate, disabled || !feat.enabled, (v) =>
+                        updateRuleAt(i, { docTypeAliasToCreate: v }),
+                      ),
+                      `autonode-rule-${i}-create-help`,
+                      'The doctype of the child node that will be created under the triggering node. Must be allowed as a child of the triggering doctype in Umbraco.',
                     )}
-                    ${this._textField('Node name *', rule.nodeName, disabled || !feat.enabled, (v) =>
-                      updateRuleAt(i, { nodeName: v }),
+                    ${this._withFieldHelp(
+                      this._textField('Node name *', rule.nodeName, disabled || !feat.enabled, (v) =>
+                        updateRuleAt(i, { nodeName: v }),
+                      ),
+                      `autonode-rule-${i}-nodename-help`,
+                      'Literal name for the created child node. Ignored when a dictionary item is set below.',
                     )}
-                    ${this._textField('Dictionary item for name', rule.dictionaryItemForName, disabled || !feat.enabled, (v) =>
-                      updateRuleAt(i, { dictionaryItemForName: v }),
-                    )}
-                    ${this._blueprintField(
-                      'Blueprint',
-                      rule.docTypeAliasToCreate,
-                      rule.blueprint,
-                      disabled || !feat.enabled,
-                      (v) => updateRuleAt(i, { blueprint: v }),
-                    )}
-                    ${this._toggleField(
-                      'Bring new node first',
-                      rule.bringNewNodeFirst,
-                      disabled || !feat.enabled,
-                      (v) => updateRuleAt(i, { bringNewNodeFirst: v }),
+                    ${this._withFieldHelp(
+                      this._textField('Dictionary item for name', rule.dictionaryItemForName, disabled || !feat.enabled, (v) =>
+                        updateRuleAt(i, { dictionaryItemForName: v }),
+                      ),
+                      `autonode-rule-${i}-dictionary-help`,
+                      'Umbraco dictionary key used to translate the child node name per culture. Takes precedence over the literal Node name when set and the key exists.',
+                      'stretch',
                       'row-break',
                     )}
-                    ${this._toggleField('Only create if no children', rule.onlyCreateIfNoChildren, disabled || !feat.enabled, (v) =>
-                      updateRuleAt(i, { onlyCreateIfNoChildren: v }),
+                    ${this._withFieldHelp(
+                      this._blueprintField(
+                        'Blueprint',
+                        rule.docTypeAliasToCreate,
+                        rule.blueprint,
+                        disabled || !feat.enabled,
+                        (v) => updateRuleAt(i, { blueprint: v }),
+                      ),
+                      `autonode-rule-${i}-blueprint-help`,
+                      'Optional content template (blueprint) to prefill the new node. Only blueprints of the doctype selected in "DocType to create" are listed.',
                     )}
-                    ${this._toggleField(
-                      'Create if exists with different name',
-                      rule.createIfExistsWithDifferentName,
-                      disabled || !feat.enabled,
-                      (v) => updateRuleAt(i, { createIfExistsWithDifferentName: v }),
+                    ${this._withFieldHelp(
+                      this._toggleField(
+                        'Bring new node first',
+                        rule.bringNewNodeFirst,
+                        disabled || !feat.enabled,
+                        (v) => updateRuleAt(i, { bringNewNodeFirst: v }),
+                      ),
+                      `autonode-rule-${i}-bringfirst-help`,
+                      'When on, the new child is inserted as the first sibling in the tree. When off, it is appended at the end.',
+                      'inline',
+                      'row-break',
                     )}
-                    ${this._toggleField(
-                      'Keep new node unpublished',
-                      rule.keepNewNodeUnpublished,
-                      disabled || !feat.enabled,
-                      (v) => updateRuleAt(i, { keepNewNodeUnpublished: v }),
+                    ${this._withFieldHelp(
+                      this._toggleField('Only create if no children', rule.onlyCreateIfNoChildren, disabled || !feat.enabled, (v) =>
+                        updateRuleAt(i, { onlyCreateIfNoChildren: v }),
+                      ),
+                      `autonode-rule-${i}-nochildren-help`,
+                      'When on, the rule only fires if the triggering node has no existing children. Use for one-off scaffolding where the rule should not keep creating siblings later.',
+                      'inline',
+                    )}
+                    ${this._withFieldHelp(
+                      this._toggleField(
+                        'Create if exists with different name',
+                        rule.createIfExistsWithDifferentName,
+                        disabled || !feat.enabled,
+                        (v) => updateRuleAt(i, { createIfExistsWithDifferentName: v }),
+                      ),
+                      `autonode-rule-${i}-existsdiffname-help`,
+                      'When on, AutoNode will create a new child even if a sibling of the same doctype already exists under a different name. When off, an existing child of that doctype is treated as already satisfying the rule.',
+                      'inline',
+                    )}
+                    ${this._withFieldHelp(
+                      this._toggleField(
+                        'Keep new node unpublished',
+                        rule.keepNewNodeUnpublished,
+                        disabled || !feat.enabled,
+                        (v) => updateRuleAt(i, { keepNewNodeUnpublished: v }),
+                      ),
+                      `autonode-rule-${i}-unpublished-help`,
+                      'When on, the created child is saved as a draft only. When off, it is published immediately after creation.',
+                      'inline',
                     )}
                   </div>
                 </uui-box>
@@ -798,11 +864,20 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
           Editors see a configurable warning or error message when they try to exceed the limit.
         </p>
         <div class="grid">
-          ${this._textField('Property alias *', feat.propertyAlias, disabled || !feat.enabled, (v) =>
-            update({ propertyAlias: v }),
+          ${this._withFieldHelp(
+            this._textField('Property alias *', feat.propertyAlias, disabled || !feat.enabled, (v) =>
+              update({ propertyAlias: v }),
+            ),
+            'noderestrict-propertyalias-help',
+            'Optional property alias that, when present on a node and set to true, excludes that node from NodeRestrict limits. Leave empty to apply limits to every node that matches a rule.',
           )}
-          ${this._toggleField('Show warnings', feat.showWarnings, disabled || !feat.enabled, (v) =>
-            update({ showWarnings: v }),
+          ${this._withFieldHelp(
+            this._toggleField('Show warnings', feat.showWarnings, disabled || !feat.enabled, (v) =>
+              update({ showWarnings: v }),
+            ),
+            'noderestrict-showwarnings-help',
+            'Global default. When on, NodeRestrict surfaces warning messages to editors as they approach a limit. Individual rules can override this.',
+            'inline',
           )}
         </div>
         <h4>Rules</h4>
@@ -826,36 +901,69 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
             <uui-box class="rule-card">
               ${this._renderRuleHeader('nodeRestrict', i, disabled || !feat.enabled, onRemove, suffix || undefined)}
               <div class="grid">
-                ${this._docTypeField('Parent doctype *', rule.parentDocType, disabled || !feat.enabled, (v) =>
-                  updateRuleAt(i, { parentDocType: v }),
+                ${this._withFieldHelp(
+                  this._docTypeField('Parent doctype *', rule.parentDocType, disabled || !feat.enabled, (v) =>
+                    updateRuleAt(i, { parentDocType: v }),
+                  ),
+                  `noderestrict-rule-${i}-parent-help`,
+                  'The doctype of the parent node under which the limit is enforced. The rule counts children of this parent.',
                 )}
-                ${this._docTypeField(
-                  'Child doctype',
-                  rule.childDocType || '*',
-                  disabled || !feat.enabled,
-                  (v) => updateRuleAt(i, { childDocType: v }),
-                  { label: 'Any doctype', value: '*' },
+                ${this._withFieldHelp(
+                  this._docTypeField(
+                    'Child doctype',
+                    rule.childDocType || '*',
+                    disabled || !feat.enabled,
+                    (v) => updateRuleAt(i, { childDocType: v }),
+                    { label: 'Any doctype', value: '*' },
+                  ),
+                  `noderestrict-rule-${i}-child-help`,
+                  'The doctype of children that count towards the limit. Choose "Any doctype" to cap the total number of children regardless of type.',
                 )}
-                ${this._numberField('Max nodes *', rule.maxNodes, disabled || !feat.enabled, (v) =>
-                  updateRuleAt(i, { maxNodes: v }),
+                ${this._withFieldHelp(
+                  this._numberField('Max nodes *', rule.maxNodes, disabled || !feat.enabled, (v) =>
+                    updateRuleAt(i, { maxNodes: v }),
+                  ),
+                  `noderestrict-rule-${i}-max-help`,
+                  'Maximum number of matching children allowed under a single parent. Editors are blocked from creating more than this many.',
                 )}
-                ${this._toggleField('Show warnings', rule.showWarnings, disabled || !feat.enabled, (v) =>
-                  updateRuleAt(i, { showWarnings: v }),
+                ${this._withFieldHelp(
+                  this._toggleField('Show warnings', rule.showWarnings, disabled || !feat.enabled, (v) =>
+                    updateRuleAt(i, { showWarnings: v }),
+                  ),
+                  `noderestrict-rule-${i}-warnings-help`,
+                  'When on, editors see the warning message as they approach the limit. Overrides the feature-level default for this rule only.',
+                  'inline',
                 )}
-                ${this._textField('Custom limit message', rule.customMessage, disabled || !feat.enabled, (v) =>
-                  updateRuleAt(i, { customMessage: v }),
+                ${this._withFieldHelp(
+                  this._textField('Custom limit message', rule.customMessage, disabled || !feat.enabled, (v) =>
+                    updateRuleAt(i, { customMessage: v }),
+                  ),
+                  `noderestrict-rule-${i}-limitmsg-help`,
+                  'Plain text (or dictionary key — see category below) shown to editors when they hit the hard limit. Leave empty to use the default.',
                 )}
-                ${this._textField('Custom limit category', rule.customMessageCategory, disabled || !feat.enabled, (v) =>
-                  updateRuleAt(i, { customMessageCategory: v }),
+                ${this._withFieldHelp(
+                  this._textField('Custom limit category', rule.customMessageCategory, disabled || !feat.enabled, (v) =>
+                    updateRuleAt(i, { customMessageCategory: v }),
+                  ),
+                  `noderestrict-rule-${i}-limitcat-help`,
+                  'Optional Umbraco dictionary category used to localise the Custom limit message. When set, the message value is treated as a dictionary key within this category.',
                 )}
-                ${this._textField('Custom warning message', rule.customWarningMessage, disabled || !feat.enabled, (v) =>
-                  updateRuleAt(i, { customWarningMessage: v }),
+                ${this._withFieldHelp(
+                  this._textField('Custom warning message', rule.customWarningMessage, disabled || !feat.enabled, (v) =>
+                    updateRuleAt(i, { customWarningMessage: v }),
+                  ),
+                  `noderestrict-rule-${i}-warnmsg-help`,
+                  'Text shown to editors as they approach — but have not yet reached — the limit. Leave empty to use the default warning.',
                 )}
-                ${this._textField(
-                  'Custom warning category',
-                  rule.customWarningMessageCategory,
-                  disabled || !feat.enabled,
-                  (v) => updateRuleAt(i, { customWarningMessageCategory: v }),
+                ${this._withFieldHelp(
+                  this._textField(
+                    'Custom warning category',
+                    rule.customWarningMessageCategory,
+                    disabled || !feat.enabled,
+                    (v) => updateRuleAt(i, { customWarningMessageCategory: v }),
+                  ),
+                  `noderestrict-rule-${i}-warncat-help`,
+                  'Optional Umbraco dictionary category used to localise the Custom warning message. When set, the message value is treated as a dictionary key within this category.',
                 )}
               </div>
             </uui-box>
@@ -887,17 +995,21 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
           grouping leaking into the URL.
         </p>
         <div class="grid">
-          ${this._multiAliasField(
-            'Virtual node doctypes',
-            this._docTypes,
-            (feat.rules ?? []).join(','),
-            disabled || !feat.enabled,
-            (v) => {
-              const rules = v
-                ? v.split(',').map((s) => s.trim()).filter((s) => s.length > 0)
-                : [];
-              update({ rules });
-            },
+          ${this._withFieldHelp(
+            this._multiAliasField(
+              'Virtual node doctypes',
+              this._docTypes,
+              (feat.rules ?? []).join(','),
+              disabled || !feat.enabled,
+              (v) => {
+                const rules = v
+                  ? v.split(',').map((s) => s.trim()).filter((s) => s.length > 0)
+                  : [];
+                update({ rules });
+              },
+            ),
+            'virtualnodes-rules-help',
+            'Doctypes whose URL segment should be skipped in the frontend. Nodes of these doctypes still appear in the tree as containers, but their children are served one level up in the public URL.',
           )}
         </div>
       </uui-box>
@@ -919,8 +1031,12 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
           created yet (those shown in parentheses), so editors only see variants that actually exist.
         </p>
         <div class="grid">
-          ${this._textField('Caption', feat.caption, disabled || !feat.enabled, (v) =>
-            update({ caption: v }),
+          ${this._withFieldHelp(
+            this._textField('Caption', feat.caption, disabled || !feat.enabled, (v) =>
+              update({ caption: v }),
+            ),
+            'variantshider-caption-help',
+            'Label shown on the Hide/Show variants entity action in the content tree context menu. Leave empty to use the default caption.',
           )}
         </div>
       </uui-box>
@@ -946,12 +1062,16 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
           see a configurable message explaining why the node can't be deleted.
         </p>
         <div class="grid">
-          ${this._propertyField(
-            'Property alias *',
-            this._trueFalseProperties,
-            feat.propertyAlias,
-            disabled || !feat.enabled,
-            (v) => update({ propertyAlias: v }),
+          ${this._withFieldHelp(
+            this._propertyField(
+              'Property alias *',
+              this._trueFalseProperties,
+              feat.propertyAlias,
+              disabled || !feat.enabled,
+              (v) => update({ propertyAlias: v }),
+            ),
+            'nodeprotect-propertyalias-help',
+            'The alias of a true/false property on your document types. When a node has this property set to true, NodeProtect will treat it as protected and block deletion.',
           )}
         </div>
         <h4>Rules</h4>
@@ -971,23 +1091,39 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
             <uui-box class="rule-card">
               ${this._renderRuleHeader('nodeProtect', i, disabled || !feat.enabled, onRemove, suffix || undefined)}
               <div class="grid">
-                ${this._docTypeField('DocType alias', rule.docTypeAlias, disabled || !feat.enabled, (v) =>
-                  updateRuleAt(i, { docTypeAlias: v }),
+                ${this._withFieldHelp(
+                  this._docTypeField('DocType alias', rule.docTypeAlias, disabled || !feat.enabled, (v) =>
+                    updateRuleAt(i, { docTypeAlias: v }),
+                  ),
+                  `nodeprotect-rule-${i}-doctype-help`,
+                  'Protect every node of this doctype from deletion. Leave empty if you want to protect specific nodes by GUID instead.',
                 )}
-                ${this._textField(
-                  'Document GUIDs (comma separated)',
-                  rule.documentGuids,
-                  disabled || !feat.enabled,
-                  (v) => updateRuleAt(i, { documentGuids: v }),
+                ${this._withFieldHelp(
+                  this._textField(
+                    'Document GUIDs (comma separated)',
+                    rule.documentGuids,
+                    disabled || !feat.enabled,
+                    (v) => updateRuleAt(i, { documentGuids: v }),
+                  ),
+                  `nodeprotect-rule-${i}-guids-help`,
+                  'Comma-separated list of specific content GUIDs to protect. Use alongside or instead of the doctype alias to protect individual important nodes.',
                 )}
-                ${this._textField('Custom message', rule.customMessage, disabled || !feat.enabled, (v) =>
-                  updateRuleAt(i, { customMessage: v }),
+                ${this._withFieldHelp(
+                  this._textField('Custom message', rule.customMessage, disabled || !feat.enabled, (v) =>
+                    updateRuleAt(i, { customMessage: v }),
+                  ),
+                  `nodeprotect-rule-${i}-msg-help`,
+                  'Text (or dictionary key — see category below) shown to editors who try to delete a protected node. Leave empty to use the default message.',
                 )}
-                ${this._textField(
-                  'Custom message category',
-                  rule.customMessageCategory,
-                  disabled || !feat.enabled,
-                  (v) => updateRuleAt(i, { customMessageCategory: v }),
+                ${this._withFieldHelp(
+                  this._textField(
+                    'Custom message category',
+                    rule.customMessageCategory,
+                    disabled || !feat.enabled,
+                    (v) => updateRuleAt(i, { customMessageCategory: v }),
+                  ),
+                  `nodeprotect-rule-${i}-msgcat-help`,
+                  'Optional Umbraco dictionary category used to localise the Custom message. When set, the message value is treated as a dictionary key within this category.',
                 )}
               </div>
             </uui-box>
@@ -1019,61 +1155,101 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
           produced for that item.
         </p>
         <div class="grid">
-          <label>
-            <span>LLM *</span>
-            <uui-select
-              ?disabled=${disabled || !feat.enabled}
-              .options=${[
-                { name: 'OpenAI', value: 'openai', selected: feat.llm === 'openai' },
-                { name: 'Gemini', value: 'gemini', selected: feat.llm === 'gemini' },
-              ]}
-              @change=${(e: Event) => update({ llm: (e.target as HTMLSelectElement).value })}
-            ></uui-select>
-          </label>
-          ${this._textField('API key *', feat.apiKey, disabled || !feat.enabled, (v) =>
-            update({ apiKey: v }),
+          ${this._withFieldHelp(
+            html`
+              <label>
+                <span>LLM *</span>
+                <uui-select
+                  ?disabled=${disabled || !feat.enabled}
+                  .options=${[
+                    { name: 'OpenAI', value: 'openai', selected: feat.llm === 'openai' },
+                    { name: 'Gemini', value: 'gemini', selected: feat.llm === 'gemini' },
+                  ]}
+                  @change=${(e: Event) => update({ llm: (e.target as HTMLSelectElement).value })}
+                ></uui-select>
+              </label>
+            `,
+            'aisummary-llm-help',
+            'Which large-language-model provider to use for summaries. Determines which Model names and API key format are valid.',
           )}
-          ${this._textField('Model *', feat.model, disabled || !feat.enabled, (v) => update({ model: v }))}
-          ${this._numberField('Max chars', feat.maxChars, disabled || !feat.enabled, (v) =>
-            update({ maxChars: v }),
+          ${this._withFieldHelp(
+            this._textField('API key *', feat.apiKey, disabled || !feat.enabled, (v) =>
+              update({ apiKey: v }),
+            ),
+            'aisummary-apikey-help',
+            'Secret key issued by the selected LLM provider. Stored as plain text in settings — protect access to this screen accordingly.',
           )}
-          ${this._propertyField(
-            'Property alias *',
-            this._textInputProperties,
-            feat.propertyAlias,
-            disabled || !feat.enabled,
-            (v) => update({ propertyAlias: v }),
+          ${this._withFieldHelp(
+            this._textField('Model *', feat.model, disabled || !feat.enabled, (v) => update({ model: v })),
+            'aisummary-model-help',
+            'The exact model identifier to call, e.g. gpt-4o-mini or gemini-1.5-flash. Must match a model your API key is entitled to use.',
           )}
-          ${this._propertyField(
-            'Toggle property alias',
-            this._trueFalseProperties,
-            feat.togglePropertyAlias,
-            disabled || !feat.enabled,
-            (v) => update({ togglePropertyAlias: v }),
+          ${this._withFieldHelp(
+            this._numberField('Max chars', feat.maxChars, disabled || !feat.enabled, (v) =>
+              update({ maxChars: v }),
+            ),
+            'aisummary-maxchars-help',
+            'Upper bound for the generated summary length in characters. The prompt asks the model to stay under this limit; set it to match the space available in your front-end.',
           )}
-          ${this._multiAliasField(
-            'DocTypes',
-            this._docTypes,
-            feat.docTypes,
-            disabled || !feat.enabled,
-            (v) => update({ docTypes: v }),
+          ${this._withFieldHelp(
+            this._propertyField(
+              'Property alias *',
+              this._textInputProperties,
+              feat.propertyAlias,
+              disabled || !feat.enabled,
+              (v) => update({ propertyAlias: v }),
+            ),
+            'aisummary-propertyalias-help',
+            'Alias of the text property on your doctypes where the generated summary will be written. Must exist on every doctype selected below.',
           )}
-          ${this._multiAliasField(
-            'Exclude properties',
-            this._textContentProperties,
-            feat.excludeProperties,
-            disabled || !feat.enabled,
-            (v) => update({ excludeProperties: v }),
+          ${this._withFieldHelp(
+            this._propertyField(
+              'Toggle property alias',
+              this._trueFalseProperties,
+              feat.togglePropertyAlias,
+              disabled || !feat.enabled,
+              (v) => update({ togglePropertyAlias: v }),
+            ),
+            'aisummary-toggleproperty-help',
+            'Optional true/false property alias that editors use to opt a specific node in or out of summary generation. Leave empty to summarise every matching node on save.',
+          )}
+          ${this._withFieldHelp(
+            this._multiAliasField(
+              'DocTypes',
+              this._docTypes,
+              feat.docTypes,
+              disabled || !feat.enabled,
+              (v) => update({ docTypes: v }),
+            ),
+            'aisummary-doctypes-help',
+            'Doctypes whose content should be eligible for AI summaries. Nodes of other doctypes are ignored entirely.',
+          )}
+          ${this._withFieldHelp(
+            this._multiAliasField(
+              'Exclude properties',
+              this._textContentProperties,
+              feat.excludeProperties,
+              disabled || !feat.enabled,
+              (v) => update({ excludeProperties: v }),
+            ),
+            'aisummary-excludeproperties-help',
+            'Text properties on the node that should not be sent to the LLM when building the summary prompt. Use this to exclude internal notes, sidebars, or already-summarised fields.',
           )}
         </div>
-        <label class="block">
-          <span>Tone</span>
-          <uui-textarea
-            .value=${feat.tone}
-            ?disabled=${disabled || !feat.enabled}
-            @input=${(e: Event) => update({ tone: (e.target as HTMLTextAreaElement).value })}
-          ></uui-textarea>
-        </label>
+        ${this._withFieldHelp(
+          html`
+            <label class="block">
+              <span>Tone</span>
+              <uui-textarea
+                .value=${feat.tone}
+                ?disabled=${disabled || !feat.enabled}
+                @input=${(e: Event) => update({ tone: (e.target as HTMLTextAreaElement).value })}
+              ></uui-textarea>
+            </label>
+          `,
+          'aisummary-tone-help',
+          'Free-text instructions appended to the prompt that steer the voice of the generated summary, e.g. "formal, no marketing fluff" or "friendly, second person, max two sentences".',
+        )}
       </uui-box>
     `;
   }
@@ -1093,23 +1269,35 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
           and roll individual properties back without restoring the whole document.
         </p>
         <div class="grid">
-          ${this._textField(
-            'Next version dictionary entry',
-            feat.nextVersionButtonCaptionDictionaryEntry,
-            disabled || !feat.enabled,
-            (v) => update({ nextVersionButtonCaptionDictionaryEntry: v }),
+          ${this._withFieldHelp(
+            this._textField(
+              'Next version dictionary entry',
+              feat.nextVersionButtonCaptionDictionaryEntry,
+              disabled || !feat.enabled,
+              (v) => update({ nextVersionButtonCaptionDictionaryEntry: v }),
+            ),
+            'propertyversions-next-help',
+            'Umbraco dictionary key used as the caption for the "Next version" property action. Leave empty to use the built-in English label.',
           )}
-          ${this._textField(
-            'Previous version dictionary entry',
-            feat.previousVersionButtonCaptionDictionaryEntry,
-            disabled || !feat.enabled,
-            (v) => update({ previousVersionButtonCaptionDictionaryEntry: v }),
+          ${this._withFieldHelp(
+            this._textField(
+              'Previous version dictionary entry',
+              feat.previousVersionButtonCaptionDictionaryEntry,
+              disabled || !feat.enabled,
+              (v) => update({ previousVersionButtonCaptionDictionaryEntry: v }),
+            ),
+            'propertyversions-previous-help',
+            'Umbraco dictionary key used as the caption for the "Previous version" property action. Leave empty to use the built-in English label.',
           )}
-          ${this._textField(
-            'No versions dictionary entry',
-            feat.noVersionsButtonCaptionDictionaryEntry,
-            disabled || !feat.enabled,
-            (v) => update({ noVersionsButtonCaptionDictionaryEntry: v }),
+          ${this._withFieldHelp(
+            this._textField(
+              'No versions dictionary entry',
+              feat.noVersionsButtonCaptionDictionaryEntry,
+              disabled || !feat.enabled,
+              (v) => update({ noVersionsButtonCaptionDictionaryEntry: v }),
+            ),
+            'propertyversions-none-help',
+            'Umbraco dictionary key used for the disabled state when no earlier versions are available. Leave empty to use the built-in English label.',
           )}
         </div>
       </uui-box>
@@ -1156,6 +1344,33 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     onChange: (value: string) => void,
   ) {
     return this._aliasField(label, options, value, disabled, onChange);
+  }
+
+  private _withFieldHelp(
+    field: unknown,
+    popoverId: string,
+    helpText: string,
+    layout: 'stretch' | 'inline' = 'stretch',
+    extraClass?: string,
+  ) {
+    const classes = `field-with-help ${layout}${extraClass ? ` ${extraClass}` : ''}`;
+    return html`
+      <div class=${classes}>
+        ${field}
+        <uui-button
+          class="help-button"
+          look="secondary"
+          compact
+          label="Help"
+          popovertarget=${popoverId}
+        >
+          <umb-icon name="icon-help-alt"></umb-icon>
+        </uui-button>
+        <uui-popover-container id=${popoverId} placement="top-end">
+          <div class="help-bubble">${helpText}</div>
+        </uui-popover-container>
+      </div>
+    `;
   }
 
   private _multiAliasField(
@@ -1537,6 +1752,11 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
       justify-content: center;
       padding: var(--uui-size-space-1, 3px);
       color: var(--uui-color-text-alt, #999);
+      border-radius: var(--uui-border-radius, 3px);
+      background-color: transparent;
+      transition:
+        background-color 120ms ease-in-out,
+        color 120ms ease-in-out;
     }
     .drag-handle[draggable='false'] {
       cursor: not-allowed;
@@ -1545,8 +1765,9 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     .drag-handle:active {
       cursor: grabbing;
     }
-    .drag-handle:hover {
+    .drag-handle:hover:not([draggable='false']) {
       color: var(--uui-color-selected, #3544b1);
+      background-color: var(--uui-color-surface-alt, #e9e9eb);
     }
     .row-break {
       grid-column-start: 1;
@@ -1581,6 +1802,44 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     .rule-suffix {
       color: var(--uui-color-text-alt, #666);
       font-weight: normal;
+    }
+    .field-with-help {
+      position: relative;
+      display: flex;
+      gap: var(--uui-size-space-2, 6px);
+    }
+    .field-with-help.stretch {
+      align-items: flex-end;
+    }
+    .field-with-help.stretch > :first-child {
+      flex: 1;
+      min-width: 0;
+    }
+    .field-with-help.inline {
+      align-items: center;
+      align-self: flex-start;
+    }
+    .field-with-help .help-button {
+      opacity: 0;
+      transition: opacity 120ms ease-in-out;
+      --uui-button-height: var(--uui-size-11, 30px);
+    }
+    .field-with-help:hover .help-button,
+    .field-with-help:focus-within .help-button,
+    .field-with-help .help-button:focus-visible,
+    .field-with-help .help-button[active] {
+      opacity: 1;
+    }
+    .help-bubble {
+      max-width: 280px;
+      padding: var(--uui-size-space-3, 12px) var(--uui-size-space-4, 16px);
+      background: var(--uui-color-surface, #fff);
+      color: var(--uui-color-text, #1b264f);
+      border: 1px solid var(--uui-color-border, #d8d7d9);
+      border-radius: var(--uui-border-radius, 3px);
+      box-shadow: var(--uui-shadow-depth-2, 0 3px 10px rgba(0, 0, 0, 0.15));
+      font-size: var(--uui-type-small-size, 12px);
+      line-height: 1.45;
     }
     .empty {
       color: var(--uui-color-text-alt);
