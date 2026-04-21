@@ -1,14 +1,14 @@
-var F = Object.defineProperty;
-var A = (c, e, t) => e in c ? F(c, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : c[e] = t;
-var p = (c, e, t) => A(c, typeof e != "symbol" ? e + "" : e, t);
-import { html as n, nothing as g, css as S, state as b, customElement as C } from "@umbraco-cms/backoffice/external/lit";
+var A = Object.defineProperty;
+var F = (c, e, t) => e in c ? A(c, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : c[e] = t;
+var p = (c, e, t) => F(c, typeof e != "symbol" ? e + "" : e, t);
+import { html as n, nothing as h, css as S, state as b, customElement as C } from "@umbraco-cms/backoffice/external/lit";
 import { UmbLitElement as P } from "@umbraco-cms/backoffice/lit-element";
-import { UMB_AUTH_CONTEXT as D } from "@umbraco-cms/backoffice/auth";
-import { UMB_MODAL_MANAGER_CONTEXT as E, UMB_CONFIRM_MODAL as M } from "@umbraco-cms/backoffice/modal";
-import { UMB_NOTIFICATION_CONTEXT as R } from "@umbraco-cms/backoffice/notification";
-import { c as z, b as B, d as V } from "./index-DkTQWI8y.js";
+import { UMB_AUTH_CONTEXT as R } from "@umbraco-cms/backoffice/auth";
+import { UMB_MODAL_MANAGER_CONTEXT as D, UMB_CONFIRM_MODAL as E } from "@umbraco-cms/backoffice/modal";
+import { UMB_NOTIFICATION_CONTEXT as M } from "@umbraco-cms/backoffice/notification";
+import { c as z, b as B, d as U } from "./index-CawWpm5C.js";
 const y = "/umbraco/api/discipline";
-class U {
+class V {
   constructor(e) {
     this.authToken = e;
   }
@@ -84,11 +84,11 @@ class U {
     return await e.json();
   }
 }
-var k = Object.defineProperty, I = Object.getOwnPropertyDescriptor, L = (c, e, t) => e in c ? k(c, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : c[e] = t, h = (c, e, t, s) => {
+var k = Object.defineProperty, I = Object.getOwnPropertyDescriptor, q = (c, e, t) => e in c ? k(c, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : c[e] = t, g = (c, e, t, s) => {
   for (var i = s > 1 ? void 0 : s ? I(e, t) : e, a = c.length - 1, o; a >= 0; a--)
     (o = c[a]) && (i = (s ? o(e, t, i) : o(i)) || i);
   return s && i && k(e, t, i), i;
-}, q = (c, e, t) => L(c, e + "", t);
+}, L = (c, e, t) => q(c, e + "", t);
 const j = [
   { alias: "autoNode", label: "AutoNode" },
   { alias: "nodeRestrict", label: "NodeRestrict" },
@@ -140,6 +140,7 @@ let u = class extends P {
     p(this, "_textInputProperties", []);
     p(this, "_expandedFields", /* @__PURE__ */ new Set());
     p(this, "_filterModes", /* @__PURE__ */ new Map());
+    p(this, "_collapsedRules", /* @__PURE__ */ new Set());
     p(this, "_repository");
     p(this, "_onDocumentMouseDown", (e) => {
       if (this._expandedFields.size === 0) return;
@@ -156,8 +157,8 @@ let u = class extends P {
     super.disconnectedCallback(), document.removeEventListener("mousedown", this._onDocumentMouseDown);
   }
   async _init() {
-    const t = await (await this.getContext(D)).getLatestToken();
-    this._repository = new U(t);
+    const t = await (await this.getContext(R)).getLatestToken();
+    this._repository = new V(t);
     try {
       const [s, i, a, o, r] = await Promise.all([
         this._repository.getSettings(),
@@ -181,7 +182,7 @@ let u = class extends P {
   }
   async _notify(e, t) {
     try {
-      const s = await this.getContext(R);
+      const s = await this.getContext(M);
       s == null || s.peek(e, { data: { message: t } });
     } catch {
     }
@@ -195,9 +196,9 @@ let u = class extends P {
   }
   async _onImportClick() {
     if (!this._hasAppSettings || !this._repository) return;
-    const e = await this.getContext(E);
+    const e = await this.getContext(D);
     if (!e) return;
-    const t = e.open(this, M, {
+    const t = e.open(this, E, {
       data: {
         headline: "Load from appsettings.json",
         content: "This will replace every field in this page with the values from appsettings.json. Your current backoffice settings will be lost. Continue?",
@@ -276,7 +277,7 @@ let u = class extends P {
         this._activeTab = s.alias, this.requestUpdate();
       }}
                     >
-                      ${i ? n`<umb-icon name="icon-check" class="tab-icon"></umb-icon>` : g}
+                      ${i ? n`<umb-icon name="icon-check" class="tab-icon"></umb-icon>` : h}
                       <span>${s.label}</span>
                     </button>
                   `;
@@ -292,7 +293,7 @@ let u = class extends P {
                 <div ?hidden=${this._activeTab !== "propertyVersions"}>${this._renderPropertyVersionsTab(e)}</div>
               </div>
               ${this._renderFooter()}
-            ` : g}
+            ` : h}
       </umb-body-layout>
     `;
   }
@@ -314,7 +315,7 @@ let u = class extends P {
                   ?disabled=${this._saving}
                   @click=${this._onImportClick}
                 ></uui-button>
-              ` : g}
+              ` : h}
         </div>
       </uui-box>
     ` : n`
@@ -338,13 +339,59 @@ let u = class extends P {
       ></uui-toggle>
     `;
   }
+  _isRuleCollapsed(e, t) {
+    return this._collapsedRules.has(`${e}:${t}`);
+  }
+  _toggleRuleCollapsed(e, t) {
+    const s = `${e}:${t}`;
+    this._collapsedRules.has(s) ? this._collapsedRules.delete(s) : this._collapsedRules.add(s), this.requestUpdate();
+  }
+  _removeRuleAndReindex(e, t) {
+    const s = `${e}:`, i = /* @__PURE__ */ new Set();
+    for (const a of this._collapsedRules) {
+      if (!a.startsWith(s)) {
+        i.add(a);
+        continue;
+      }
+      const o = Number(a.slice(s.length));
+      o < t ? i.add(a) : o > t && i.add(`${s}${o - 1}`);
+    }
+    this._collapsedRules = i;
+  }
+  _renderRuleHeader(e, t, s, i, a) {
+    const o = this._isRuleCollapsed(e, t);
+    return n`
+      <div slot="header" class="rule-header">
+        <button
+          type="button"
+          class="rule-toggle"
+          aria-label=${o ? "Expand rule" : "Collapse rule"}
+          aria-expanded=${!o}
+          @click=${() => this._toggleRuleCollapsed(e, t)}
+        >
+          <umb-icon
+            name=${o ? "icon-navigation-right" : "icon-navigation-down"}
+          ></umb-icon>
+          <strong>Rule ${t + 1}</strong>
+          ${a ? n`<span class="rule-suffix">${a}</span>` : h}
+        </button>
+        <uui-button
+          look="secondary"
+          color="danger"
+          label="Remove"
+          ?disabled=${s}
+          @click=${i}
+        >Remove</uui-button>
+      </div>
+    `;
+  }
   _renderFooter() {
     const e = this._validationErrors();
     return n`
       <div slot="footer" class="footer">
         ${e.length > 0 && this._settings.useBackoffice ? n`<ul class="errors">
               ${e.map((t) => n`<li>${t}</li>`)}
-            </ul>` : g}
+            </ul>` : h}
         <uui-button
           look="primary"
           color="positive"
@@ -403,76 +450,75 @@ let u = class extends P {
           </div>
         </div>
         <h4>Rules</h4>
-        ${t.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : g}
+        ${t.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : h}
         ${t.rules.map(
       (a, o) => n`
             <uui-box class="rule-card">
-              <div slot="header" class="rule-header">
-                <strong>Rule ${o + 1}</strong>
-                <uui-button
-                  look="secondary"
-                  color="danger"
-                  label="Remove"
-                  ?disabled=${e || !t.enabled}
-                  @click=${() => s({ rules: t.rules.filter((r, l) => l !== o) })}
-                >Remove</uui-button>
-              </div>
-              <div class="grid">
-                ${this._docTypeField(
+              ${this._renderRuleHeader(
+        "autoNode",
+        o,
+        e || !t.enabled,
+        () => {
+          this._removeRuleAndReindex("autoNode", o), s({ rules: t.rules.filter((r, l) => l !== o) });
+        },
+        a.createdDocTypeAlias && a.docTypeAliasToCreate ? `(${a.createdDocTypeAlias} → ${a.docTypeAliasToCreate})` : void 0
+      )}
+              ${this._isRuleCollapsed("autoNode", o) ? h : n`<div class="grid">
+                    ${this._docTypeField(
         "Triggering doctype *",
         a.createdDocTypeAlias,
         e || !t.enabled,
         (r) => i(o, { createdDocTypeAlias: r })
       )}
-                ${this._docTypeField(
+                    ${this._docTypeField(
         "DocType to create *",
         a.docTypeAliasToCreate,
         e || !t.enabled,
         (r) => i(o, { docTypeAliasToCreate: r })
       )}
-                ${this._textField(
+                    ${this._textField(
         "Node name *",
         a.nodeName,
         e || !t.enabled,
         (r) => i(o, { nodeName: r })
       )}
-                ${this._textField(
+                    ${this._textField(
         "Dictionary item for name",
         a.dictionaryItemForName,
         e || !t.enabled,
         (r) => i(o, { dictionaryItemForName: r })
       )}
-                ${this._textField(
+                    ${this._textField(
         "Blueprint",
         a.blueprint,
         e || !t.enabled,
         (r) => i(o, { blueprint: r })
       )}
-                ${this._toggleField(
+                    ${this._toggleField(
         "Bring new node first",
         a.bringNewNodeFirst,
         e || !t.enabled,
         (r) => i(o, { bringNewNodeFirst: r })
       )}
-                ${this._toggleField(
+                    ${this._toggleField(
         "Only create if no children",
         a.onlyCreateIfNoChildren,
         e || !t.enabled,
         (r) => i(o, { onlyCreateIfNoChildren: r })
       )}
-                ${this._toggleField(
+                    ${this._toggleField(
         "Create if exists with different name",
         a.createIfExistsWithDifferentName,
         e || !t.enabled,
         (r) => i(o, { createIfExistsWithDifferentName: r })
       )}
-                ${this._toggleField(
+                    ${this._toggleField(
         "Keep new node unpublished",
         a.keepNewNodeUnpublished,
         e || !t.enabled,
         (r) => i(o, { keepNewNodeUnpublished: r })
       )}
-              </div>
+                  </div>`}
             </uui-box>
           `
     )}
@@ -514,70 +560,63 @@ let u = class extends P {
     )}
         </div>
         <h4>Rules</h4>
-        ${t.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : g}
+        ${t.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : h}
         ${t.rules.map(
       (a, o) => n`
             <uui-box class="rule-card">
-              <div slot="header" class="rule-header">
-                <strong>Rule ${o + 1}</strong>
-                <uui-button
-                  look="secondary"
-                  color="danger"
-                  label="Remove"
-                  ?disabled=${e || !t.enabled}
-                  @click=${() => s({ rules: t.rules.filter((r, l) => l !== o) })}
-                >Remove</uui-button>
-              </div>
-              <div class="grid">
-                ${this._docTypeField(
+              ${this._renderRuleHeader("nodeRestrict", o, e || !t.enabled, () => {
+        this._removeRuleAndReindex("nodeRestrict", o), s({ rules: t.rules.filter((r, l) => l !== o) });
+      })}
+              ${this._isRuleCollapsed("nodeRestrict", o) ? h : n`<div class="grid">
+                    ${this._docTypeField(
         "Parent doctype *",
         a.parentDocType,
         e || !t.enabled,
         (r) => i(o, { parentDocType: r })
       )}
-                ${this._docTypeField(
+                    ${this._docTypeField(
         "Child doctype *",
         a.childDocType,
         e || !t.enabled,
         (r) => i(o, { childDocType: r })
       )}
-                ${this._numberField(
+                    ${this._numberField(
         "Max nodes *",
         a.maxNodes,
         e || !t.enabled,
         (r) => i(o, { maxNodes: r })
       )}
-                ${this._toggleField(
+                    ${this._toggleField(
         "Show warnings",
         a.showWarnings,
         e || !t.enabled,
         (r) => i(o, { showWarnings: r })
       )}
-                ${this._textField(
+                    ${this._textField(
         "Custom limit message",
         a.customMessage,
         e || !t.enabled,
         (r) => i(o, { customMessage: r })
       )}
-                ${this._textField(
+                    ${this._textField(
         "Custom limit category",
         a.customMessageCategory,
         e || !t.enabled,
         (r) => i(o, { customMessageCategory: r })
       )}
-                ${this._textField(
+                    ${this._textField(
         "Custom warning message",
         a.customWarningMessage,
         e || !t.enabled,
         (r) => i(o, { customWarningMessage: r })
       )}
-                ${this._textField(
+                    ${this._textField(
         "Custom warning category",
         a.customWarningMessageCategory,
         e || !t.enabled,
         (r) => i(o, { customWarningMessageCategory: r })
       )}
-              </div>
+                  </div>`}
             </uui-box>
           `
     )}
@@ -662,46 +701,39 @@ let u = class extends P {
     )}
         </div>
         <h4>Rules</h4>
-        ${t.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : g}
+        ${t.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : h}
         ${t.rules.map(
       (a, o) => n`
             <uui-box class="rule-card">
-              <div slot="header" class="rule-header">
-                <strong>Rule ${o + 1}</strong>
-                <uui-button
-                  look="secondary"
-                  color="danger"
-                  label="Remove"
-                  ?disabled=${e || !t.enabled}
-                  @click=${() => s({ rules: t.rules.filter((r, l) => l !== o) })}
-                >Remove</uui-button>
-              </div>
-              <div class="grid">
-                ${this._docTypeField(
+              ${this._renderRuleHeader("nodeProtect", o, e || !t.enabled, () => {
+        this._removeRuleAndReindex("nodeProtect", o), s({ rules: t.rules.filter((r, l) => l !== o) });
+      })}
+              ${this._isRuleCollapsed("nodeProtect", o) ? h : n`<div class="grid">
+                    ${this._docTypeField(
         "DocType alias",
         a.docTypeAlias,
         e || !t.enabled,
         (r) => i(o, { docTypeAlias: r })
       )}
-                ${this._textField(
+                    ${this._textField(
         "Document GUIDs (comma separated)",
         a.documentGuids,
         e || !t.enabled,
         (r) => i(o, { documentGuids: r })
       )}
-                ${this._textField(
+                    ${this._textField(
         "Custom message",
         a.customMessage,
         e || !t.enabled,
         (r) => i(o, { customMessage: r })
       )}
-                ${this._textField(
+                    ${this._textField(
         "Custom message category",
         a.customMessageCategory,
         e || !t.enabled,
         (r) => i(o, { customMessageCategory: r })
       )}
-              </div>
+                  </div>`}
             </uui-box>
           `
     )}
@@ -709,7 +741,7 @@ let u = class extends P {
           look="secondary"
           label="Add rule"
           ?disabled=${e || !t.enabled}
-          @click=${() => s({ rules: [...t.rules, V()] })}
+          @click=${() => s({ rules: [...t.rules, U()] })}
         >+ Add rule</uui-button>
       </uui-box>
     `;
@@ -849,9 +881,9 @@ let u = class extends P {
   _multiAliasField(e, t, s, i, a) {
     const o = new Set(
       (s ?? "").split(",").map((d) => d.trim()).filter((d) => d.length > 0)
-    ), r = (d, v) => {
-      v ? o.add(d) : o.delete(d), a(Array.from(o).join(","));
-    }, l = new Set(t.map((d) => d.alias)), m = Array.from(o).filter((d) => !l.has(d)), _ = this._expandedFields.has(e), f = this._filterModes.get(e) ?? "all", N = (d) => {
+    ), r = (d, _) => {
+      _ ? o.add(d) : o.delete(d), a(Array.from(o).join(","));
+    }, l = new Set(t.map((d) => d.alias)), m = Array.from(o).filter((d) => !l.has(d)), v = this._expandedFields.has(e), f = this._filterModes.get(e) ?? "all", N = (d) => {
       d ? this._expandedFields.add(e) : this._expandedFields.delete(e), this.requestUpdate();
     }, x = (d) => {
       this._filterModes.set(e, d), this.requestUpdate();
@@ -865,12 +897,12 @@ let u = class extends P {
               type="button"
               class="multi-toggle"
               ?disabled=${i}
-              @click=${() => N(!_)}
+              @click=${() => N(!v)}
             >
-              <span class="multi-action">${_ ? "Hide list" : "Show list"}</span>
+              <span class="multi-action">${v ? "Hide list" : "Show list"}</span>
               <span class="multi-count">(${o.size} selected)</span>
             </button>
-            ${_ ? n`
+            ${v ? n`
                   <div class="multi-filter">
                     <label class="checkbox-row">
                       <input
@@ -893,11 +925,11 @@ let u = class extends P {
                       <span>Selected only</span>
                     </label>
                   </div>
-                ` : g}
+                ` : h}
           </div>
-          ${_ ? n`
+          ${v ? n`
                 <div class="checkbox-list">
-                  ${$.length === 0 && w.length === 0 ? n`<p class="empty">No entries.</p>` : g}
+                  ${$.length === 0 && w.length === 0 ? n`<p class="empty">No entries.</p>` : h}
                   ${$.map(
       (d) => n`
                       <label class="checkbox-row">
@@ -905,7 +937,7 @@ let u = class extends P {
                           type="checkbox"
                           ?disabled=${i}
                           .checked=${o.has(d.alias)}
-                          @change=${(v) => r(d.alias, v.target.checked)}
+                          @change=${(_) => r(d.alias, _.target.checked)}
                         />
                         <span>${d.name} (${d.alias})</span>
                       </label>
@@ -918,14 +950,14 @@ let u = class extends P {
                           type="checkbox"
                           ?disabled=${i}
                           checked
-                          @change=${(v) => r(d, v.target.checked)}
+                          @change=${(_) => r(d, _.target.checked)}
                         />
                         <span>${d} (not found)</span>
                       </label>
                     `
     )}
                 </div>
-              ` : g}
+              ` : h}
         </div>
       </label>
     `;
@@ -948,7 +980,7 @@ let u = class extends P {
               </option>
             `
     )}
-          ${o && !r.has(o) ? n`<option value=${o} selected>${o} (not found)</option>` : g}
+          ${o && !r.has(o) ? n`<option value=${o} selected>${o} (not found)</option>` : h}
         </select>
       </label>
     `;
@@ -985,7 +1017,7 @@ let u = class extends P {
     `;
   }
 };
-q(u, "styles", S`
+L(u, "styles", S`
     :host {
       display: block;
       height: 100%;
@@ -1078,12 +1110,39 @@ q(u, "styles", S`
     }
     .rule-card {
       margin-top: var(--uui-size-space-3, 12px);
+      background-color: transparent;
+      --uui-box-box-shadow: none;
+      --uui-color-divider-standalone: transparent;
+      --uui-box-header-padding: 0;
+      --uui-box-default-padding: 0;
+    }
+    .rule-card .grid {
+      margin-top: 0;
     }
     .rule-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       width: 100%;
+    }
+    .rule-toggle {
+      appearance: none;
+      background: transparent;
+      border: none;
+      padding: 0;
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--uui-size-space-2, 8px);
+    }
+    .rule-toggle:hover umb-icon {
+      color: var(--uui-color-selected, #3544b1);
+    }
+    .rule-suffix {
+      color: var(--uui-color-text-alt, #666);
+      font-weight: normal;
     }
     .empty {
       color: var(--uui-color-text-alt);
@@ -1243,40 +1302,43 @@ q(u, "styles", S`
       border-radius: 0;
     }
   `);
-h([
+g([
   b()
 ], u.prototype, "_loading", 2);
-h([
+g([
   b()
 ], u.prototype, "_saving", 2);
-h([
+g([
   b()
 ], u.prototype, "_hasAppSettings", 2);
-h([
+g([
   b()
 ], u.prototype, "_settings", 2);
-h([
+g([
   b()
 ], u.prototype, "_activeTab", 2);
-h([
+g([
   b()
 ], u.prototype, "_docTypes", 2);
-h([
+g([
   b()
 ], u.prototype, "_trueFalseProperties", 2);
-h([
+g([
   b()
 ], u.prototype, "_textContentProperties", 2);
-h([
+g([
   b()
 ], u.prototype, "_textInputProperties", 2);
-h([
+g([
   b()
 ], u.prototype, "_expandedFields", 2);
-h([
+g([
   b()
 ], u.prototype, "_filterModes", 2);
-u = h([
+g([
+  b()
+], u.prototype, "_collapsedRules", 2);
+u = g([
   C("dotsee-discipline-settings-workspace")
 ], u);
 const Y = u;
@@ -1284,4 +1346,4 @@ export {
   u as DisciplineSettingsWorkspaceElement,
   Y as default
 };
-//# sourceMappingURL=discipline-settings.workspace.element-CYaa7mQ0.js.map
+//# sourceMappingURL=discipline-settings.workspace.element-DB6f30zd.js.map
