@@ -118,6 +118,9 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
   @state()
   private _dragPosition: 'before' | 'after' | null = null;
 
+  @state()
+  private _dragFeature: 'autoNode' | 'nodeRestrict' | 'nodeProtect' | null = null;
+
   private _repository?: DisciplineSettingsRepository;
 
   override connectedCallback() {
@@ -448,26 +451,35 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     this._collapsedRules = next;
   }
 
-  private _reorderAutoNodeRules(srcIdx: number, dstIdx: number) {
-    const feat = this._settings.autoNode;
+  private _reorderRules(
+    feature: 'autoNode' | 'nodeRestrict' | 'nodeProtect',
+    srcIdx: number,
+    dstIdx: number,
+  ) {
+    const feat = this._settings[feature];
     if (srcIdx === dstIdx || srcIdx < 0 || srcIdx >= feat.rules.length) return;
     const clamped = Math.max(0, Math.min(dstIdx, feat.rules.length - 1));
     if (srcIdx === clamped) return;
     const newRules = feat.rules.slice();
     const [moved] = newRules.splice(srcIdx, 1);
-    newRules.splice(clamped, 0, moved);
+    newRules.splice(clamped, 0, moved as typeof moved);
 
     const oldToNew = new Map<number, number>();
     const perm = feat.rules.map((_, i) => i);
     const [movedIdx] = perm.splice(srcIdx, 1);
     perm.splice(clamped, 0, movedIdx);
     perm.forEach((oldIdx, newIdx) => oldToNew.set(oldIdx, newIdx));
-    this._remapCollapsedRules('autoNode', oldToNew);
+    this._remapCollapsedRules(feature, oldToNew);
 
-    this._patchSettings('autoNode', { ...feat, rules: newRules });
+    this._patchSettings(feature, { ...feat, rules: newRules as typeof feat.rules });
   }
 
-  private _onRuleDragStart(event: DragEvent, index: number) {
+  private _onRuleDragStart(
+    event: DragEvent,
+    feature: 'autoNode' | 'nodeRestrict' | 'nodeProtect',
+    index: number,
+  ) {
+    this._dragFeature = feature;
     this._dragIndex = index;
     if (event.dataTransfer) {
       event.dataTransfer.effectAllowed = 'move';
@@ -483,10 +495,15 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
         );
       }
     }
+    this.requestUpdate();
   }
 
-  private _onRuleDragOver(event: DragEvent, index: number) {
-    if (this._dragIndex === null) return;
+  private _onRuleDragOver(
+    event: DragEvent,
+    feature: 'autoNode' | 'nodeRestrict' | 'nodeProtect',
+    index: number,
+  ) {
+    if (this._dragIndex === null || this._dragFeature !== feature) return;
     event.preventDefault();
     if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
     const target = event.currentTarget as HTMLElement;
@@ -496,33 +513,46 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     if (this._dragOverIndex !== index || this._dragPosition !== position) {
       this._dragOverIndex = index;
       this._dragPosition = position;
+      this.requestUpdate();
     }
   }
 
-  private _onRuleDragLeave(index: number) {
-    if (this._dragOverIndex === index) {
+  private _onRuleDragLeave(
+    feature: 'autoNode' | 'nodeRestrict' | 'nodeProtect',
+    index: number,
+  ) {
+    if (this._dragFeature === feature && this._dragOverIndex === index) {
       this._dragOverIndex = null;
       this._dragPosition = null;
+      this.requestUpdate();
     }
   }
 
-  private _onRuleDrop(event: DragEvent, targetIndex: number) {
+  private _onRuleDrop(
+    event: DragEvent,
+    feature: 'autoNode' | 'nodeRestrict' | 'nodeProtect',
+    targetIndex: number,
+  ) {
     event.preventDefault();
-    if (this._dragIndex === null) return;
+    if (this._dragIndex === null || this._dragFeature !== feature) return;
     const src = this._dragIndex;
     const position = this._dragPosition ?? 'after';
     let dst = targetIndex + (position === 'after' ? 1 : 0);
     if (src < dst) dst--;
-    this._reorderAutoNodeRules(src, dst);
+    this._reorderRules(feature, src, dst);
+    this._dragFeature = null;
     this._dragIndex = null;
     this._dragOverIndex = null;
     this._dragPosition = null;
+    this.requestUpdate();
   }
 
   private _onRuleDragEnd() {
+    this._dragFeature = null;
     this._dragIndex = null;
     this._dragOverIndex = null;
     this._dragPosition = null;
+    this.requestUpdate();
   }
 
   private _removeRuleAndReindex(feature: string, index: number) {
@@ -805,11 +835,13 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
                   </div>
                 </uui-box>
               `;
+          const isDragging = this._dragFeature === 'autoNode' && this._dragIndex === i;
+          const isDropTarget = this._dragFeature === 'autoNode' && this._dragOverIndex === i;
           const wrapperClasses = [
             'rule-wrapper',
-            this._dragIndex === i ? 'dragging' : '',
-            this._dragOverIndex === i && this._dragPosition === 'before' ? 'drop-before' : '',
-            this._dragOverIndex === i && this._dragPosition === 'after' ? 'drop-after' : '',
+            isDragging ? 'dragging' : '',
+            isDropTarget && this._dragPosition === 'before' ? 'drop-before' : '',
+            isDropTarget && this._dragPosition === 'after' ? 'drop-after' : '',
           ]
             .filter(Boolean)
             .join(' ');
@@ -817,16 +849,16 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
           return html`
             <div
               class=${wrapperClasses}
-              @dragover=${(e: DragEvent) => this._onRuleDragOver(e, i)}
-              @dragleave=${() => this._onRuleDragLeave(i)}
-              @drop=${(e: DragEvent) => this._onRuleDrop(e, i)}
+              @dragover=${(e: DragEvent) => this._onRuleDragOver(e, 'autoNode', i)}
+              @dragleave=${() => this._onRuleDragLeave('autoNode', i)}
+              @drop=${(e: DragEvent) => this._onRuleDrop(e, 'autoNode', i)}
             >
               <span
                 class="drag-handle"
                 draggable=${handleDisabled ? 'false' : 'true'}
                 aria-label="Drag to reorder"
                 title="Drag to reorder"
-                @dragstart=${(e: DragEvent) => this._onRuleDragStart(e, i)}
+                @dragstart=${(e: DragEvent) => this._onRuleDragStart(e, 'autoNode', i)}
                 @dragend=${() => this._onRuleDragEnd()}
               >
                 <umb-icon name="icon-navigation"></umb-icon>
@@ -894,12 +926,11 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
             this._removeRuleAndReindex('nodeRestrict', i);
             update({ rules: feat.rules.filter((_, idx) => idx !== i) });
           };
-          if (this._isRuleCollapsed('nodeRestrict', i)) {
-            return this._renderCollapsedRule('nodeRestrict', i, ruleName, ruleDetail, disabled || !feat.enabled, onRemove);
-          }
-          return html`
-            <uui-box class="rule-card">
-              ${this._renderRuleHeader('nodeRestrict', i, disabled || !feat.enabled, onRemove, suffix || undefined)}
+          const body = this._isRuleCollapsed('nodeRestrict', i)
+            ? this._renderCollapsedRule('nodeRestrict', i, ruleName, ruleDetail, disabled || !feat.enabled, onRemove)
+            : html`
+                <uui-box class="rule-card">
+                  ${this._renderRuleHeader('nodeRestrict', i, disabled || !feat.enabled, onRemove, suffix || undefined)}
               <div class="grid">
                 ${this._withFieldHelp(
                   this._docTypeField('Parent doctype *', rule.parentDocType, disabled || !feat.enabled, (v) =>
@@ -955,18 +986,49 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
                   `noderestrict-rule-${i}-warnmsg-help`,
                   'Text shown to editors as they approach — but have not yet reached — the limit. Leave empty to use the default warning.',
                 )}
-                ${this._withFieldHelp(
-                  this._textField(
-                    'Custom warning category',
-                    rule.customWarningMessageCategory,
-                    disabled || !feat.enabled,
-                    (v) => updateRuleAt(i, { customWarningMessageCategory: v }),
-                  ),
-                  `noderestrict-rule-${i}-warncat-help`,
-                  'Optional Umbraco dictionary category used to localise the Custom warning message. When set, the message value is treated as a dictionary key within this category.',
-                )}
-              </div>
-            </uui-box>
+                    ${this._withFieldHelp(
+                      this._textField(
+                        'Custom warning category',
+                        rule.customWarningMessageCategory,
+                        disabled || !feat.enabled,
+                        (v) => updateRuleAt(i, { customWarningMessageCategory: v }),
+                      ),
+                      `noderestrict-rule-${i}-warncat-help`,
+                      'Optional Umbraco dictionary category used to localise the Custom warning message. When set, the message value is treated as a dictionary key within this category.',
+                    )}
+                  </div>
+                </uui-box>
+              `;
+          const isDragging = this._dragFeature === 'nodeRestrict' && this._dragIndex === i;
+          const isDropTarget = this._dragFeature === 'nodeRestrict' && this._dragOverIndex === i;
+          const wrapperClasses = [
+            'rule-wrapper',
+            isDragging ? 'dragging' : '',
+            isDropTarget && this._dragPosition === 'before' ? 'drop-before' : '',
+            isDropTarget && this._dragPosition === 'after' ? 'drop-after' : '',
+          ]
+            .filter(Boolean)
+            .join(' ');
+          const handleDisabled = disabled || !feat.enabled;
+          return html`
+            <div
+              class=${wrapperClasses}
+              @dragover=${(e: DragEvent) => this._onRuleDragOver(e, 'nodeRestrict', i)}
+              @dragleave=${() => this._onRuleDragLeave('nodeRestrict', i)}
+              @drop=${(e: DragEvent) => this._onRuleDrop(e, 'nodeRestrict', i)}
+            >
+              <span
+                class="drag-handle"
+                draggable=${handleDisabled ? 'false' : 'true'}
+                aria-label="Drag to reorder"
+                title="Drag to reorder"
+                @dragstart=${(e: DragEvent) => this._onRuleDragStart(e, 'nodeRestrict', i)}
+                @dragend=${() => this._onRuleDragEnd()}
+              >
+                <umb-icon name="icon-navigation"></umb-icon>
+              </span>
+              <div class="rule-content">${body}</div>
+            </div>
           `;
         })}
         <uui-button
@@ -1084,49 +1146,79 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
             this._removeRuleAndReindex('nodeProtect', i);
             update({ rules: feat.rules.filter((_, idx) => idx !== i) });
           };
-          if (this._isRuleCollapsed('nodeProtect', i)) {
-            return this._renderCollapsedRule('nodeProtect', i, ruleName, ruleDetail, disabled || !feat.enabled, onRemove);
-          }
+          const body = this._isRuleCollapsed('nodeProtect', i)
+            ? this._renderCollapsedRule('nodeProtect', i, ruleName, ruleDetail, disabled || !feat.enabled, onRemove)
+            : html`
+                <uui-box class="rule-card">
+                  ${this._renderRuleHeader('nodeProtect', i, disabled || !feat.enabled, onRemove, suffix || undefined)}
+                  <div class="grid">
+                    ${this._withFieldHelp(
+                      this._docTypeField('DocType alias', rule.docTypeAlias, disabled || !feat.enabled, (v) =>
+                        updateRuleAt(i, { docTypeAlias: v }),
+                      ),
+                      `nodeprotect-rule-${i}-doctype-help`,
+                      'Protect every node of this doctype from deletion. Leave empty if you want to protect specific nodes by GUID instead.',
+                    )}
+                    ${this._withFieldHelp(
+                      this._textField(
+                        'Document GUIDs (comma separated)',
+                        rule.documentGuids,
+                        disabled || !feat.enabled,
+                        (v) => updateRuleAt(i, { documentGuids: v }),
+                      ),
+                      `nodeprotect-rule-${i}-guids-help`,
+                      'Comma-separated list of specific content GUIDs to protect. Use alongside or instead of the doctype alias to protect individual important nodes.',
+                    )}
+                    ${this._withFieldHelp(
+                      this._textField('Custom message', rule.customMessage, disabled || !feat.enabled, (v) =>
+                        updateRuleAt(i, { customMessage: v }),
+                      ),
+                      `nodeprotect-rule-${i}-msg-help`,
+                      'Text (or dictionary key — see category below) shown to editors who try to delete a protected node. Leave empty to use the default message.',
+                    )}
+                    ${this._withFieldHelp(
+                      this._textField(
+                        'Custom message category',
+                        rule.customMessageCategory,
+                        disabled || !feat.enabled,
+                        (v) => updateRuleAt(i, { customMessageCategory: v }),
+                      ),
+                      `nodeprotect-rule-${i}-msgcat-help`,
+                      'Optional Umbraco dictionary category used to localise the Custom message. When set, the message value is treated as a dictionary key within this category.',
+                    )}
+                  </div>
+                </uui-box>
+              `;
+          const isDragging = this._dragFeature === 'nodeProtect' && this._dragIndex === i;
+          const isDropTarget = this._dragFeature === 'nodeProtect' && this._dragOverIndex === i;
+          const wrapperClasses = [
+            'rule-wrapper',
+            isDragging ? 'dragging' : '',
+            isDropTarget && this._dragPosition === 'before' ? 'drop-before' : '',
+            isDropTarget && this._dragPosition === 'after' ? 'drop-after' : '',
+          ]
+            .filter(Boolean)
+            .join(' ');
+          const handleDisabled = disabled || !feat.enabled;
           return html`
-            <uui-box class="rule-card">
-              ${this._renderRuleHeader('nodeProtect', i, disabled || !feat.enabled, onRemove, suffix || undefined)}
-              <div class="grid">
-                ${this._withFieldHelp(
-                  this._docTypeField('DocType alias', rule.docTypeAlias, disabled || !feat.enabled, (v) =>
-                    updateRuleAt(i, { docTypeAlias: v }),
-                  ),
-                  `nodeprotect-rule-${i}-doctype-help`,
-                  'Protect every node of this doctype from deletion. Leave empty if you want to protect specific nodes by GUID instead.',
-                )}
-                ${this._withFieldHelp(
-                  this._textField(
-                    'Document GUIDs (comma separated)',
-                    rule.documentGuids,
-                    disabled || !feat.enabled,
-                    (v) => updateRuleAt(i, { documentGuids: v }),
-                  ),
-                  `nodeprotect-rule-${i}-guids-help`,
-                  'Comma-separated list of specific content GUIDs to protect. Use alongside or instead of the doctype alias to protect individual important nodes.',
-                )}
-                ${this._withFieldHelp(
-                  this._textField('Custom message', rule.customMessage, disabled || !feat.enabled, (v) =>
-                    updateRuleAt(i, { customMessage: v }),
-                  ),
-                  `nodeprotect-rule-${i}-msg-help`,
-                  'Text (or dictionary key — see category below) shown to editors who try to delete a protected node. Leave empty to use the default message.',
-                )}
-                ${this._withFieldHelp(
-                  this._textField(
-                    'Custom message category',
-                    rule.customMessageCategory,
-                    disabled || !feat.enabled,
-                    (v) => updateRuleAt(i, { customMessageCategory: v }),
-                  ),
-                  `nodeprotect-rule-${i}-msgcat-help`,
-                  'Optional Umbraco dictionary category used to localise the Custom message. When set, the message value is treated as a dictionary key within this category.',
-                )}
-              </div>
-            </uui-box>
+            <div
+              class=${wrapperClasses}
+              @dragover=${(e: DragEvent) => this._onRuleDragOver(e, 'nodeProtect', i)}
+              @dragleave=${() => this._onRuleDragLeave('nodeProtect', i)}
+              @drop=${(e: DragEvent) => this._onRuleDrop(e, 'nodeProtect', i)}
+            >
+              <span
+                class="drag-handle"
+                draggable=${handleDisabled ? 'false' : 'true'}
+                aria-label="Drag to reorder"
+                title="Drag to reorder"
+                @dragstart=${(e: DragEvent) => this._onRuleDragStart(e, 'nodeProtect', i)}
+                @dragend=${() => this._onRuleDragEnd()}
+              >
+                <umb-icon name="icon-navigation"></umb-icon>
+              </span>
+              <div class="rule-content">${body}</div>
+            </div>
           `;
         })}
         <uui-button
@@ -1728,10 +1820,10 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
       border-bottom: 2px solid transparent;
     }
     .rule-wrapper.drop-before {
-      border-top-color: var(--uui-color-selected, #3544b1);
+      border-top-color: var(--uui-color-positive, #2bc37c);
     }
     .rule-wrapper.drop-after {
-      border-bottom-color: var(--uui-color-selected, #3544b1);
+      border-bottom-color: var(--uui-color-positive, #2bc37c);
     }
     .rule-wrapper.dragging {
       opacity: 0.5;
