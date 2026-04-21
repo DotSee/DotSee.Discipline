@@ -1,12 +1,12 @@
 var F = Object.defineProperty;
 var A = (u, e, t) => e in u ? F(u, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : u[e] = t;
 var p = (u, e, t) => A(u, typeof e != "symbol" ? e + "" : e, t);
-import { html as n, nothing as g, css as S, state as b, customElement as C } from "@umbraco-cms/backoffice/external/lit";
+import { html as n, nothing as h, css as S, state as b, customElement as C } from "@umbraco-cms/backoffice/external/lit";
 import { UmbLitElement as P } from "@umbraco-cms/backoffice/lit-element";
 import { UMB_AUTH_CONTEXT as D } from "@umbraco-cms/backoffice/auth";
 import { UMB_MODAL_MANAGER_CONTEXT as E, UMB_CONFIRM_MODAL as M } from "@umbraco-cms/backoffice/modal";
 import { UMB_NOTIFICATION_CONTEXT as R } from "@umbraco-cms/backoffice/notification";
-import { c as z, b as B, d as V } from "./index-s8KFUofy.js";
+import { c as z, b as B, d as V } from "./index-jKwurXbw.js";
 const y = "/umbraco/api/discipline";
 class q {
   constructor(e) {
@@ -84,9 +84,9 @@ class q {
     return await e.json();
   }
 }
-var k = Object.defineProperty, I = Object.getOwnPropertyDescriptor, U = (u, e, t) => e in u ? k(u, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : u[e] = t, h = (u, e, t, s) => {
-  for (var i = s > 1 ? void 0 : s ? I(e, t) : e, a = u.length - 1, r; a >= 0; a--)
-    (r = u[a]) && (i = (s ? r(e, t, i) : r(i)) || i);
+var k = Object.defineProperty, I = Object.getOwnPropertyDescriptor, U = (u, e, t) => e in u ? k(u, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : u[e] = t, g = (u, e, t, s) => {
+  for (var i = s > 1 ? void 0 : s ? I(e, t) : e, a = u.length - 1, o; a >= 0; a--)
+    (o = u[a]) && (i = (s ? o(e, t, i) : o(i)) || i);
   return s && i && k(e, t, i), i;
 }, L = (u, e, t) => U(u, e + "", t);
 const j = [
@@ -159,14 +159,14 @@ let c = class extends P {
     const t = await (await this.getContext(D)).getLatestToken();
     this._repository = new q(t);
     try {
-      const [s, i, a, r, o] = await Promise.all([
+      const [s, i, a, o, r] = await Promise.all([
         this._repository.getSettings(),
         this._repository.getDocTypes().catch(() => []),
         this._repository.getTrueFalseProperties().catch(() => []),
         this._repository.getTextContentProperties().catch(() => []),
         this._repository.getTextInputProperties().catch(() => [])
       ]);
-      this._docTypes = i, this._trueFalseProperties = a, this._textContentProperties = r, this._textInputProperties = o, this._applyResponse(s);
+      this._docTypes = i, this._trueFalseProperties = a, this._textContentProperties = o, this._textInputProperties = r, this._applyResponse(s);
     } catch (s) {
       await this._notify("danger", `Could not load settings: ${this._errorMessage(s)}`);
     } finally {
@@ -261,19 +261,26 @@ let c = class extends P {
         ${this._renderSourceBanner()}
         ${t ? n`
               <div class="tab-bar">
-                ${j.map(
-      (s) => n`
+                ${j.map((s) => {
+      var o;
+      const i = !!((o = this._settings[s.alias]) != null && o.enabled), a = [
+        "tab-button",
+        this._activeTab === s.alias ? "active" : "",
+        i ? "enabled" : ""
+      ].filter(Boolean).join(" ");
+      return n`
                     <button
                       type="button"
-                      class="tab-button ${this._activeTab === s.alias ? "active" : ""}"
+                      class=${a}
                       @click=${() => {
         this._activeTab = s.alias, this.requestUpdate();
       }}
                     >
-                      ${s.label}
+                      ${i ? n`<umb-icon name="icon-check" class="tab-icon"></umb-icon>` : h}
+                      <span>${s.label}</span>
                     </button>
-                  `
-    )}
+                  `;
+    })}
               </div>
               <div class="tab-content">
                 <div ?hidden=${this._activeTab !== "autoNode"}>${this._renderAutoNodeTab(e)}</div>
@@ -285,7 +292,7 @@ let c = class extends P {
                 <div ?hidden=${this._activeTab !== "propertyVersions"}>${this._renderPropertyVersionsTab(e)}</div>
               </div>
               ${this._renderFooter()}
-            ` : g}
+            ` : h}
       </umb-body-layout>
     `;
   }
@@ -308,7 +315,7 @@ let c = class extends P {
                   ?disabled=${this._saving}
                   @click=${this._onImportClick}
                 ></uui-button>
-              ` : g}
+              ` : h}
         </div>
       </uui-box>
     ` : n`
@@ -338,7 +345,7 @@ let c = class extends P {
       <div slot="footer" class="footer">
         ${e.length > 0 && this._settings.useBackoffice ? n`<ul class="errors">
               ${e.map((t) => n`<li>${t}</li>`)}
-            </ul>` : g}
+            </ul>` : h}
         <uui-button
           look="primary"
           color="positive"
@@ -357,9 +364,9 @@ let c = class extends P {
   _renderAutoNodeTab(e) {
     const t = this._settings.autoNode, s = (a) => {
       this._patchSettings("autoNode", { ...t, ...a });
-    }, i = (a, r) => {
-      const o = t.rules.map((l, m) => m === a ? { ...l, ...r } : l);
-      s({ rules: o });
+    }, i = (a, o) => {
+      const r = t.rules.map((l, m) => m === a ? { ...l, ...o } : l);
+      s({ rules: r });
     };
     return n`
       <uui-box headline="AutoNode">
@@ -386,18 +393,18 @@ let c = class extends P {
           </label>
         </div>
         <h4>Rules</h4>
-        ${t.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : g}
+        ${t.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : h}
         ${t.rules.map(
-      (a, r) => n`
+      (a, o) => n`
             <uui-box class="rule-card">
               <div slot="header" class="rule-header">
-                <strong>Rule ${r + 1}</strong>
+                <strong>Rule ${o + 1}</strong>
                 <uui-button
                   look="secondary"
                   color="danger"
                   label="Remove"
                   ?disabled=${e || !t.enabled}
-                  @click=${() => s({ rules: t.rules.filter((o, l) => l !== r) })}
+                  @click=${() => s({ rules: t.rules.filter((r, l) => l !== o) })}
                 >Remove</uui-button>
               </div>
               <div class="grid">
@@ -405,55 +412,55 @@ let c = class extends P {
         "Triggering doctype *",
         a.createdDocTypeAlias,
         e || !t.enabled,
-        (o) => i(r, { createdDocTypeAlias: o })
+        (r) => i(o, { createdDocTypeAlias: r })
       )}
                 ${this._docTypeField(
         "DocType to create *",
         a.docTypeAliasToCreate,
         e || !t.enabled,
-        (o) => i(r, { docTypeAliasToCreate: o })
+        (r) => i(o, { docTypeAliasToCreate: r })
       )}
                 ${this._textField(
         "Node name *",
         a.nodeName,
         e || !t.enabled,
-        (o) => i(r, { nodeName: o })
+        (r) => i(o, { nodeName: r })
       )}
                 ${this._textField(
         "Dictionary item for name",
         a.dictionaryItemForName,
         e || !t.enabled,
-        (o) => i(r, { dictionaryItemForName: o })
+        (r) => i(o, { dictionaryItemForName: r })
       )}
                 ${this._textField(
         "Blueprint",
         a.blueprint,
         e || !t.enabled,
-        (o) => i(r, { blueprint: o })
+        (r) => i(o, { blueprint: r })
       )}
                 ${this._toggleField(
         "Bring new node first",
         a.bringNewNodeFirst,
         e || !t.enabled,
-        (o) => i(r, { bringNewNodeFirst: o })
+        (r) => i(o, { bringNewNodeFirst: r })
       )}
                 ${this._toggleField(
         "Only create if no children",
         a.onlyCreateIfNoChildren,
         e || !t.enabled,
-        (o) => i(r, { onlyCreateIfNoChildren: o })
+        (r) => i(o, { onlyCreateIfNoChildren: r })
       )}
                 ${this._toggleField(
         "Create if exists with different name",
         a.createIfExistsWithDifferentName,
         e || !t.enabled,
-        (o) => i(r, { createIfExistsWithDifferentName: o })
+        (r) => i(o, { createIfExistsWithDifferentName: r })
       )}
                 ${this._toggleField(
         "Keep new node unpublished",
         a.keepNewNodeUnpublished,
         e || !t.enabled,
-        (o) => i(r, { keepNewNodeUnpublished: o })
+        (r) => i(o, { keepNewNodeUnpublished: r })
       )}
               </div>
             </uui-box>
@@ -471,9 +478,9 @@ let c = class extends P {
   _renderNodeRestrictTab(e) {
     const t = this._settings.nodeRestrict, s = (a) => {
       this._patchSettings("nodeRestrict", { ...t, ...a });
-    }, i = (a, r) => {
-      const o = t.rules.map((l, m) => m === a ? { ...l, ...r } : l);
-      s({ rules: o });
+    }, i = (a, o) => {
+      const r = t.rules.map((l, m) => m === a ? { ...l, ...o } : l);
+      s({ rules: r });
     };
     return n`
       <uui-box headline="NodeRestrict">
@@ -493,18 +500,18 @@ let c = class extends P {
     )}
         </div>
         <h4>Rules</h4>
-        ${t.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : g}
+        ${t.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : h}
         ${t.rules.map(
-      (a, r) => n`
+      (a, o) => n`
             <uui-box class="rule-card">
               <div slot="header" class="rule-header">
-                <strong>Rule ${r + 1}</strong>
+                <strong>Rule ${o + 1}</strong>
                 <uui-button
                   look="secondary"
                   color="danger"
                   label="Remove"
                   ?disabled=${e || !t.enabled}
-                  @click=${() => s({ rules: t.rules.filter((o, l) => l !== r) })}
+                  @click=${() => s({ rules: t.rules.filter((r, l) => l !== o) })}
                 >Remove</uui-button>
               </div>
               <div class="grid">
@@ -512,49 +519,49 @@ let c = class extends P {
         "Parent doctype *",
         a.parentDocType,
         e || !t.enabled,
-        (o) => i(r, { parentDocType: o })
+        (r) => i(o, { parentDocType: r })
       )}
                 ${this._docTypeField(
         "Child doctype *",
         a.childDocType,
         e || !t.enabled,
-        (o) => i(r, { childDocType: o })
+        (r) => i(o, { childDocType: r })
       )}
                 ${this._numberField(
         "Max nodes *",
         a.maxNodes,
         e || !t.enabled,
-        (o) => i(r, { maxNodes: o })
+        (r) => i(o, { maxNodes: r })
       )}
                 ${this._toggleField(
         "Show warnings",
         a.showWarnings,
         e || !t.enabled,
-        (o) => i(r, { showWarnings: o })
+        (r) => i(o, { showWarnings: r })
       )}
                 ${this._textField(
         "Custom limit message",
         a.customMessage,
         e || !t.enabled,
-        (o) => i(r, { customMessage: o })
+        (r) => i(o, { customMessage: r })
       )}
                 ${this._textField(
         "Custom limit category",
         a.customMessageCategory,
         e || !t.enabled,
-        (o) => i(r, { customMessageCategory: o })
+        (r) => i(o, { customMessageCategory: r })
       )}
                 ${this._textField(
         "Custom warning message",
         a.customWarningMessage,
         e || !t.enabled,
-        (o) => i(r, { customWarningMessage: o })
+        (r) => i(o, { customWarningMessage: r })
       )}
                 ${this._textField(
         "Custom warning category",
         a.customWarningMessageCategory,
         e || !t.enabled,
-        (o) => i(r, { customWarningMessageCategory: o })
+        (r) => i(o, { customWarningMessageCategory: r })
       )}
               </div>
             </uui-box>
@@ -577,20 +584,20 @@ let c = class extends P {
       <uui-box headline="VirtualNodes">
         ${this._renderFeatureToggle(t.enabled, e, (i) => s({ enabled: i }))}
         <p>List of document type aliases to be treated as virtual nodes.</p>
-        ${t.rules.length === 0 ? n`<p class="empty">No aliases defined.</p>` : g}
+        ${t.rules.length === 0 ? n`<p class="empty">No aliases defined.</p>` : h}
         ${t.rules.map(
       (i, a) => n`
             <div class="inline">
-              ${this._docTypeField("DocType alias *", i, e || !t.enabled, (r) => {
-        const o = t.rules.map((l, m) => m === a ? r : l);
-        s({ rules: o });
+              ${this._docTypeField("DocType alias *", i, e || !t.enabled, (o) => {
+        const r = t.rules.map((l, m) => m === a ? o : l);
+        s({ rules: r });
       })}
               <uui-button
                 look="secondary"
                 color="danger"
                 label="Remove"
                 ?disabled=${e || !t.enabled}
-                @click=${() => s({ rules: t.rules.filter((r, o) => o !== a) })}
+                @click=${() => s({ rules: t.rules.filter((o, r) => r !== a) })}
               >Remove</uui-button>
             </div>
           `
@@ -625,9 +632,9 @@ let c = class extends P {
   _renderNodeProtectTab(e) {
     const t = this._settings.nodeProtect, s = (a) => {
       this._patchSettings("nodeProtect", { ...t, ...a });
-    }, i = (a, r) => {
-      const o = t.rules.map((l, m) => m === a ? { ...l, ...r } : l);
-      s({ rules: o });
+    }, i = (a, o) => {
+      const r = t.rules.map((l, m) => m === a ? { ...l, ...o } : l);
+      s({ rules: r });
     };
     return n`
       <uui-box headline="NodeProtect">
@@ -641,18 +648,18 @@ let c = class extends P {
     )}
         </div>
         <h4>Rules</h4>
-        ${t.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : g}
+        ${t.rules.length === 0 ? n`<p class="empty">No rules defined.</p>` : h}
         ${t.rules.map(
-      (a, r) => n`
+      (a, o) => n`
             <uui-box class="rule-card">
               <div slot="header" class="rule-header">
-                <strong>Rule ${r + 1}</strong>
+                <strong>Rule ${o + 1}</strong>
                 <uui-button
                   look="secondary"
                   color="danger"
                   label="Remove"
                   ?disabled=${e || !t.enabled}
-                  @click=${() => s({ rules: t.rules.filter((o, l) => l !== r) })}
+                  @click=${() => s({ rules: t.rules.filter((r, l) => l !== o) })}
                 >Remove</uui-button>
               </div>
               <div class="grid">
@@ -660,25 +667,25 @@ let c = class extends P {
         "DocType alias",
         a.docTypeAlias,
         e || !t.enabled,
-        (o) => i(r, { docTypeAlias: o })
+        (r) => i(o, { docTypeAlias: r })
       )}
                 ${this._textField(
         "Document GUIDs (comma separated)",
         a.documentGuids,
         e || !t.enabled,
-        (o) => i(r, { documentGuids: o })
+        (r) => i(o, { documentGuids: r })
       )}
                 ${this._textField(
         "Custom message",
         a.customMessage,
         e || !t.enabled,
-        (o) => i(r, { customMessage: o })
+        (r) => i(o, { customMessage: r })
       )}
                 ${this._textField(
         "Custom message category",
         a.customMessageCategory,
         e || !t.enabled,
-        (o) => i(r, { customMessageCategory: o })
+        (r) => i(o, { customMessageCategory: r })
       )}
               </div>
             </uui-box>
@@ -817,15 +824,15 @@ let c = class extends P {
     return this._aliasField(e, t, s, i, a);
   }
   _multiAliasField(e, t, s, i, a) {
-    const r = new Set(
+    const o = new Set(
       (s ?? "").split(",").map((d) => d.trim()).filter((d) => d.length > 0)
-    ), o = (d, _) => {
-      _ ? r.add(d) : r.delete(d), a(Array.from(r).join(","));
-    }, l = new Set(t.map((d) => d.alias)), m = Array.from(r).filter((d) => !l.has(d)), v = this._expandedFields.has(e), f = this._filterModes.get(e) ?? "all", N = (d) => {
+    ), r = (d, _) => {
+      _ ? o.add(d) : o.delete(d), a(Array.from(o).join(","));
+    }, l = new Set(t.map((d) => d.alias)), m = Array.from(o).filter((d) => !l.has(d)), v = this._expandedFields.has(e), f = this._filterModes.get(e) ?? "all", N = (d) => {
       d ? this._expandedFields.add(e) : this._expandedFields.delete(e), this.requestUpdate();
     }, x = (d) => {
       this._filterModes.set(e, d), this.requestUpdate();
-    }, $ = f === "selected" ? t.filter((d) => r.has(d.alias)) : t, w = f === "selected" || f === "all" ? m : [];
+    }, $ = f === "selected" ? t.filter((d) => o.has(d.alias)) : t, w = f === "selected" || f === "all" ? m : [];
     return n`
       <label>
         <span>${e}</span>
@@ -838,7 +845,7 @@ let c = class extends P {
               @click=${() => N(!v)}
             >
               <span class="multi-action">${v ? "Hide list" : "Show list"}</span>
-              <span class="multi-count">(${r.size} selected)</span>
+              <span class="multi-count">(${o.size} selected)</span>
             </button>
             ${v ? n`
                   <div class="multi-filter">
@@ -863,19 +870,19 @@ let c = class extends P {
                       <span>Selected only</span>
                     </label>
                   </div>
-                ` : g}
+                ` : h}
           </div>
           ${v ? n`
                 <div class="checkbox-list">
-                  ${$.length === 0 && w.length === 0 ? n`<p class="empty">No entries.</p>` : g}
+                  ${$.length === 0 && w.length === 0 ? n`<p class="empty">No entries.</p>` : h}
                   ${$.map(
       (d) => n`
                       <label class="checkbox-row">
                         <input
                           type="checkbox"
                           ?disabled=${i}
-                          .checked=${r.has(d.alias)}
-                          @change=${(_) => o(d.alias, _.target.checked)}
+                          .checked=${o.has(d.alias)}
+                          @change=${(_) => r(d.alias, _.target.checked)}
                         />
                         <span>${d.name} (${d.alias})</span>
                       </label>
@@ -888,20 +895,20 @@ let c = class extends P {
                           type="checkbox"
                           ?disabled=${i}
                           checked
-                          @change=${(_) => o(d, _.target.checked)}
+                          @change=${(_) => r(d, _.target.checked)}
                         />
                         <span>${d} (not found)</span>
                       </label>
                     `
     )}
                 </div>
-              ` : g}
+              ` : h}
         </div>
       </label>
     `;
   }
   _aliasField(e, t, s, i, a) {
-    const r = s ?? "", o = new Set(t.map((l) => l.alias));
+    const o = s ?? "", r = new Set(t.map((l) => l.alias));
     return n`
       <label>
         <span>${e}</span>
@@ -910,15 +917,15 @@ let c = class extends P {
           ?disabled=${i}
           @change=${(l) => a(l.target.value)}
         >
-          <option value="" ?selected=${r === ""}>-- Select --</option>
+          <option value="" ?selected=${o === ""}>-- Select --</option>
           ${t.map(
       (l) => n`
-              <option value=${l.alias} ?selected=${l.alias === r}>
+              <option value=${l.alias} ?selected=${l.alias === o}>
                 ${l.name} (${l.alias})
               </option>
             `
     )}
-          ${r && !o.has(r) ? n`<option value=${r} selected>${r} (not found)</option>` : g}
+          ${o && !r.has(o) ? n`<option value=${o} selected>${o} (not found)</option>` : h}
         </select>
       </label>
     `;
@@ -935,8 +942,8 @@ let c = class extends P {
           .value=${(t == null ? void 0 : t.toString()) ?? "0"}
           ?disabled=${s}
           @input=${(a) => {
-      const r = a.target.value, o = r === "" ? 0 : Number(r);
-      i(Number.isNaN(o) ? 0 : o);
+      const o = a.target.value, r = o === "" ? 0 : Number(o);
+      i(Number.isNaN(r) ? 0 : r);
     }}
         ></uui-input>
       </label>
@@ -1043,6 +1050,13 @@ L(c, "styles", S`
       font-size: inherit;
       color: var(--uui-color-text, inherit);
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--uui-size-space-2, 6px);
+    }
+    .tab-icon {
+      font-size: 1em;
+      display: inline-flex;
     }
     .tab-button:hover {
       background: var(--uui-color-surface-alt, #f5f5f5);
@@ -1051,6 +1065,13 @@ L(c, "styles", S`
       border-bottom-color: var(--uui-color-selected, #3544b1);
       color: var(--uui-color-selected, #3544b1);
       font-weight: 600;
+    }
+    .tab-button.enabled {
+      color: var(--uui-color-positive, #2bc37c);
+    }
+    .tab-button.enabled.active {
+      border-bottom-color: var(--uui-color-positive, #2bc37c);
+      color: var(--uui-color-positive, #2bc37c);
     }
     .tab-content {
       padding-top: var(--uui-size-space-4, 16px);
@@ -1166,40 +1187,40 @@ L(c, "styles", S`
       border-radius: 0;
     }
   `);
-h([
+g([
   b()
 ], c.prototype, "_loading", 2);
-h([
+g([
   b()
 ], c.prototype, "_saving", 2);
-h([
+g([
   b()
 ], c.prototype, "_hasAppSettings", 2);
-h([
+g([
   b()
 ], c.prototype, "_settings", 2);
-h([
+g([
   b()
 ], c.prototype, "_activeTab", 2);
-h([
+g([
   b()
 ], c.prototype, "_docTypes", 2);
-h([
+g([
   b()
 ], c.prototype, "_trueFalseProperties", 2);
-h([
+g([
   b()
 ], c.prototype, "_textContentProperties", 2);
-h([
+g([
   b()
 ], c.prototype, "_textInputProperties", 2);
-h([
+g([
   b()
 ], c.prototype, "_expandedFields", 2);
-h([
+g([
   b()
 ], c.prototype, "_filterModes", 2);
-c = h([
+c = g([
   C("dotsee-discipline-settings-workspace")
 ], c);
 const Y = c;
@@ -1207,4 +1228,4 @@ export {
   c as DisciplineSettingsWorkspaceElement,
   Y as default
 };
-//# sourceMappingURL=discipline-settings.workspace.element-C17SYOe6.js.map
+//# sourceMappingURL=discipline-settings.workspace.element-Dkzahe6W.js.map

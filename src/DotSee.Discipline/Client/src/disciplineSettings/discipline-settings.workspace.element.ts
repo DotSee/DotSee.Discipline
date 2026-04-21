@@ -303,20 +303,33 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
         ${active
           ? html`
               <div class="tab-bar">
-                ${TABS.map(
-                  (tab) => html`
+                ${TABS.map((tab) => {
+                  const isEnabled = Boolean(
+                    (this._settings[tab.alias] as { enabled?: boolean } | undefined)?.enabled,
+                  );
+                  const classes = [
+                    'tab-button',
+                    this._activeTab === tab.alias ? 'active' : '',
+                    isEnabled ? 'enabled' : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ');
+                  return html`
                     <button
                       type="button"
-                      class="tab-button ${this._activeTab === tab.alias ? 'active' : ''}"
+                      class=${classes}
                       @click=${() => {
                         this._activeTab = tab.alias;
                         this.requestUpdate();
                       }}
                     >
-                      ${tab.label}
+                      ${isEnabled
+                        ? html`<umb-icon name="icon-check" class="tab-icon"></umb-icon>`
+                        : nothing}
+                      <span>${tab.label}</span>
                     </button>
-                  `,
-                )}
+                  `;
+                })}
               </div>
               <div class="tab-content">
                 <div ?hidden=${this._activeTab !== 'autoNode'}>${this._renderAutoNodeTab(disabled)}</div>
@@ -1142,6 +1155,13 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
       font-size: inherit;
       color: var(--uui-color-text, inherit);
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--uui-size-space-2, 6px);
+    }
+    .tab-icon {
+      font-size: 1em;
+      display: inline-flex;
     }
     .tab-button:hover {
       background: var(--uui-color-surface-alt, #f5f5f5);
@@ -1150,6 +1170,13 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
       border-bottom-color: var(--uui-color-selected, #3544b1);
       color: var(--uui-color-selected, #3544b1);
       font-weight: 600;
+    }
+    .tab-button.enabled {
+      color: var(--uui-color-positive, #2bc37c);
+    }
+    .tab-button.enabled.active {
+      border-bottom-color: var(--uui-color-positive, #2bc37c);
+      color: var(--uui-color-positive, #2bc37c);
     }
     .tab-content {
       padding-top: var(--uui-size-space-4, 16px);
