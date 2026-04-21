@@ -5,8 +5,8 @@ import { html as n, nothing as h, css as S, state as b, customElement as C } fro
 import { UmbLitElement as P } from "@umbraco-cms/backoffice/lit-element";
 import { UMB_AUTH_CONTEXT as R } from "@umbraco-cms/backoffice/auth";
 import { UMB_MODAL_MANAGER_CONTEXT as D, UMB_CONFIRM_MODAL as E } from "@umbraco-cms/backoffice/modal";
-import { UMB_NOTIFICATION_CONTEXT as M } from "@umbraco-cms/backoffice/notification";
-import { c as z, b as B, d as U } from "./index-BTwf-taD.js";
+import { UMB_NOTIFICATION_CONTEXT as z } from "@umbraco-cms/backoffice/notification";
+import { c as M, b as B, d as U } from "./index-Cn2QRQ80.js";
 const y = "/umbraco/api/discipline";
 class V {
   constructor(e) {
@@ -182,7 +182,7 @@ let u = class extends P {
   }
   async _notify(e, t) {
     try {
-      const s = await this.getContext(M);
+      const s = await this.getContext(z);
       s == null || s.peek(e, { data: { message: t } });
     } catch {
     }
@@ -415,7 +415,8 @@ let u = class extends P {
       s({ rules: r });
     };
     return n`
-      <uui-box headline="AutoNode">
+      <uui-box>
+        <h3 slot="headline" class="uui-h3">AutoNode</h3>
         <p class="feature-description">
           Automatically creates child nodes when a parent is published, based on rules that match
           document types. Useful for scaffolding required child structure (folders, landing pages)
@@ -527,7 +528,7 @@ let u = class extends P {
           look="secondary"
           label="Add rule"
           ?disabled=${e || !t.enabled}
-          @click=${() => s({ rules: [...t.rules, z()] })}
+          @click=${() => s({ rules: [...t.rules, M()] })}
         >+ Add rule</uui-button>
       </uui-box>
     `;
@@ -540,7 +541,8 @@ let u = class extends P {
       s({ rules: r });
     };
     return n`
-      <uui-box headline="NodeRestrict">
+      <uui-box>
+        <h3 slot="headline" class="uui-h3">NodeRestrict</h3>
         <p class="feature-description">
           Limits the number of child nodes of a given type that can be created under a parent node.
           Editors see a configurable warning or error message when they try to exceed the limit.
@@ -641,7 +643,8 @@ let u = class extends P {
       this._patchSettings("virtualNodes", { ...t, ...i });
     };
     return n`
-      <uui-box headline="VirtualNodes">
+      <uui-box>
+        <h3 slot="headline" class="uui-h3">VirtualNodes</h3>
         <p class="feature-description">
           Hides the URL segment of the selected document types so their children appear one level
           higher in the site's public URLs. Useful for grouping content in the tree without that
@@ -668,7 +671,8 @@ let u = class extends P {
       this._patchSettings("variantsHider", { ...t, ...i });
     };
     return n`
-      <uui-box headline="VariantsHider">
+      <uui-box>
+        <h3 slot="headline" class="uui-h3">VariantsHider</h3>
         <p class="feature-description">
           Adds an entity action on the content tree that hides language variants that haven't been
           created yet (those shown in parentheses), so editors only see variants that actually exist.
@@ -693,7 +697,8 @@ let u = class extends P {
       s({ rules: r });
     };
     return n`
-      <uui-box headline="NodeProtect">
+      <uui-box>
+        <h3 slot="headline" class="uui-h3">NodeProtect</h3>
         <p class="feature-description">
           Prevents deletion of important nodes, either by document type or by specific GUID. Editors
           see a configurable message explaining why the node can't be deleted.
@@ -764,7 +769,8 @@ let u = class extends P {
       this._patchSettings("aiSummary", { ...t, ...i });
     };
     return n`
-      <uui-box headline="AiSummary">
+      <uui-box>
+        <h3 slot="headline" class="uui-h3">AiSummary</h3>
         <p class="feature-description">
           Generates AI-powered content summaries using OpenAI or Gemini and writes the result into a
           configured property. A toggle property on the node controls whether a summary should be
@@ -841,7 +847,8 @@ let u = class extends P {
       this._patchSettings("propertyVersions", { ...t, ...i });
     };
     return n`
-      <uui-box headline="PropertyVersions">
+      <uui-box>
+        <h3 slot="headline" class="uui-h3">PropertyVersions</h3>
         <p class="feature-description">
           Adds navigation actions to properties so editors can step through previous saved versions
           and roll individual properties back without restoring the whole document.
@@ -894,9 +901,9 @@ let u = class extends P {
   _multiAliasField(e, t, s, i, a) {
     const o = new Set(
       (s ?? "").split(",").map((d) => d.trim()).filter((d) => d.length > 0)
-    ), r = (d, _) => {
-      _ ? o.add(d) : o.delete(d), a(Array.from(o).join(","));
-    }, l = new Set(t.map((d) => d.alias)), m = Array.from(o).filter((d) => !l.has(d)), v = this._expandedFields.has(e), f = this._filterModes.get(e) ?? "all", N = (d) => {
+    ), r = (d, v) => {
+      v ? o.add(d) : o.delete(d), a(Array.from(o).join(","));
+    }, l = new Set(t.map((d) => d.alias)), m = Array.from(o).filter((d) => !l.has(d)), _ = this._expandedFields.has(e), f = this._filterModes.get(e) ?? "all", N = (d) => {
       d ? this._expandedFields.add(e) : this._expandedFields.delete(e), this.requestUpdate();
     }, x = (d) => {
       this._filterModes.set(e, d), this.requestUpdate();
@@ -910,12 +917,12 @@ let u = class extends P {
               type="button"
               class="multi-toggle"
               ?disabled=${i}
-              @click=${() => N(!v)}
+              @click=${() => N(!_)}
             >
-              <span class="multi-action">${v ? "Hide list" : "Show list"}</span>
+              <span class="multi-action">${_ ? "Hide list" : "Show list"}</span>
               <span class="multi-count">(${o.size} selected)</span>
             </button>
-            ${v ? n`
+            ${_ ? n`
                   <div class="multi-filter">
                     <label class="checkbox-row">
                       <input
@@ -940,7 +947,7 @@ let u = class extends P {
                   </div>
                 ` : h}
           </div>
-          ${v ? n`
+          ${_ ? n`
                 <div class="checkbox-list">
                   ${$.length === 0 && w.length === 0 ? n`<p class="empty">No entries.</p>` : h}
                   ${$.map(
@@ -950,7 +957,7 @@ let u = class extends P {
                           type="checkbox"
                           ?disabled=${i}
                           .checked=${o.has(d.alias)}
-                          @change=${(_) => r(d.alias, _.target.checked)}
+                          @change=${(v) => r(d.alias, v.target.checked)}
                         />
                         <span>${d.name} (${d.alias})</span>
                       </label>
@@ -963,7 +970,7 @@ let u = class extends P {
                           type="checkbox"
                           ?disabled=${i}
                           checked
-                          @change=${(_) => r(d, _.target.checked)}
+                          @change=${(v) => r(d, v.target.checked)}
                         />
                         <span>${d} (not found)</span>
                       </label>
@@ -1134,6 +1141,12 @@ L(u, "styles", S`
     }
     .row-break {
       grid-column-start: 1;
+    }
+    .uui-h3 {
+      font-size: var(--uui-type-h3-size, 30px);
+      line-height: var(--uui-size-large, 30px);
+      font-weight: 300;
+      margin: 0;
     }
     .rule-header {
       display: flex;
@@ -1362,4 +1375,4 @@ export {
   u as DisciplineSettingsWorkspaceElement,
   Y as default
 };
-//# sourceMappingURL=discipline-settings.workspace.element-HEOgaF_r.js.map
+//# sourceMappingURL=discipline-settings.workspace.element-DnEgwVl9.js.map

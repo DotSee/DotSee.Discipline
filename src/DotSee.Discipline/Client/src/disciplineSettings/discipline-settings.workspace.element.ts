@@ -504,7 +504,8 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     };
 
     return html`
-      <uui-box headline="AutoNode">
+      <uui-box>
+        <h3 slot="headline" class="uui-h3">AutoNode</h3>
         <p class="feature-description">
           Automatically creates child nodes when a parent is published, based on rules that match
           document types. Useful for scaffolding required child structure (folders, landing pages)
@@ -621,7 +622,8 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     };
 
     return html`
-      <uui-box headline="NodeRestrict">
+      <uui-box>
+        <h3 slot="headline" class="uui-h3">NodeRestrict</h3>
         <p class="feature-description">
           Limits the number of child nodes of a given type that can be created under a parent node.
           Editors see a configurable warning or error message when they try to exceed the limit.
@@ -703,7 +705,8 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     };
 
     return html`
-      <uui-box headline="VirtualNodes">
+      <uui-box>
+        <h3 slot="headline" class="uui-h3">VirtualNodes</h3>
         <p class="feature-description">
           Hides the URL segment of the selected document types so their children appear one level
           higher in the site's public URLs. Useful for grouping content in the tree without that
@@ -735,7 +738,8 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     };
 
     return html`
-      <uui-box headline="VariantsHider">
+      <uui-box>
+        <h3 slot="headline" class="uui-h3">VariantsHider</h3>
         <p class="feature-description">
           Adds an entity action on the content tree that hides language variants that haven't been
           created yet (those shown in parentheses), so editors only see variants that actually exist.
@@ -761,7 +765,8 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     };
 
     return html`
-      <uui-box headline="NodeProtect">
+      <uui-box>
+        <h3 slot="headline" class="uui-h3">NodeProtect</h3>
         <p class="feature-description">
           Prevents deletion of important nodes, either by document type or by specific GUID. Editors
           see a configurable message explaining why the node can't be deleted.
@@ -829,7 +834,8 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     };
 
     return html`
-      <uui-box headline="AiSummary">
+      <uui-box>
+        <h3 slot="headline" class="uui-h3">AiSummary</h3>
         <p class="feature-description">
           Generates AI-powered content summaries using OpenAI or Gemini and writes the result into a
           configured property. A toggle property on the node controls whether a summary should be
@@ -903,7 +909,8 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     };
 
     return html`
-      <uui-box headline="PropertyVersions">
+      <uui-box>
+        <h3 slot="headline" class="uui-h3">PropertyVersions</h3>
         <p class="feature-description">
           Adds navigation actions to properties so editors can step through previous saved versions
           and roll individual properties back without restoring the whole document.
@@ -1274,6 +1281,12 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     }
     .row-break {
       grid-column-start: 1;
+    }
+    .uui-h3 {
+      font-size: var(--uui-type-h3-size, 30px);
+      line-height: var(--uui-size-large, 30px);
+      font-weight: 300;
+      margin: 0;
     }
     .rule-header {
       display: flex;
