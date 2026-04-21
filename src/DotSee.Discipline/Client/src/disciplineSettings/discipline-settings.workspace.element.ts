@@ -4,6 +4,7 @@ import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
 import { UMB_MODAL_MANAGER_CONTEXT, UMB_CONFIRM_MODAL } from '@umbraco-cms/backoffice/modal';
 import { UMB_NOTIFICATION_CONTEXT } from '@umbraco-cms/backoffice/notification';
 import {
+  BlueprintOption,
   DisciplineSettings,
   DisciplineSettingsResponse,
   DocTypeOption,
@@ -97,6 +98,9 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
   private _textInputProperties: PropertyOption[] = [];
 
   @state()
+  private _blueprints: BlueprintOption[] = [];
+
+  @state()
   private _expandedFields = new Set<string>();
 
   @state()
@@ -104,6 +108,15 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
 
   @state()
   private _collapsedRules = new Set<string>();
+
+  @state()
+  private _dragIndex: number | null = null;
+
+  @state()
+  private _dragOverIndex: number | null = null;
+
+  @state()
+  private _dragPosition: 'before' | 'after' | null = null;
 
   private _repository?: DisciplineSettingsRepository;
 
@@ -135,18 +148,21 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     this._repository = new DisciplineSettingsRepository(token);
 
     try {
-      const [response, docTypes, trueFalseProps, textContentProps, textInputProps] = await Promise.all([
+      const [response, docTypes, trueFalseProps, textContentProps, textInputProps, blueprints] = await Promise.all([
         this._repository.getSettings(),
         this._repository.getDocTypes().catch(() => [] as DocTypeOption[]),
         this._repository.getTrueFalseProperties().catch(() => [] as PropertyOption[]),
         this._repository.getTextContentProperties().catch(() => [] as PropertyOption[]),
         this._repository.getTextInputProperties().catch(() => [] as PropertyOption[]),
+        this._repository.getBlueprints().catch(() => [] as BlueprintOption[]),
       ]);
       this._docTypes = docTypes;
       this._trueFalseProperties = trueFalseProps;
       this._textContentProperties = textContentProps;
       this._textInputProperties = textInputProps;
+      this._blueprints = blueprints;
       this._applyResponse(response);
+      this._collapseAllRules();
     } catch (error) {
       await this._notify('danger', `Could not load settings: ${this._errorMessage(error)}`);
     } finally {
@@ -257,7 +273,6 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
       if (!s.nodeRestrict.propertyAlias) errors.push('NodeRestrict: Property alias is required');
       s.nodeRestrict.rules.forEach((rule, i) => {
         if (!rule.parentDocType) errors.push(`NodeRestrict rule ${i + 1}: Parent doctype is required`);
-        if (!rule.childDocType) errors.push(`NodeRestrict rule ${i + 1}: Child doctype is required`);
         if (!Number.isFinite(rule.maxNodes) || rule.maxNodes < 0)
           errors.push(`NodeRestrict rule ${i + 1}: Max nodes must be a non-negative number`);
       });
@@ -418,6 +433,88 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     this.requestUpdate();
   }
 
+  private _remapCollapsedRules(feature: string, oldToNew: Map<number, number>) {
+    const prefix = `${feature}:`;
+    const next = new Set<string>();
+    for (const key of this._collapsedRules) {
+      if (!key.startsWith(prefix)) {
+        next.add(key);
+        continue;
+      }
+      const oldIdx = Number(key.slice(prefix.length));
+      const newIdx = oldToNew.get(oldIdx);
+      if (newIdx !== undefined) next.add(`${prefix}${newIdx}`);
+    }
+    this._collapsedRules = next;
+  }
+
+  private _reorderAutoNodeRules(srcIdx: number, dstIdx: number) {
+    const feat = this._settings.autoNode;
+    if (srcIdx === dstIdx || srcIdx < 0 || srcIdx >= feat.rules.length) return;
+    const clamped = Math.max(0, Math.min(dstIdx, feat.rules.length - 1));
+    if (srcIdx === clamped) return;
+    const newRules = feat.rules.slice();
+    const [moved] = newRules.splice(srcIdx, 1);
+    newRules.splice(clamped, 0, moved);
+
+    const oldToNew = new Map<number, number>();
+    const perm = feat.rules.map((_, i) => i);
+    const [movedIdx] = perm.splice(srcIdx, 1);
+    perm.splice(clamped, 0, movedIdx);
+    perm.forEach((oldIdx, newIdx) => oldToNew.set(oldIdx, newIdx));
+    this._remapCollapsedRules('autoNode', oldToNew);
+
+    this._patchSettings('autoNode', { ...feat, rules: newRules });
+  }
+
+  private _onRuleDragStart(event: DragEvent, index: number) {
+    this._dragIndex = index;
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', String(index));
+    }
+  }
+
+  private _onRuleDragOver(event: DragEvent, index: number) {
+    if (this._dragIndex === null) return;
+    event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+    const target = event.currentTarget as HTMLElement;
+    const rect = target.getBoundingClientRect();
+    const midpoint = rect.top + rect.height / 2;
+    const position: 'before' | 'after' = event.clientY < midpoint ? 'before' : 'after';
+    if (this._dragOverIndex !== index || this._dragPosition !== position) {
+      this._dragOverIndex = index;
+      this._dragPosition = position;
+    }
+  }
+
+  private _onRuleDragLeave(index: number) {
+    if (this._dragOverIndex === index) {
+      this._dragOverIndex = null;
+      this._dragPosition = null;
+    }
+  }
+
+  private _onRuleDrop(event: DragEvent, targetIndex: number) {
+    event.preventDefault();
+    if (this._dragIndex === null) return;
+    const src = this._dragIndex;
+    const position = this._dragPosition ?? 'after';
+    let dst = targetIndex + (position === 'after' ? 1 : 0);
+    if (src < dst) dst--;
+    this._reorderAutoNodeRules(src, dst);
+    this._dragIndex = null;
+    this._dragOverIndex = null;
+    this._dragPosition = null;
+  }
+
+  private _onRuleDragEnd() {
+    this._dragIndex = null;
+    this._dragOverIndex = null;
+    this._dragPosition = null;
+  }
+
   private _removeRuleAndReindex(feature: string, index: number) {
     const prefix = `${feature}:`;
     const next = new Set<string>();
@@ -431,6 +528,45 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
       else if (idx > index) next.add(`${prefix}${idx - 1}`);
     }
     this._collapsedRules = next;
+  }
+
+  private _collapseAllRules() {
+    const next = new Set<string>();
+    this._settings.autoNode.rules.forEach((_, i) => next.add(`autoNode:${i}`));
+    this._settings.nodeRestrict.rules.forEach((_, i) => next.add(`nodeRestrict:${i}`));
+    this._settings.nodeProtect.rules.forEach((_, i) => next.add(`nodeProtect:${i}`));
+    this._collapsedRules = next;
+    this.requestUpdate();
+  }
+
+  private _renderCollapsedRule(
+    feature: string,
+    index: number,
+    name: string,
+    detail: string,
+    disabled: boolean,
+    onRemove: () => void,
+  ) {
+    return html`
+      <uui-ref-node
+        class="rule-ref"
+        name=${name}
+        detail=${detail}
+        ?disabled=${disabled}
+        @open=${() => this._toggleRuleCollapsed(feature, index)}
+      >
+        <umb-icon slot="icon" name="icon-navigation-right"></umb-icon>
+        <uui-action-bar slot="actions">
+          <uui-button
+            look="secondary"
+            color="danger"
+            label="Remove"
+            ?disabled=${disabled}
+            @click=${onRemove}
+          ></uui-button>
+        </uui-action-bar>
+      </uui-ref-node>
+    `;
   }
 
   private _renderRuleHeader(
@@ -542,24 +678,23 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
         </div>
         <h4>Rules</h4>
         ${feat.rules.length === 0 ? html`<p class="empty">No rules defined.</p>` : nothing}
-        ${feat.rules.map(
-          (rule, i) => html`
-            <uui-box class="rule-card">
-              ${this._renderRuleHeader(
-                'autoNode',
-                i,
-                disabled || !feat.enabled,
-                () => {
-                  this._removeRuleAndReindex('autoNode', i);
-                  update({ rules: feat.rules.filter((_, idx) => idx !== i) });
-                },
-                rule.createdDocTypeAlias && rule.docTypeAliasToCreate
-                  ? `(${rule.createdDocTypeAlias} \u2192 ${rule.docTypeAliasToCreate})`
-                  : undefined,
-              )}
-              ${this._isRuleCollapsed('autoNode', i)
-                ? nothing
-                : html`<div class="grid">
+        ${feat.rules.map((rule, i) => {
+          const suffix =
+            rule.createdDocTypeAlias && rule.docTypeAliasToCreate
+              ? `(${rule.createdDocTypeAlias} \u2192 ${rule.docTypeAliasToCreate})`
+              : '';
+          const ruleName = suffix ? `Rule ${i + 1} ${suffix}` : `Rule ${i + 1}`;
+          const ruleDetail = rule.nodeName ?? '';
+          const onRemove = () => {
+            this._removeRuleAndReindex('autoNode', i);
+            update({ rules: feat.rules.filter((_, idx) => idx !== i) });
+          };
+          const body = this._isRuleCollapsed('autoNode', i)
+            ? this._renderCollapsedRule('autoNode', i, ruleName, ruleDetail, disabled || !feat.enabled, onRemove)
+            : html`
+                <uui-box class="rule-card">
+                  ${this._renderRuleHeader('autoNode', i, disabled || !feat.enabled, onRemove, suffix || undefined)}
+                  <div class="grid">
                     ${this._docTypeField('Triggering doctype *', rule.createdDocTypeAlias, disabled || !feat.enabled, (v) =>
                       updateRuleAt(i, { createdDocTypeAlias: v }),
                     )}
@@ -572,8 +707,12 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
                     ${this._textField('Dictionary item for name', rule.dictionaryItemForName, disabled || !feat.enabled, (v) =>
                       updateRuleAt(i, { dictionaryItemForName: v }),
                     )}
-                    ${this._textField('Blueprint', rule.blueprint, disabled || !feat.enabled, (v) =>
-                      updateRuleAt(i, { blueprint: v }),
+                    ${this._blueprintField(
+                      'Blueprint',
+                      rule.docTypeAliasToCreate,
+                      rule.blueprint,
+                      disabled || !feat.enabled,
+                      (v) => updateRuleAt(i, { blueprint: v }),
                     )}
                     ${this._toggleField(
                       'Bring new node first',
@@ -597,10 +736,39 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
                       disabled || !feat.enabled,
                       (v) => updateRuleAt(i, { keepNewNodeUnpublished: v }),
                     )}
-                  </div>`}
-            </uui-box>
-          `,
-        )}
+                  </div>
+                </uui-box>
+              `;
+          const wrapperClasses = [
+            'rule-wrapper',
+            this._dragIndex === i ? 'dragging' : '',
+            this._dragOverIndex === i && this._dragPosition === 'before' ? 'drop-before' : '',
+            this._dragOverIndex === i && this._dragPosition === 'after' ? 'drop-after' : '',
+          ]
+            .filter(Boolean)
+            .join(' ');
+          const handleDisabled = disabled || !feat.enabled;
+          return html`
+            <div
+              class=${wrapperClasses}
+              @dragover=${(e: DragEvent) => this._onRuleDragOver(e, i)}
+              @dragleave=${() => this._onRuleDragLeave(i)}
+              @drop=${(e: DragEvent) => this._onRuleDrop(e, i)}
+            >
+              <span
+                class="drag-handle"
+                draggable=${handleDisabled ? 'false' : 'true'}
+                aria-label="Drag to reorder"
+                title="Drag to reorder"
+                @dragstart=${(e: DragEvent) => this._onRuleDragStart(e, i)}
+                @dragend=${() => this._onRuleDragEnd()}
+              >
+                <umb-icon name="icon-navigation"></umb-icon>
+              </span>
+              <div class="rule-content">${body}</div>
+            </div>
+          `;
+        })}
         <uui-button
           look="secondary"
           label="Add rule"
@@ -639,55 +807,60 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
         </div>
         <h4>Rules</h4>
         ${feat.rules.length === 0 ? html`<p class="empty">No rules defined.</p>` : nothing}
-        ${feat.rules.map(
-          (rule, i) => html`
+        ${feat.rules.map((rule, i) => {
+          const childLabel =
+            !rule.childDocType || rule.childDocType === '*' ? 'any' : rule.childDocType;
+          const suffix = rule.parentDocType
+            ? `(${rule.parentDocType} \u2192 ${childLabel})`
+            : '';
+          const ruleName = suffix ? `Rule ${i + 1} ${suffix}` : `Rule ${i + 1}`;
+          const ruleDetail = `Max ${rule.maxNodes ?? 0}`;
+          const onRemove = () => {
+            this._removeRuleAndReindex('nodeRestrict', i);
+            update({ rules: feat.rules.filter((_, idx) => idx !== i) });
+          };
+          if (this._isRuleCollapsed('nodeRestrict', i)) {
+            return this._renderCollapsedRule('nodeRestrict', i, ruleName, ruleDetail, disabled || !feat.enabled, onRemove);
+          }
+          return html`
             <uui-box class="rule-card">
-              ${this._renderRuleHeader(
-                'nodeRestrict',
-                i,
-                disabled || !feat.enabled,
-                () => {
-                  this._removeRuleAndReindex('nodeRestrict', i);
-                  update({ rules: feat.rules.filter((_, idx) => idx !== i) });
-                },
-                rule.parentDocType && rule.childDocType
-                  ? `(${rule.parentDocType} \u2192 ${rule.childDocType})`
-                  : undefined,
-              )}
-              ${this._isRuleCollapsed('nodeRestrict', i)
-                ? nothing
-                : html`<div class="grid">
-                    ${this._docTypeField('Parent doctype *', rule.parentDocType, disabled || !feat.enabled, (v) =>
-                      updateRuleAt(i, { parentDocType: v }),
-                    )}
-                    ${this._docTypeField('Child doctype *', rule.childDocType, disabled || !feat.enabled, (v) =>
-                      updateRuleAt(i, { childDocType: v }),
-                    )}
-                    ${this._numberField('Max nodes *', rule.maxNodes, disabled || !feat.enabled, (v) =>
-                      updateRuleAt(i, { maxNodes: v }),
-                    )}
-                    ${this._toggleField('Show warnings', rule.showWarnings, disabled || !feat.enabled, (v) =>
-                      updateRuleAt(i, { showWarnings: v }),
-                    )}
-                    ${this._textField('Custom limit message', rule.customMessage, disabled || !feat.enabled, (v) =>
-                      updateRuleAt(i, { customMessage: v }),
-                    )}
-                    ${this._textField('Custom limit category', rule.customMessageCategory, disabled || !feat.enabled, (v) =>
-                      updateRuleAt(i, { customMessageCategory: v }),
-                    )}
-                    ${this._textField('Custom warning message', rule.customWarningMessage, disabled || !feat.enabled, (v) =>
-                      updateRuleAt(i, { customWarningMessage: v }),
-                    )}
-                    ${this._textField(
-                      'Custom warning category',
-                      rule.customWarningMessageCategory,
-                      disabled || !feat.enabled,
-                      (v) => updateRuleAt(i, { customWarningMessageCategory: v }),
-                    )}
-                  </div>`}
+              ${this._renderRuleHeader('nodeRestrict', i, disabled || !feat.enabled, onRemove, suffix || undefined)}
+              <div class="grid">
+                ${this._docTypeField('Parent doctype *', rule.parentDocType, disabled || !feat.enabled, (v) =>
+                  updateRuleAt(i, { parentDocType: v }),
+                )}
+                ${this._docTypeField(
+                  'Child doctype',
+                  rule.childDocType || '*',
+                  disabled || !feat.enabled,
+                  (v) => updateRuleAt(i, { childDocType: v }),
+                  { label: 'Any doctype', value: '*' },
+                )}
+                ${this._numberField('Max nodes *', rule.maxNodes, disabled || !feat.enabled, (v) =>
+                  updateRuleAt(i, { maxNodes: v }),
+                )}
+                ${this._toggleField('Show warnings', rule.showWarnings, disabled || !feat.enabled, (v) =>
+                  updateRuleAt(i, { showWarnings: v }),
+                )}
+                ${this._textField('Custom limit message', rule.customMessage, disabled || !feat.enabled, (v) =>
+                  updateRuleAt(i, { customMessage: v }),
+                )}
+                ${this._textField('Custom limit category', rule.customMessageCategory, disabled || !feat.enabled, (v) =>
+                  updateRuleAt(i, { customMessageCategory: v }),
+                )}
+                ${this._textField('Custom warning message', rule.customWarningMessage, disabled || !feat.enabled, (v) =>
+                  updateRuleAt(i, { customWarningMessage: v }),
+                )}
+                ${this._textField(
+                  'Custom warning category',
+                  rule.customWarningMessageCategory,
+                  disabled || !feat.enabled,
+                  (v) => updateRuleAt(i, { customWarningMessageCategory: v }),
+                )}
+              </div>
             </uui-box>
-          `,
-        )}
+          `;
+        })}
         <uui-button
           look="secondary"
           label="Add rule"
@@ -779,44 +952,43 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
         </div>
         <h4>Rules</h4>
         ${feat.rules.length === 0 ? html`<p class="empty">No rules defined.</p>` : nothing}
-        ${feat.rules.map(
-          (rule, i) => html`
+        ${feat.rules.map((rule, i) => {
+          const suffix = rule.docTypeAlias ? `(${rule.docTypeAlias})` : '';
+          const ruleName = suffix ? `Rule ${i + 1} ${suffix}` : `Rule ${i + 1}`;
+          const ruleDetail = rule.documentGuids ? 'By GUIDs' : rule.docTypeAlias ? 'By doctype' : '';
+          const onRemove = () => {
+            this._removeRuleAndReindex('nodeProtect', i);
+            update({ rules: feat.rules.filter((_, idx) => idx !== i) });
+          };
+          if (this._isRuleCollapsed('nodeProtect', i)) {
+            return this._renderCollapsedRule('nodeProtect', i, ruleName, ruleDetail, disabled || !feat.enabled, onRemove);
+          }
+          return html`
             <uui-box class="rule-card">
-              ${this._renderRuleHeader(
-                'nodeProtect',
-                i,
-                disabled || !feat.enabled,
-                () => {
-                  this._removeRuleAndReindex('nodeProtect', i);
-                  update({ rules: feat.rules.filter((_, idx) => idx !== i) });
-                },
-                rule.docTypeAlias ? `(${rule.docTypeAlias})` : undefined,
-              )}
-              ${this._isRuleCollapsed('nodeProtect', i)
-                ? nothing
-                : html`<div class="grid">
-                    ${this._docTypeField('DocType alias', rule.docTypeAlias, disabled || !feat.enabled, (v) =>
-                      updateRuleAt(i, { docTypeAlias: v }),
-                    )}
-                    ${this._textField(
-                      'Document GUIDs (comma separated)',
-                      rule.documentGuids,
-                      disabled || !feat.enabled,
-                      (v) => updateRuleAt(i, { documentGuids: v }),
-                    )}
-                    ${this._textField('Custom message', rule.customMessage, disabled || !feat.enabled, (v) =>
-                      updateRuleAt(i, { customMessage: v }),
-                    )}
-                    ${this._textField(
-                      'Custom message category',
-                      rule.customMessageCategory,
-                      disabled || !feat.enabled,
-                      (v) => updateRuleAt(i, { customMessageCategory: v }),
-                    )}
-                  </div>`}
+              ${this._renderRuleHeader('nodeProtect', i, disabled || !feat.enabled, onRemove, suffix || undefined)}
+              <div class="grid">
+                ${this._docTypeField('DocType alias', rule.docTypeAlias, disabled || !feat.enabled, (v) =>
+                  updateRuleAt(i, { docTypeAlias: v }),
+                )}
+                ${this._textField(
+                  'Document GUIDs (comma separated)',
+                  rule.documentGuids,
+                  disabled || !feat.enabled,
+                  (v) => updateRuleAt(i, { documentGuids: v }),
+                )}
+                ${this._textField('Custom message', rule.customMessage, disabled || !feat.enabled, (v) =>
+                  updateRuleAt(i, { customMessage: v }),
+                )}
+                ${this._textField(
+                  'Custom message category',
+                  rule.customMessageCategory,
+                  disabled || !feat.enabled,
+                  (v) => updateRuleAt(i, { customMessageCategory: v }),
+                )}
+              </div>
             </uui-box>
-          `,
-        )}
+          `;
+        })}
         <uui-button
           look="secondary"
           label="Add rule"
@@ -967,8 +1139,9 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     value: string,
     disabled: boolean,
     onChange: (value: string) => void,
+    placeholder?: { label: string; value: string },
   ) {
-    return this._aliasField(label, this._docTypes, value, disabled, onChange);
+    return this._aliasField(label, this._docTypes, value, disabled, onChange, placeholder);
   }
 
   private _propertyField(
@@ -1105,9 +1278,12 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     value: string,
     disabled: boolean,
     onChange: (value: string) => void,
+    placeholder?: { label: string; value: string },
   ) {
     const current = value ?? '';
     const knownAliases = new Set(options.map((o) => o.alias));
+    const placeholderValue = placeholder?.value ?? '';
+    const placeholderLabel = placeholder?.label ?? '-- Select --';
     return html`
       <label>
         <span>${label}</span>
@@ -1116,7 +1292,9 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
           ?disabled=${disabled}
           @change=${(e: Event) => onChange((e.target as HTMLSelectElement).value)}
         >
-          <option value="" ?selected=${current === ''}>-- Select --</option>
+          <option value=${placeholderValue} ?selected=${current === placeholderValue || current === ''}>
+            ${placeholderLabel}
+          </option>
           ${options.map(
             (o) => html`
               <option value=${o.alias} ?selected=${o.alias === current}>
@@ -1124,7 +1302,49 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
               </option>
             `,
           )}
-          ${current && !knownAliases.has(current)
+          ${current && current !== placeholderValue && !knownAliases.has(current)
+            ? html`<option value=${current} selected>${current} (not found)</option>`
+            : nothing}
+        </select>
+      </label>
+    `;
+  }
+
+  private _blueprintField(
+    label: string,
+    docTypeAliasToCreate: string,
+    value: string,
+    disabled: boolean,
+    onChange: (value: string) => void,
+  ) {
+    const current = value ?? '';
+    const filtered = docTypeAliasToCreate
+      ? this._blueprints.filter(
+          (b) => b.docTypeAlias.localeCompare(docTypeAliasToCreate, undefined, { sensitivity: 'accent' }) === 0,
+        )
+      : [];
+    const knownNames = new Set(filtered.map((b) => b.name));
+    const isDisabled = disabled || !docTypeAliasToCreate;
+    const placeholderLabel = !docTypeAliasToCreate
+      ? '-- Select a doctype first --'
+      : filtered.length === 0
+        ? '-- No blueprints available --'
+        : '-- Select --';
+    return html`
+      <label>
+        <span>${label}</span>
+        <select
+          class="doctype-select"
+          ?disabled=${isDisabled}
+          @change=${(e: Event) => onChange((e.target as HTMLSelectElement).value)}
+        >
+          <option value="" ?selected=${current === ''}>${placeholderLabel}</option>
+          ${filtered.map(
+            (b) => html`
+              <option value=${b.name} ?selected=${b.name === current}>${b.name}</option>
+            `,
+          )}
+          ${current && !knownNames.has(current)
             ? html`<option value=${current} selected>${current} (not found)</option>`
             : nothing}
         </select>
@@ -1278,6 +1498,53 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     }
     .rule-card .grid {
       margin-top: 0;
+    }
+    .rule-ref {
+      margin-top: var(--uui-size-space-2, 6px);
+    }
+    .rule-wrapper {
+      display: flex;
+      align-items: stretch;
+      gap: var(--uui-size-space-2, 6px);
+      margin-top: var(--uui-size-space-2, 6px);
+      border-top: 2px solid transparent;
+      border-bottom: 2px solid transparent;
+    }
+    .rule-wrapper.drop-before {
+      border-top-color: var(--uui-color-selected, #3544b1);
+    }
+    .rule-wrapper.drop-after {
+      border-bottom-color: var(--uui-color-selected, #3544b1);
+    }
+    .rule-wrapper.dragging {
+      opacity: 0.5;
+    }
+    .rule-wrapper .rule-content {
+      flex: 1;
+      min-width: 0;
+    }
+    .rule-wrapper .rule-content .rule-card,
+    .rule-wrapper .rule-content .rule-ref {
+      margin-top: 0;
+    }
+    .drag-handle {
+      cursor: grab;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--uui-size-space-1, 3px);
+      color: var(--uui-color-text-alt, #999);
+    }
+    .drag-handle[draggable='false'] {
+      cursor: not-allowed;
+      opacity: 0.4;
+    }
+    .drag-handle:active {
+      cursor: grabbing;
+    }
+    .drag-handle:hover {
+      color: var(--uui-color-selected, #3544b1);
     }
     .row-break {
       grid-column-start: 1;

@@ -105,6 +105,11 @@ export interface PropertyOption {
   alias: string;
 }
 
+export interface BlueprintOption {
+  name: string;
+  docTypeAlias: string;
+}
+
 export const DISCIPLINE_SETTINGS_ENTITY_TYPE = 'dotsee-discipline-settings';
 export const DISCIPLINE_SETTINGS_ROOT_UNIQUE = 'root';
 
@@ -125,7 +130,7 @@ export function createEmptyAutoNodeRule(): AutoNodeRuleDto {
 export function createEmptyNodeRestrictRule(): NodeRestrictRuleDto {
   return {
     parentDocType: '',
-    childDocType: '',
+    childDocType: '*',
     maxNodes: 1,
     showWarnings: true,
     customMessage: '',

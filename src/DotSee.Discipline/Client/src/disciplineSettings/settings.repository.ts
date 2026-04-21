@@ -1,4 +1,4 @@
-import type { DisciplineSettings, DisciplineSettingsResponse, DocTypeOption, PropertyOption } from './types.js';
+import type { BlueprintOption, DisciplineSettings, DisciplineSettingsResponse, DocTypeOption, PropertyOption } from './types.js';
 
 const BASE = '/umbraco/api/discipline';
 
@@ -78,6 +78,17 @@ export class DisciplineSettingsRepository {
       throw new Error(`Failed to load text input properties (${response.status})`);
     }
     return (await response.json()) as PropertyOption[];
+  }
+
+  async getBlueprints(): Promise<BlueprintOption[]> {
+    const response = await fetch(`${BASE}/blueprints`, {
+      method: 'GET',
+      headers: this.headers(),
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to load blueprints (${response.status})`);
+    }
+    return (await response.json()) as BlueprintOption[];
   }
 
   async importFromAppSettings(): Promise<DisciplineSettingsResponse> {

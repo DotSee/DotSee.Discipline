@@ -28,17 +28,20 @@ namespace DotSee.Discipline.Backoffice.ApiControllers
         private readonly IDisciplineAppSettingsReader _appSettingsReader;
         private readonly IConfiguration _configuration;
         private readonly IContentTypeService _contentTypeService;
+        private readonly IContentService _contentService;
 
         public DisciplineSettingsController(
             IDisciplineSettingsStore store,
             IDisciplineAppSettingsReader appSettingsReader,
             IConfiguration configuration,
-            IContentTypeService contentTypeService)
+            IContentTypeService contentTypeService,
+            IContentService contentService)
         {
             _store = store;
             _appSettingsReader = appSettingsReader;
             _configuration = configuration;
             _contentTypeService = contentTypeService;
+            _contentService = contentService;
         }
 
         [HttpGet("settings")]
@@ -100,6 +103,27 @@ namespace DotSee.Discipline.Backoffice.ApiControllers
                 .OrderBy(o => o.Name, StringComparer.OrdinalIgnoreCase)
                 .ToList();
             return Ok(options);
+        }
+
+        [HttpGet("blueprints")]
+        [ProducesResponseType(typeof(IEnumerable<BlueprintOption>), StatusCodes.Status200OK)]
+        public IActionResult GetBlueprints()
+        {
+            var contentTypesByAlias = _contentTypeService.GetAll()
+                .ToDictionary(ct => ct.Id, ct => ct.Alias);
+
+            var blueprints = _contentService.GetBlueprintsForContentTypes()
+                .Where(bp => contentTypesByAlias.ContainsKey(bp.ContentTypeId))
+                .Select(bp => new BlueprintOption
+                {
+                    Name = bp.Name ?? string.Empty,
+                    DocTypeAlias = contentTypesByAlias[bp.ContentTypeId],
+                })
+                .Where(o => !string.IsNullOrWhiteSpace(o.Name))
+                .OrderBy(o => o.Name, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            return Ok(blueprints);
         }
 
         [HttpGet("properties/truefalse")]
@@ -178,5 +202,11 @@ namespace DotSee.Discipline.Backoffice.ApiControllers
     {
         public string Name { get; set; } = string.Empty;
         public string Alias { get; set; } = string.Empty;
+    }
+
+    public class BlueprintOption
+    {
+        public string Name { get; set; } = string.Empty;
+        public string DocTypeAlias { get; set; } = string.Empty;
     }
 }
