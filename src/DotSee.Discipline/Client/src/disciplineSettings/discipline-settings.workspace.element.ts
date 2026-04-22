@@ -681,14 +681,15 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
 
     return html`
       <uui-box>
-        <h3 slot="headline" class="uui-h3">AutoNode</h3>
+        <h4 slot="headline" class="uui-h4">AutoNode</h4>
         ${this._renderEnableButton(feat.enabled, disabled, (v) => update({ enabled: v }))}
         <p class="feature-description no-divider">
           Automatically creates child nodes when a parent is published, based on rules that match
           document types. Useful for scaffolding required child structure (folders, landing pages)
           the moment a content item is created.
         </p>
-        <div class="stack">
+        ${feat.enabled ? html`
+        <div class="grid">
           ${this._withFieldHelp(
             html`
               <label class="fit">
@@ -707,28 +708,21 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
             'Controls how chatty AutoNode is in the Umbraco log. Use Verbose when diagnosing rule behaviour; switch back to Normal for production to keep the log clean.',
             'inline',
           )}
-          <div>
-            ${this._withFieldHelp(
-              html`
-                <uui-toggle
-                  .checked=${feat.republishExistingNodes}
-                  ?disabled=${disabled || !feat.enabled}
-                  label="Republish existing nodes"
-                  label-position="right"
-                  @change=${(e: Event) =>
-                    update({ republishExistingNodes: (e.target as HTMLInputElement).checked })}
-                ></uui-toggle>
-              `,
-              'autonode-republish-help',
-              'When on, AutoNode will also process already-published parent nodes — any missing child nodes defined by its rules will be created retroactively the next time the parent is republished. Leave off to only apply rules to newly published nodes.',
-              'inline',
-            )}
-            <p class="field-description">
-              When on, AutoNode will also process already-published parent nodes — any missing child
-              nodes defined by its rules will be created retroactively the next time the parent is
-              republished. Leave off to only apply rules to new nodes.
-            </p>
-          </div>
+          ${this._withFieldHelp(
+            html`
+              <uui-toggle
+                .checked=${feat.republishExistingNodes}
+                ?disabled=${disabled || !feat.enabled}
+                label="Republish existing nodes"
+                label-position="right"
+                @change=${(e: Event) =>
+                  update({ republishExistingNodes: (e.target as HTMLInputElement).checked })}
+              ></uui-toggle>
+            `,
+            'autonode-republish-help',
+            'When on, AutoNode will also process already-published parent nodes — any missing child nodes defined by its rules will be created retroactively the next time the parent is republished. Leave off to only apply rules to newly published nodes.',
+            'inline',
+          )}
         </div>
         <h4>Rules</h4>
         ${feat.rules.length === 0 ? html`<p class="empty">No rules defined.</p>` : nothing}
@@ -873,6 +867,7 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
           ?disabled=${disabled || !feat.enabled}
           @click=${() => update({ rules: [...feat.rules, createEmptyAutoNodeRule()] })}
         >+ Add rule</uui-button>
+        ` : nothing}
       </uui-box>
     `;
   }
@@ -889,12 +884,13 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
 
     return html`
       <uui-box>
-        <h3 slot="headline" class="uui-h3">NodeRestrict</h3>
+        <h4 slot="headline" class="uui-h4">NodeRestrict</h4>
         ${this._renderEnableButton(feat.enabled, disabled, (v) => update({ enabled: v }))}
         <p class="feature-description no-divider">
           Limits the number of child nodes of a given type that can be created under a parent node.
           Editors see a configurable warning or error message when they try to exceed the limit.
         </p>
+        ${feat.enabled ? html`
         <div class="grid">
           ${this._withFieldHelp(
             this._textField('Property alias *', feat.propertyAlias, disabled || !feat.enabled, (v) =>
@@ -910,6 +906,7 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
             'noderestrict-showwarnings-help',
             'Global default. When on, NodeRestrict surfaces warning messages to editors as they approach a limit. Individual rules can override this.',
             'inline',
+            'align-bottom',
           )}
         </div>
         <h4>Rules</h4>
@@ -1037,6 +1034,7 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
           ?disabled=${disabled || !feat.enabled}
           @click=${() => update({ rules: [...feat.rules, createEmptyNodeRestrictRule()] })}
         >+ Add rule</uui-button>
+        ` : nothing}
       </uui-box>
     `;
   }
@@ -1049,13 +1047,14 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
 
     return html`
       <uui-box>
-        <h3 slot="headline" class="uui-h3">VirtualNodes</h3>
+        <h4 slot="headline" class="uui-h4">VirtualNodes</h4>
         ${this._renderEnableButton(feat.enabled, disabled, (v) => update({ enabled: v }))}
         <p class="feature-description no-divider">
           Hides the URL segment of the selected document types so their children appear one level
           higher in the site's public URLs. Useful for grouping content in the tree without that
           grouping leaking into the URL.
         </p>
+        ${feat.enabled ? html`
         <div class="grid">
           ${this._withFieldHelp(
             this._multiAliasField(
@@ -1074,6 +1073,7 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
             'Doctypes whose URL segment should be skipped in the frontend. Nodes of these doctypes still appear in the tree as containers, but their children are served one level up in the public URL.',
           )}
         </div>
+        ` : nothing}
       </uui-box>
     `;
   }
@@ -1086,12 +1086,13 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
 
     return html`
       <uui-box>
-        <h3 slot="headline" class="uui-h3">VariantsHider</h3>
+        <h4 slot="headline" class="uui-h4">VariantsHider</h4>
         ${this._renderEnableButton(feat.enabled, disabled, (v) => update({ enabled: v }))}
         <p class="feature-description no-divider">
           Adds an entity action on the content tree that hides language variants that haven't been
           created yet (those shown in parentheses), so editors only see variants that actually exist.
         </p>
+        ${feat.enabled ? html`
         <div class="grid">
           ${this._withFieldHelp(
             this._textField('Caption', feat.caption, disabled || !feat.enabled, (v) =>
@@ -1101,6 +1102,7 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
             'Label shown on the Hide/Show variants entity action in the content tree context menu. Leave empty to use the default caption.',
           )}
         </div>
+        ` : nothing}
       </uui-box>
     `;
   }
@@ -1117,12 +1119,13 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
 
     return html`
       <uui-box>
-        <h3 slot="headline" class="uui-h3">NodeProtect</h3>
+        <h4 slot="headline" class="uui-h4">NodeProtect</h4>
         ${this._renderEnableButton(feat.enabled, disabled, (v) => update({ enabled: v }))}
         <p class="feature-description no-divider">
           Prevents deletion of important nodes, either by document type or by specific GUID. Editors
           see a configurable message explaining why the node can't be deleted.
         </p>
+        ${feat.enabled ? html`
         <div class="grid">
           ${this._withFieldHelp(
             this._propertyField(
@@ -1227,6 +1230,7 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
           ?disabled=${disabled || !feat.enabled}
           @click=${() => update({ rules: [...feat.rules, createEmptyNodeProtectRule()] })}
         >+ Add rule</uui-button>
+        ` : nothing}
       </uui-box>
     `;
   }
@@ -1239,13 +1243,14 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
 
     return html`
       <uui-box>
-        <h3 slot="headline" class="uui-h3">AiSummary</h3>
+        <h4 slot="headline" class="uui-h4">AiSummary</h4>
         ${this._renderEnableButton(feat.enabled, disabled, (v) => update({ enabled: v }))}
         <p class="feature-description no-divider">
           Generates AI-powered content summaries using OpenAI or Gemini and writes the result into a
           configured property. A toggle property on the node controls whether a summary should be
           produced for that item.
         </p>
+        ${feat.enabled ? html`
         <div class="grid">
           ${this._withFieldHelp(
             html`
@@ -1282,6 +1287,8 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
             ),
             'aisummary-maxchars-help',
             'Upper bound for the generated summary length in characters. The prompt asks the model to stay under this limit; set it to match the space available in your front-end.',
+            'stretch',
+            'row-break',
           )}
           ${this._withFieldHelp(
             this._propertyField(
@@ -1315,6 +1322,8 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
             ),
             'aisummary-doctypes-help',
             'Doctypes whose content should be eligible for AI summaries. Nodes of other doctypes are ignored entirely.',
+            'stretch',
+            'row-break',
           )}
           ${this._withFieldHelp(
             this._multiAliasField(
@@ -1342,6 +1351,7 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
           'aisummary-tone-help',
           'Free-text instructions appended to the prompt that steer the voice of the generated summary, e.g. "formal, no marketing fluff" or "friendly, second person, max two sentences".',
         )}
+        ` : nothing}
       </uui-box>
     `;
   }
@@ -1354,12 +1364,13 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
 
     return html`
       <uui-box>
-        <h3 slot="headline" class="uui-h3">PropertyVersions</h3>
+        <h4 slot="headline" class="uui-h4">PropertyVersions</h4>
         ${this._renderEnableButton(feat.enabled, disabled, (v) => update({ enabled: v }))}
         <p class="feature-description no-divider">
           Adds navigation actions to properties so editors can step through previous saved versions
           and roll individual properties back without restoring the whole document.
         </p>
+        ${feat.enabled ? html`
         <div class="grid">
           ${this._withFieldHelp(
             this._textField(
@@ -1392,6 +1403,7 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
             'Umbraco dictionary key used for the disabled state when no earlier versions are available. Leave empty to use the built-in English label.',
           )}
         </div>
+        ` : nothing}
       </uui-box>
     `;
   }
@@ -1870,6 +1882,12 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
       font-weight: 300;
       margin: 0;
     }
+    .uui-h4 {
+      font-size: var(--uui-type-h4-size, 22px);
+      line-height: var(--uui-size-large, 22px);
+      font-weight: 400;
+      margin: 0;
+    }
     .rule-header {
       display: flex;
       justify-content: space-between;
@@ -1910,6 +1928,9 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     .field-with-help.inline {
       align-items: center;
       align-self: flex-start;
+    }
+    .field-with-help.align-bottom {
+      align-self: end;
     }
     .field-with-help .help-button {
       opacity: 0;
