@@ -67,7 +67,8 @@ export class VersionActionElement extends UmbLitElement {
   override render() {
     if (this._hidden) return nothing;
 
-    const label = this._label ?? this.localize.string(this.manifest?.meta.label);
+    const rawLabel = this._label ?? this.manifest?.meta.label;
+    const label = this.localize.string(rawLabel);
 
     return html`
       <uui-menu-item

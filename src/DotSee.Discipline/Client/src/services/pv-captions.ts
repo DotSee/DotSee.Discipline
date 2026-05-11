@@ -1,9 +1,9 @@
-const DEFAULT_NO_VERSIONS = 'No previous versions';
+const DEFAULT_NO_VERSIONS_KEY = '#dotseeDiscipline_propertyVersions_noPreviousVersions';
 
-let _noVersionsCaption = DEFAULT_NO_VERSIONS;
+let _noVersionsCaption = DEFAULT_NO_VERSIONS_KEY;
 
 export function setNoVersionsCaption(caption: string | null): void {
-  _noVersionsCaption = caption ?? DEFAULT_NO_VERSIONS;
+  _noVersionsCaption = caption && caption.length > 0 ? caption : DEFAULT_NO_VERSIONS_KEY;
 }
 
 export function getNoVersionsCaption(): string {

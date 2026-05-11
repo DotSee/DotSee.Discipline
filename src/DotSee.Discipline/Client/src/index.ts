@@ -14,6 +14,10 @@ export { VariantsHiderService } from './services/variants-hider.service.js';
 export { getVariantsHiderService };
 
 export const onInit: UmbEntryPointOnInit = async (_host, extensionRegistry) => {
+  // Localization manifests are always registered so that every feature can
+  // resolve its strings, regardless of which features the host enables.
+  extensionRegistry.registerMany(localizationManifests);
+
   // Get auth token for authenticated API calls
   const authContext = await _host.getContext(UMB_AUTH_CONTEXT);
   const authToken = await authContext.getLatestToken();
@@ -45,10 +49,7 @@ export const onInit: UmbEntryPointOnInit = async (_host, extensionRegistry) => {
   if (settings.enabled) {
     const entityActionManifest = createEntityActionManifest(settings.caption);
 
-    extensionRegistry.registerMany([
-      entityActionManifest,
-      ...localizationManifests,
-    ]);
+    extensionRegistry.registerMany([entityActionManifest]);
 
     const service = initializeVariantsHiderService();
     service.initializeWithSettings(settings);

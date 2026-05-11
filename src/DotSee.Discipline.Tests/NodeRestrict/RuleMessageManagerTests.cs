@@ -1,3 +1,4 @@
+using System.Globalization;
 using DotSee.Discipline.NodeRestrict;
 using Moq;
 using Umbraco.Cms.Core.Models;
@@ -10,11 +11,58 @@ namespace DotSee.Discipline.Tests.NodeRestrict
     public class RuleMessageManagerTests
     {
         private Mock<IContentTypeService> _contentTypeServiceMock;
+        private Mock<ILocalizedTextService> _localizedTextServiceMock;
 
         [SetUp]
         public void SetUp()
         {
             _contentTypeServiceMock = new Mock<IContentTypeService>();
+            _localizedTextServiceMock = new Mock<ILocalizedTextService>();
+            SetupLocalizedText();
+        }
+
+        private void SetupLocalizedText()
+        {
+            // Mirrors the strings in wwwroot/App_Plugins/DotSee.Discipline/Lang/en.xml
+            // so tests can assert on the same default English text the runtime returns.
+            SetupText("nodeRestrictDefaultCategory", "Publish");
+            SetupText("nodeRestrictFromProperty", "Node saved but not published. Max allowed children: {0}.");
+            SetupText("nodeRestrictDefault", "Node saved but not published. Max allowed children {1} directly under {2}: {0}.");
+            SetupText("nodeRestrictWarningFromProperty", "Restrictions for this node are in place. You have published {0} out {1} allowed child nodes.");
+            SetupText("nodeRestrictWarningDefault", "Restrictions in place. {3} directly under {2}: {1} of {0} allowed.");
+            SetupText("nodeRestrictAnyNode", "any node");
+            SetupText("nodeRestrictNodesOfType", "nodes of type \"{0}\"");
+            SetupText("nodeRestrictOfAnyType", "of any type");
+            SetupText("nodeRestrictOfType", "of type \"{0}\"");
+            SetupText("nodeRestrictAnyNodeCap", "Any node");
+            SetupText("nodeRestrictNodesOfTypeCap", "Nodes of type \"{0}\"");
+        }
+
+        private void SetupText(string key, string template)
+        {
+            _localizedTextServiceMock
+                .Setup(x => x.Localize(
+                    "dotseeDiscipline",
+                    key,
+                    It.IsAny<CultureInfo>(),
+                    It.IsAny<IDictionary<string, string>>()))
+                .Returns<string, string, CultureInfo, IDictionary<string, string>>((area, alias, culture, tokens) =>
+                {
+                    var result = template;
+                    if (tokens != null)
+                    {
+                        foreach (var kvp in tokens)
+                        {
+                            result = result.Replace("{" + kvp.Key + "}", kvp.Value);
+                        }
+                    }
+                    return result;
+                });
+        }
+
+        private RuleMessageManager CreateManager(Rule rule)
+        {
+            return new RuleMessageManager(rule, _contentTypeServiceMock.Object, _localizedTextServiceMock.Object);
         }
 
         private void SetupContentTypes(string parentAlias, string parentName, string childAlias, string childName)
@@ -38,7 +86,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
         {
             SetupContentTypes("parentAlias", "Parent", "childAlias", "Child");
             var rule = new Rule("parentAlias", "childAlias", 5, customMessage: "Custom limit message");
-            var mgr = new RuleMessageManager(rule, _contentTypeServiceMock.Object);
+            var mgr = CreateManager(rule);
 
             var result = mgr.GetMessage();
 
@@ -50,7 +98,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
         {
             SetupContentTypes("parentAlias", "Parent", "childAlias", "Child");
             var rule = new Rule("parentAlias", "childAlias", 10, fromProperty: true);
-            var mgr = new RuleMessageManager(rule, _contentTypeServiceMock.Object);
+            var mgr = CreateManager(rule);
 
             var result = mgr.GetMessage();
 
@@ -62,7 +110,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
         {
             SetupContentTypes("parentAlias", "Parent Type", "childAlias", "Child Type");
             var rule = new Rule("parentAlias", "childAlias", 3);
-            var mgr = new RuleMessageManager(rule, _contentTypeServiceMock.Object);
+            var mgr = CreateManager(rule);
 
             var result = mgr.GetMessage();
 
@@ -76,7 +124,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
         {
             SetupContentTypes("parentAlias", "Parent Type", "*", "");
             var rule = new Rule("parentAlias", "*", 5);
-            var mgr = new RuleMessageManager(rule, _contentTypeServiceMock.Object);
+            var mgr = CreateManager(rule);
 
             var result = mgr.GetMessage();
 
@@ -88,7 +136,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
         {
             SetupContentTypes("*", "", "childAlias", "Child Type");
             var rule = new Rule("*", "childAlias", 5);
-            var mgr = new RuleMessageManager(rule, _contentTypeServiceMock.Object);
+            var mgr = CreateManager(rule);
 
             var result = mgr.GetMessage();
 
@@ -100,7 +148,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
         {
             _contentTypeServiceMock.Setup(x => x.GetAll()).Returns(new List<IContentType>());
             var rule = new Rule("*", "*", 1);
-            var mgr = new RuleMessageManager(rule, _contentTypeServiceMock.Object);
+            var mgr = CreateManager(rule);
 
             var result = mgr.GetMessage();
 
@@ -113,7 +161,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
         {
             SetupContentTypes("parentAlias", "Parent", "childAlias", "Child");
             var rule = new Rule("parentAlias", "childAlias", 5, fromProperty: true, customMessage: "Priority custom");
-            var mgr = new RuleMessageManager(rule, _contentTypeServiceMock.Object);
+            var mgr = CreateManager(rule);
 
             var result = mgr.GetMessage();
 
@@ -130,7 +178,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
         {
             SetupContentTypes("parentAlias", "Parent", "childAlias", "Child");
             var rule = new Rule("parentAlias", "childAlias", 5, customMessageCategory: "Error");
-            var mgr = new RuleMessageManager(rule, _contentTypeServiceMock.Object);
+            var mgr = CreateManager(rule);
 
             var result = mgr.GetMessageCategory();
 
@@ -142,7 +190,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
         {
             SetupContentTypes("parentAlias", "Parent", "childAlias", "Child");
             var rule = new Rule("parentAlias", "childAlias", 5);
-            var mgr = new RuleMessageManager(rule, _contentTypeServiceMock.Object);
+            var mgr = CreateManager(rule);
 
             var result = mgr.GetMessageCategory();
 
@@ -154,7 +202,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
         {
             SetupContentTypes("parentAlias", "Parent", "childAlias", "Child");
             var rule = new Rule("parentAlias", "childAlias", 5, customMessageCategory: "");
-            var mgr = new RuleMessageManager(rule, _contentTypeServiceMock.Object);
+            var mgr = CreateManager(rule);
 
             var result = mgr.GetMessageCategory();
 
@@ -170,7 +218,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
         {
             SetupContentTypes("parentAlias", "Parent", "childAlias", "Child");
             var rule = new Rule("parentAlias", "childAlias", 5, customWarningMessage: "Custom warning!");
-            var mgr = new RuleMessageManager(rule, _contentTypeServiceMock.Object);
+            var mgr = CreateManager(rule);
 
             var result = mgr.GetWarningMessage(3);
 
@@ -182,7 +230,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
         {
             SetupContentTypes("parentAlias", "Parent", "childAlias", "Child");
             var rule = new Rule("parentAlias", "childAlias", 10, fromProperty: true);
-            var mgr = new RuleMessageManager(rule, _contentTypeServiceMock.Object);
+            var mgr = CreateManager(rule);
 
             var result = mgr.GetWarningMessage(4);
 
@@ -196,7 +244,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
         {
             SetupContentTypes("parentAlias", "Parent Type", "childAlias", "Child Type");
             var rule = new Rule("parentAlias", "childAlias", 8);
-            var mgr = new RuleMessageManager(rule, _contentTypeServiceMock.Object);
+            var mgr = CreateManager(rule);
 
             var result = mgr.GetWarningMessage(5);
 
@@ -210,7 +258,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
         {
             SetupContentTypes("parentAlias", "Parent", "childAlias", "Child");
             var rule = new Rule("parentAlias", "childAlias", 5, fromProperty: true);
-            var mgr = new RuleMessageManager(rule, _contentTypeServiceMock.Object);
+            var mgr = CreateManager(rule);
 
             var result = mgr.GetWarningMessage(0);
 
@@ -223,7 +271,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
         {
             _contentTypeServiceMock.Setup(x => x.GetAll()).Returns(new List<IContentType>());
             var rule = new Rule("*", "*", 10);
-            var mgr = new RuleMessageManager(rule, _contentTypeServiceMock.Object);
+            var mgr = CreateManager(rule);
 
             var result = mgr.GetWarningMessage(5);
 
@@ -235,7 +283,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
         {
             SetupContentTypes("parentAlias", "Parent", "childAlias", "Child");
             var rule = new Rule("parentAlias", "childAlias", 5, fromProperty: true, customWarningMessage: "Priority warning");
-            var mgr = new RuleMessageManager(rule, _contentTypeServiceMock.Object);
+            var mgr = CreateManager(rule);
 
             var result = mgr.GetWarningMessage(3);
 
@@ -251,7 +299,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
         {
             SetupContentTypes("parentAlias", "Parent", "childAlias", "Child");
             var rule = new Rule("parentAlias", "childAlias", 5, customWarningMessageCategory: "Info");
-            var mgr = new RuleMessageManager(rule, _contentTypeServiceMock.Object);
+            var mgr = CreateManager(rule);
 
             var result = mgr.GetWarningMessageCategory();
 
@@ -263,7 +311,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
         {
             SetupContentTypes("parentAlias", "Parent", "childAlias", "Child");
             var rule = new Rule("parentAlias", "childAlias", 5);
-            var mgr = new RuleMessageManager(rule, _contentTypeServiceMock.Object);
+            var mgr = CreateManager(rule);
 
             var result = mgr.GetWarningMessageCategory();
 
@@ -275,7 +323,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
         {
             SetupContentTypes("parentAlias", "Parent", "childAlias", "Child");
             var rule = new Rule("parentAlias", "childAlias", 5, customWarningMessageCategory: "");
-            var mgr = new RuleMessageManager(rule, _contentTypeServiceMock.Object);
+            var mgr = CreateManager(rule);
 
             var result = mgr.GetWarningMessageCategory();
 
@@ -293,7 +341,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
             _contentTypeServiceMock.Setup(x => x.GetAll()).Returns(new List<IContentType>());
             var rule = new Rule("nonExistentParent", "nonExistentChild", 5);
 
-            var mgr = new RuleMessageManager(rule, _contentTypeServiceMock.Object);
+            var mgr = CreateManager(rule);
             var result = mgr.GetMessage();
 
             // Should still produce a message, just with null names in the format string

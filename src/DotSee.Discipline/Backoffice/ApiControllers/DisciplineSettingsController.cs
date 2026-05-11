@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -29,19 +30,22 @@ namespace DotSee.Discipline.Backoffice.ApiControllers
         private readonly IConfiguration _configuration;
         private readonly IContentTypeService _contentTypeService;
         private readonly IContentService _contentService;
+        private readonly ILocalizedTextService _localizedTextService;
 
         public DisciplineSettingsController(
             IDisciplineSettingsStore store,
             IDisciplineAppSettingsReader appSettingsReader,
             IConfiguration configuration,
             IContentTypeService contentTypeService,
-            IContentService contentService)
+            IContentService contentService,
+            ILocalizedTextService localizedTextService)
         {
             _store = store;
             _appSettingsReader = appSettingsReader;
             _configuration = configuration;
             _contentTypeService = contentTypeService;
             _contentService = contentService;
+            _localizedTextService = localizedTextService;
         }
 
         [HttpGet("settings")]
@@ -59,7 +63,7 @@ namespace DotSee.Discipline.Backoffice.ApiControllers
         {
             if (settings == null)
             {
-                return BadRequest("Settings payload is required.");
+                return BadRequest(_localizedTextService.Localize("dotseeDiscipline", "apiSettingsRequired", CultureInfo.CurrentUICulture));
             }
 
             _store.Save(settings);
@@ -81,7 +85,7 @@ namespace DotSee.Discipline.Backoffice.ApiControllers
         {
             if (!_appSettingsReader.HasAppSettings())
             {
-                return Conflict("No DotSee.Discipline section found in appsettings.json.");
+                return Conflict(_localizedTextService.Localize("dotseeDiscipline", "apiNoAppsettingsFound", CultureInfo.CurrentUICulture));
             }
 
             var snapshot = _appSettingsReader.Read();

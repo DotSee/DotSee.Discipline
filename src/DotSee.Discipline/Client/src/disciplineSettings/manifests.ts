@@ -20,7 +20,7 @@ export const disciplineSettingsManifests: Array<UmbExtensionManifest> = [
     alias: MENU_ALIAS,
     name: 'DotSee Discipline Menu',
     meta: {
-      label: 'DotSee Discipline',
+      label: '#dotseeDiscipline_menu_label',
     },
   },
   {
@@ -29,7 +29,7 @@ export const disciplineSettingsManifests: Array<UmbExtensionManifest> = [
     name: 'DotSee Discipline Menu Item',
     weight: 50,
     meta: {
-      label: 'Discipline',
+      label: '#dotseeDiscipline_menu_itemLabel',
       icon: 'icon-settings-alt',
       entityType: DISCIPLINE_SETTINGS_ENTITY_TYPE,
       menus: [MENU_ALIAS],
@@ -42,7 +42,7 @@ export const disciplineSettingsManifests: Array<UmbExtensionManifest> = [
     name: 'DotSee Discipline Sidebar App',
     weight: 50,
     meta: {
-      label: 'DotSee Discipline',
+      label: '#dotseeDiscipline_menu_label',
       menu: MENU_ALIAS,
     },
     conditions: [

@@ -1,19 +1,20 @@
-var C = Object.defineProperty;
-var A = (i, e, t) => e in i ? C(i, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : i[e] = t;
-var c = (i, e, t) => A(i, typeof e != "symbol" ? e + "" : e, t);
-import { UMB_AUTH_CONTEXT as V } from "@umbraco-cms/backoffice/auth";
+var V = Object.defineProperty;
+var C = (i, e, t) => e in i ? V(i, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : i[e] = t;
+var c = (i, e, t) => C(i, typeof e != "symbol" ? e + "" : e, t);
+import { UMB_AUTH_CONTEXT as A } from "@umbraco-cms/backoffice/auth";
 function I(i) {
+  const e = i && i.length > 0 ? i : "#dotseeDiscipline_variantsHider_toggle";
   return {
     type: "entityAction",
     kind: "default",
     alias: "DotSee.Discipline.VariantsHider.ToggleAction",
     name: "Toggle Unset Variants Display",
     weight: 100,
-    api: () => import("./toggle-variants.action-bBNL1k9J.js"),
+    api: () => import("./toggle-variants.action-D6o88Oe8.js"),
     forEntityTypes: ["document-root"],
     meta: {
       icon: "icon-axis-rotation",
-      label: i
+      label: e
     },
     conditions: [
       {
@@ -23,20 +24,20 @@ function I(i) {
     ]
   };
 }
-const y = [
+const S = [
   "Umb.PropertyEditorUi.TextBox",
   "Umb.PropertyEditorUi.TextArea",
   "Umb.PropertyEditorUi.Tiptap"
-], D = "Previous version", w = "Next version";
-function U(i) {
+], D = "#dotseeDiscipline_propertyVersions_previousVersion", _ = "#dotseeDiscipline_propertyVersions_nextVersion";
+function w(i) {
   return [
     {
       type: "propertyAction",
       alias: "DotSee.Discipline.PropertyVersions.PrevVersion",
       name: "Previous Version",
-      api: () => import("./prev-version.action-BxRIIJwd.js"),
-      element: () => import("./version-action.element-BopZLSeP.js"),
-      forPropertyEditorUis: y,
+      api: () => import("./prev-version.action-_Bm4umvC.js"),
+      element: () => import("./version-action.element-DAiNSxFv.js"),
+      forPropertyEditorUis: S,
       meta: {
         icon: "icon-arrow-left",
         label: i.previousVersionCaption ?? D
@@ -47,25 +48,25 @@ function U(i) {
       alias: "DotSee.Discipline.PropertyVersions.NextVersion",
       name: "Next Version",
       api: () => import("./next-version.action-DJq-VoNF.js"),
-      element: () => import("./version-action.element-BopZLSeP.js"),
-      forPropertyEditorUis: y,
+      element: () => import("./version-action.element-DAiNSxFv.js"),
+      forPropertyEditorUis: S,
       meta: {
         icon: "icon-arrow-right",
-        label: i.nextVersionCaption ?? w
+        label: i.nextVersionCaption ?? _
       }
     }
   ];
 }
-const N = {
+const U = {
   type: "localization",
-  alias: "DotSee.Discipline.VariantsHider.Localization.En",
-  name: "DotSee Variants Hider Localization (English)",
+  alias: "DotSee.Discipline.Localization.En",
+  name: "DotSee Discipline Localization (English)",
   meta: {
     culture: "en"
   },
-  js: () => import("./en-B5YfZqhh.js")
-}, v = [N];
-class _ {
+  js: () => import("./en-qyuoWgD2.js")
+}, N = [U];
+class v {
   constructor() {
     c(this, "isHidden", !1);
     c(this, "rafId", null);
@@ -158,8 +159,8 @@ class _ {
   processShadowRoots(e, t) {
     let s = 0;
     return e.querySelectorAll("*").forEach((o) => {
-      o.shadowRoot && (o.shadowRoot.querySelectorAll(this.TREE_ITEM_SELECTORS).forEach((a) => {
-        this.processTreeItem(a, t) && s++;
+      o.shadowRoot && (o.shadowRoot.querySelectorAll(this.TREE_ITEM_SELECTORS).forEach((r) => {
+        this.processTreeItem(r, t) && s++;
       }), s += this.processShadowRoots(o.shadowRoot, t));
     }), s;
   }
@@ -176,7 +177,7 @@ class _ {
     return !1;
   }
   getTreeItemName(e) {
-    var o, l, a, m, S;
+    var o, l, r, m, y;
     const t = e.getAttribute("label") || e.getAttribute("name");
     if (t) return t.trim();
     const s = [
@@ -190,23 +191,23 @@ class _ {
       "button span",
       'span:not([slot="icon"])'
     ];
-    for (const u of s) {
-      const r = e.querySelector(u);
-      if ((o = r == null ? void 0 : r.textContent) != null && o.trim())
-        return r.textContent.trim();
+    for (const p of s) {
+      const a = e.querySelector(p);
+      if ((o = a == null ? void 0 : a.textContent) != null && o.trim())
+        return a.textContent.trim();
     }
     if (e.shadowRoot) {
-      for (const r of s) {
-        const p = e.shadowRoot.querySelector(r);
-        if ((l = p == null ? void 0 : p.textContent) != null && l.trim())
-          return p.textContent.trim();
+      for (const a of s) {
+        const u = e.shadowRoot.querySelector(a);
+        if ((l = u == null ? void 0 : u.textContent) != null && l.trim())
+          return u.textContent.trim();
       }
-      const u = (a = e.shadowRoot.textContent) == null ? void 0 : a.trim();
-      if (u) return u;
+      const p = (r = e.shadowRoot.textContent) == null ? void 0 : r.trim();
+      if (p) return p;
     }
     const n = (m = e.textContent) == null ? void 0 : m.trim();
-    return n ? ((S = n.split(`
-`)[0]) == null ? void 0 : S.trim()) || n : "";
+    return n ? ((y = n.split(`
+`)[0]) == null ? void 0 : y.trim()) || n : "";
   }
   isUnsetVariant(e) {
     const t = e.trim();
@@ -217,13 +218,13 @@ class _ {
   }
 }
 let d = null;
-function R() {
-  return d || (d = new _()), d;
+function M() {
+  return d || (d = new v()), d;
 }
-function B() {
+function F() {
   return d;
 }
-const f = {
+const h = {
   enabled: !1,
   caption: "Toggle unset variants display"
 }, b = {
@@ -232,7 +233,7 @@ const f = {
   previousVersionCaption: null,
   noVersionsCaption: null
 };
-async function M(i) {
+async function R(i) {
   try {
     const e = document.documentElement.lang || "", t = e ? `/umbraco/api/propertyversions/settings?culture=${encodeURIComponent(e)}` : "/umbraco/api/propertyversions/settings", s = await fetch(t, {
       method: "GET",
@@ -267,23 +268,23 @@ async function x() {
       const e = await i.json();
       return {
         enabled: e.enabled === !0 || e.enabled === "true",
-        caption: e.caption || f.caption
+        caption: e.caption || h.caption
       };
     }
-    return f;
+    return h;
   } catch {
-    return f;
+    return h;
   }
 }
-const g = "No previous versions";
-let E = g;
+const E = "#dotseeDiscipline_propertyVersions_noPreviousVersions";
+let T = E;
 function L(i) {
-  E = i ?? g;
+  T = i && i.length > 0 ? i : E;
 }
 function G() {
-  return E;
+  return T;
 }
-const T = "dotsee-discipline-settings";
+const g = "dotsee-discipline-settings";
 function q() {
   return {
     createdDocTypeAlias: "",
@@ -309,7 +310,7 @@ function O() {
     customWarningMessageCategory: ""
   };
 }
-function $() {
+function Y() {
   return {
     docTypeAlias: "",
     documentGuids: "",
@@ -317,22 +318,22 @@ function $() {
     customMessageCategory: ""
   };
 }
-const P = "DotSee.Discipline.Settings.Workspace", h = "DotSee.Discipline.Settings.Menu", H = "DotSee.Discipline.Settings.SidebarApp", k = "DotSee.Discipline.Settings.MenuItem", W = [
+const P = "DotSee.Discipline.Settings.Workspace", f = "DotSee.Discipline.Settings.Menu", H = "DotSee.Discipline.Settings.SidebarApp", k = "DotSee.Discipline.Settings.MenuItem", W = [
   {
     type: "workspace",
     alias: P,
     name: "DotSee Discipline Settings Workspace",
-    element: () => import("./discipline-settings.workspace.element-CJaw1HnR.js"),
+    element: () => import("./discipline-settings.workspace.element-BKcqsQoA.js"),
     meta: {
-      entityType: T
+      entityType: g
     }
   },
   {
     type: "menu",
-    alias: h,
+    alias: f,
     name: "DotSee Discipline Menu",
     meta: {
-      label: "DotSee Discipline"
+      label: "#dotseeDiscipline_menu_label"
     }
   },
   {
@@ -341,10 +342,10 @@ const P = "DotSee.Discipline.Settings.Workspace", h = "DotSee.Discipline.Setting
     name: "DotSee Discipline Menu Item",
     weight: 50,
     meta: {
-      label: "Discipline",
+      label: "#dotseeDiscipline_menu_itemLabel",
       icon: "icon-settings-alt",
-      entityType: T,
-      menus: [h]
+      entityType: g,
+      menus: [f]
     }
   },
   {
@@ -354,8 +355,8 @@ const P = "DotSee.Discipline.Settings.Workspace", h = "DotSee.Discipline.Setting
     name: "DotSee Discipline Sidebar App",
     weight: 50,
     meta: {
-      label: "DotSee Discipline",
-      menu: h
+      label: "#dotseeDiscipline_menu_label",
+      menu: f
     },
     conditions: [
       {
@@ -381,36 +382,34 @@ async function z(i) {
     return { uiEnabled: !0 };
   }
 }
-const X = async (i, e) => {
-  const s = await (await i.getContext(V)).getLatestToken(), [n, o, l] = await Promise.all([
-    M(s),
+const K = async (i, e) => {
+  e.registerMany(N);
+  const s = await (await i.getContext(A)).getLatestToken(), [n, o, l] = await Promise.all([
+    R(s),
     x(),
     z(s)
   ]);
   if (l.uiEnabled && e.registerMany(W), n.enabled) {
     L(n.noVersionsCaption);
-    const a = U({
+    const r = w({
       nextVersionCaption: n.nextVersionCaption,
       previousVersionCaption: n.previousVersionCaption,
       noVersionsCaption: n.noVersionsCaption
     });
-    e.registerMany(a);
+    e.registerMany(r);
   }
   if (o.enabled) {
-    const a = I(o.caption);
-    e.registerMany([
-      a,
-      ...v
-    ]), R().initializeWithSettings(o);
+    const r = I(o.caption);
+    e.registerMany([r]), M().initializeWithSettings(o);
   }
 };
 export {
-  _ as V,
+  v as V,
   G as a,
   O as b,
   q as c,
-  $ as d,
-  B as g,
-  X as o
+  Y as d,
+  F as g,
+  K as o
 };
-//# sourceMappingURL=index-B9PBdrVL.js.map
+//# sourceMappingURL=index-BuIMco7X.js.map

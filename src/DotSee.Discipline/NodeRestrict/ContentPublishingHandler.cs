@@ -9,11 +9,13 @@ namespace DotSee.Discipline.NodeRestrict
     {
         private readonly NodeRestrictService _restrictor;
         private readonly IContentTypeService _contentTypeService;
+        private readonly ILocalizedTextService _localizedTextService;
 
-        public ContentPublishingHandler(NodeRestrictService restrictor, IContentTypeService contentTypeService)
+        public ContentPublishingHandler(NodeRestrictService restrictor, IContentTypeService contentTypeService, ILocalizedTextService localizedTextService)
         {
             _restrictor = restrictor;
             _contentTypeService = contentTypeService;
+            _localizedTextService = localizedTextService;
         }
         public void Handle(ContentPublishingNotification notification)
         {
@@ -37,13 +39,13 @@ namespace DotSee.Discipline.NodeRestrict
             //If a result has come back, see if limit has been reached or not.
             if (result.LimitReached)
             {
-                var rmm = new RuleMessageManager(result.Rule, _contentTypeService);
+                var rmm = new RuleMessageManager(result.Rule, _contentTypeService, _localizedTextService);
                 //Show limit reached message to warn user that he/she has no hope of ever publishing another node.
                 notification.CancelOperation(new EventMessage(rmm.GetMessageCategory(), rmm.GetMessage(), EventMessageType.Error));
             }
             else if (result.Rule.ShowWarnings)
             {
-                var rmm = new RuleMessageManager(result.Rule, _contentTypeService);
+                var rmm = new RuleMessageManager(result.Rule, _contentTypeService, _localizedTextService);
                 //Show warning message to let the user know how many nodes can still be published.
                 notification.Messages.Add(new EventMessage(rmm.GetWarningMessageCategory(), rmm.GetWarningMessage(result.NodeCount), EventMessageType.Warning));
             }
