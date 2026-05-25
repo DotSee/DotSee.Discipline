@@ -1,3 +1,4 @@
+using DotSee.Discipline.Backoffice;
 using DotSee.Discipline.Interfaces;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Persistence.Querying;
@@ -26,16 +27,22 @@ namespace DotSee.Discipline.NodeRestrict
 
         #region Constructors
 
-        public NodeRestrictService(IContentService contentService, ISqlContext sqlContext, IRuleProviderService<IEnumerable<Rule>> ruleProviderService, IContentTypeService contentTypeService)
+        public NodeRestrictService(
+            IContentService contentService,
+            ISqlContext sqlContext,
+            IRuleProviderService<IEnumerable<Rule>> ruleProviderService,
+            IContentTypeService contentTypeService,
+            IDisciplineSettingsResolver settingsResolver)
         {
             _cs = contentService;
             _sql = sqlContext;
             _ruleProviderService = ruleProviderService;
             _contentTypeService = contentTypeService;
-            _settings = ((ISettings<NodeRestrictSettings>)_ruleProviderService).Settings;
 
-            ///Get rules from the config file. Any rules programmatically declared later on will be added too.
-            _rules = _ruleProviderService.Rules.ToList();
+            LoadFromProvider();
+
+            // Backoffice saves invalidate the cache so the next publish reloads fresh values.
+            settingsResolver.SettingsChanged += ClearCache;
         }
 
         #endregion
@@ -43,12 +50,29 @@ namespace DotSee.Discipline.NodeRestrict
         #region Public Methods
 
         /// <summary>
-        /// Registers a new rule object 
+        /// Registers a new rule object
         /// </summary>
         /// <param name="rule">The rule object</param>
         public void RegisterRule(Rule rule)
         {
+            if (_rules == null) { LoadFromProvider(); }
             _rules.Add(rule);
+        }
+
+        /// <summary>
+        /// Drops the cached rules / settings so the next run reloads them from the provider.
+        /// Wired to <see cref="IDisciplineSettingsResolver.SettingsChanged"/>.
+        /// </summary>
+        public void ClearCache()
+        {
+            _rules = null;
+            _settings = null;
+        }
+
+        private void LoadFromProvider()
+        {
+            _settings = ((ISettings<NodeRestrictSettings>)_ruleProviderService).Settings;
+            _rules = _ruleProviderService.Rules.ToList();
         }
 
         /// <summary>
@@ -64,6 +88,8 @@ namespace DotSee.Discipline.NodeRestrict
         /// </param>
         public virtual Result Run(IContent node, IEnumerable<string> publishingCultures = null)
         {
+            if (_rules == null || _settings == null) { LoadFromProvider(); }
+
             //Get the parent node.
             var parent = _cs.GetById(node.ParentId);
             string culture = null;

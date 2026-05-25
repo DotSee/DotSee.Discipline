@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DotSee.Discipline.Backoffice;
 using DotSee.Discipline.Interfaces;
 using DotSee.Discipline.NodeRestrict;
 using Moq;
@@ -18,6 +19,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
         private Mock<IRuleProviderService<IEnumerable<Rule>>> _ruleProviderMock;
         private Mock<ISettings<NodeRestrictSettings>> _settingsProviderMock;
         private Mock<IContentTypeService> _contentTypeServiceMock;
+        private Mock<IDisciplineSettingsResolver> _settingsResolverMock;
         private NodeRestrictSettings _settings;
 
         [SetUp]
@@ -28,6 +30,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
             _ruleProviderMock = new Mock<IRuleProviderService<IEnumerable<Rule>>>();
             _settingsProviderMock = _ruleProviderMock.As<ISettings<NodeRestrictSettings>>();
             _contentTypeServiceMock = new Mock<IContentTypeService>();
+            _settingsResolverMock = new Mock<IDisciplineSettingsResolver>();
             _settings = new NodeRestrictSettings { PropertyAlias = null, ShowWarnings = false };
             _settingsProviderMock.Setup(s => s.Settings).Returns(_settings);
         }
@@ -76,7 +79,8 @@ namespace DotSee.Discipline.Tests.NodeRestrict
                 _contentServiceMock.Object,
                 _sqlContextMock.Object,
                 _ruleProviderMock.Object,
-                _contentTypeServiceMock.Object);
+                _contentTypeServiceMock.Object,
+                _settingsResolverMock.Object);
         }
 
         #region Constructor Tests

@@ -1,4 +1,5 @@
-﻿using DotSee.Discipline.Interfaces;
+﻿using DotSee.Discipline.Backoffice;
+using DotSee.Discipline.Interfaces;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
 
@@ -22,14 +23,18 @@ namespace DotSee.Discipline.NodeProtect
         #region Constructors
 
         public NodeProtectService(
-            IContentService contentService
-            , IRuleProviderService<IEnumerable<Rule>> ruleProviderService
+            IContentService contentService,
+            IRuleProviderService<IEnumerable<Rule>> ruleProviderService,
+            IDisciplineSettingsResolver settingsResolver
             )
         {
             _cs = contentService;
             _ruleProviderService = ruleProviderService;
-            _rules = _ruleProviderService.Rules.ToList();
-            _settings = ((ISettings<NodeProtectSettings>)_ruleProviderService).Settings;
+
+            LoadFromProvider();
+
+            // Backoffice saves invalidate the cache so the next deletion attempt reloads fresh values.
+            settingsResolver.SettingsChanged += ClearCache;
         }
 
         #endregion
@@ -37,20 +42,38 @@ namespace DotSee.Discipline.NodeProtect
         #region Public Methods
 
         /// <summary>
-        /// Registers a new rule object 
+        /// Registers a new rule object
         /// </summary>
         /// <param name="rule">The rule object</param>
         public void RegisterRule(Rule rule)
         {
+            if (_rules == null) { LoadFromProvider(); }
             _rules.Add(rule);
         }
 
         /// <summary>
-        /// Applies all rules on publishing a node. 
+        /// Drops the cached rules / settings so the next run reloads them from the provider.
+        /// Wired to <see cref="IDisciplineSettingsResolver.SettingsChanged"/>.
+        /// </summary>
+        public void ClearCache()
+        {
+            _rules = null;
+            _settings = null;
+        }
+
+        private void LoadFromProvider()
+        {
+            _rules = _ruleProviderService.Rules.ToList();
+            _settings = ((ISettings<NodeProtectSettings>)_ruleProviderService).Settings;
+        }
+
+        /// <summary>
+        /// Applies all rules on publishing a node.
         /// </summary>
         /// <param name="node">The newly created node we need to apply rules for</param>
         public virtual Result Run(IContent node)
         {
+            if (_rules == null || _settings == null) { LoadFromProvider(); }
 
             Result result = null;
 

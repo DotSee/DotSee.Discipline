@@ -23,7 +23,7 @@ namespace DotSee.Discipline.NodeProtect
                 Result result = _nodeProtectService.Run(item.Entity);
 
                 //No rule applied, as you were.
-                if (result == null) { return; }
+                if (result == null) { continue; }
 
                 //If a result has come back, see if limit has been reached or not.
 

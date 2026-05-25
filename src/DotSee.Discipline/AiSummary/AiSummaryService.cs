@@ -1,6 +1,7 @@
 using DotSee.Discipline.AiSummary.Exceptions;
 using DotSee.Discipline.AiSummary.Generators;
 using DotSee.Discipline.AiSummary.Helpers;
+using DotSee.Discipline.Backoffice;
 using DotSee.Discipline.Interfaces;
 using NPoco;
 using Serilog;
@@ -31,13 +32,31 @@ namespace DotSee.Discipline.AiSummary
             JsonSettingsProviderService settingsProviderService,
             ILogger logger,
             IJsonSerializer jsonSerializer,
-            IContentTypeService contentTypeService)
+            IContentTypeService contentTypeService,
+            IDisciplineSettingsResolver settingsResolver)
         {
             _settingsProviderService = settingsProviderService;
-            _settings = ((ISettings<AiSummarySettings>)_settingsProviderService).Settings;
+            LoadFromProvider();
             _logger = logger;
             _jsonSerializer = jsonSerializer;
             _contentTypeService = contentTypeService;
+
+            // Backoffice saves invalidate the cache so the next save reloads fresh values.
+            settingsResolver.SettingsChanged += ClearCache;
+        }
+
+        /// <summary>
+        /// Drops the cached settings so the next run reloads from the provider.
+        /// Wired to <see cref="IDisciplineSettingsResolver.SettingsChanged"/>.
+        /// </summary>
+        public void ClearCache()
+        {
+            _settings = null;
+        }
+
+        private void LoadFromProvider()
+        {
+            _settings = ((ISettings<AiSummarySettings>)_settingsProviderService).Settings;
         }
         #endregion
 
@@ -57,6 +76,8 @@ namespace DotSee.Discipline.AiSummary
         /// <returns>True if at least one AI summary was generated; false otherwise.</returns>
         public virtual bool Run(IContent node, IEnumerable<string> savingCultures = null)
         {
+            if (_settings == null) { LoadFromProvider(); }
+
             //Make all the necessary checks to decide if we should continue.
             //If so, return an object with other useful info to use further down the line.
             ServiceCheckResults checkResults = ShouldContinue(node);

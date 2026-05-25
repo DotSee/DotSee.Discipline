@@ -147,8 +147,9 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
 
   private async _init() {
     const authContext = await this.getContext(UMB_AUTH_CONTEXT);
-    const token = await authContext!.getLatestToken();
-    this._repository = new DisciplineSettingsRepository(token);
+    // Resolve a fresh token per request — Umbraco access tokens are short-lived and
+    // the auth context refreshes them transparently.
+    this._repository = new DisciplineSettingsRepository(() => authContext!.getLatestToken());
 
     try {
       const [response, docTypes, trueFalseProps, textContentProps, textInputProps, blueprints] = await Promise.all([

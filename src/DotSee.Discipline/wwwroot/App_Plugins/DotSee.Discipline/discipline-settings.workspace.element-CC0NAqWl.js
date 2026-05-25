@@ -6,32 +6,32 @@ import { UmbLitElement as S } from "@umbraco-cms/backoffice/lit-element";
 import { UMB_AUTH_CONTEXT as C } from "@umbraco-cms/backoffice/auth";
 import { UMB_MODAL_MANAGER_CONTEXT as A, UMB_CONFIRM_MODAL as E } from "@umbraco-cms/backoffice/modal";
 import { UMB_NOTIFICATION_CONTEXT as M } from "@umbraco-cms/backoffice/notification";
-import { c as B, b as I, d as V } from "./index-DVNm51Dy.js";
-const w = "/umbraco/api/discipline";
+import { c as B, b as I, d as V } from "./index-d8RQYocZ.js";
+const z = "/umbraco/api/discipline";
 class O {
   constructor(e) {
-    this.authToken = e;
+    this.getToken = e;
   }
-  headers(e = {}) {
+  async headers(e = {}) {
     return {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${this.authToken}`,
+      Authorization: `Bearer ${await this.getToken()}`,
       ...e
     };
   }
   async getSettings() {
-    const e = await fetch(`${w}/settings`, {
+    const e = await fetch(`${z}/settings`, {
       method: "GET",
-      headers: this.headers()
+      headers: await this.headers()
     });
     if (!e.ok)
       throw new Error(`Failed to load Discipline settings (${e.status})`);
     return await e.json();
   }
   async saveSettings(e) {
-    const t = await fetch(`${w}/settings`, {
+    const t = await fetch(`${z}/settings`, {
       method: "PUT",
-      headers: this.headers(),
+      headers: await this.headers(),
       body: JSON.stringify(e)
     });
     if (!t.ok)
@@ -39,54 +39,54 @@ class O {
     return await t.json();
   }
   async getDocTypes() {
-    const e = await fetch(`${w}/doctypes`, {
+    const e = await fetch(`${z}/doctypes`, {
       method: "GET",
-      headers: this.headers()
+      headers: await this.headers()
     });
     if (!e.ok)
       throw new Error(`Failed to load doctypes (${e.status})`);
     return await e.json();
   }
   async getTrueFalseProperties() {
-    const e = await fetch(`${w}/properties/truefalse`, {
+    const e = await fetch(`${z}/properties/truefalse`, {
       method: "GET",
-      headers: this.headers()
+      headers: await this.headers()
     });
     if (!e.ok)
       throw new Error(`Failed to load true/false properties (${e.status})`);
     return await e.json();
   }
   async getTextContentProperties() {
-    const e = await fetch(`${w}/properties/text-content`, {
+    const e = await fetch(`${z}/properties/text-content`, {
       method: "GET",
-      headers: this.headers()
+      headers: await this.headers()
     });
     if (!e.ok)
       throw new Error(`Failed to load text content properties (${e.status})`);
     return await e.json();
   }
   async getTextInputProperties() {
-    const e = await fetch(`${w}/properties/text-input`, {
+    const e = await fetch(`${z}/properties/text-input`, {
       method: "GET",
-      headers: this.headers()
+      headers: await this.headers()
     });
     if (!e.ok)
       throw new Error(`Failed to load text input properties (${e.status})`);
     return await e.json();
   }
   async getBlueprints() {
-    const e = await fetch(`${w}/blueprints`, {
+    const e = await fetch(`${z}/blueprints`, {
       method: "GET",
-      headers: this.headers()
+      headers: await this.headers()
     });
     if (!e.ok)
       throw new Error(`Failed to load blueprints (${e.status})`);
     return await e.json();
   }
   async importFromAppSettings() {
-    const e = await fetch(`${w}/import-from-appsettings`, {
+    const e = await fetch(`${z}/import-from-appsettings`, {
       method: "POST",
-      headers: this.headers()
+      headers: await this.headers()
     });
     if (!e.ok)
       throw new Error(`Failed to import from appsettings (${e.status})`);
@@ -171,10 +171,10 @@ let _ = class extends S {
     super.disconnectedCallback(), document.removeEventListener("mousedown", this._onDocumentMouseDown);
   }
   async _init() {
-    const t = await (await this.getContext(C)).getLatestToken();
-    this._repository = new O(t);
+    const e = await this.getContext(C);
+    this._repository = new O(() => e.getLatestToken());
     try {
-      const [a, s, o, i, l, p] = await Promise.all([
+      const [t, a, s, o, i, l] = await Promise.all([
         this._repository.getSettings(),
         this._repository.getDocTypes().catch(() => []),
         this._repository.getTrueFalseProperties().catch(() => []),
@@ -182,11 +182,11 @@ let _ = class extends S {
         this._repository.getTextInputProperties().catch(() => []),
         this._repository.getBlueprints().catch(() => [])
       ]);
-      this._docTypes = s, this._trueFalseProperties = o, this._textContentProperties = i, this._textInputProperties = l, this._blueprints = p, this._applyResponse(a), this._collapseAllRules();
-    } catch (a) {
+      this._docTypes = a, this._trueFalseProperties = s, this._textContentProperties = o, this._textInputProperties = i, this._blueprints = l, this._applyResponse(t), this._collapseAllRules();
+    } catch (t) {
       await this._notify(
         "danger",
-        this.localize.term("dotseeDiscipline_settings_loadFailedToast", this._errorMessage(a))
+        this.localize.term("dotseeDiscipline_settings_loadFailedToast", this._errorMessage(t))
       );
     } finally {
       this._loading = !1, this.requestUpdate();
@@ -681,9 +681,9 @@ let _ = class extends S {
       )}
                   </div>
                 </uui-box>
-              `, z = this._dragFeature === "autoNode" && this._dragIndex === i, x = this._dragFeature === "autoNode" && this._dragOverIndex === i, D = [
+              `, w = this._dragFeature === "autoNode" && this._dragIndex === i, x = this._dragFeature === "autoNode" && this._dragOverIndex === i, D = [
         "rule-wrapper",
-        z ? "dragging" : "",
+        w ? "dragging" : "",
         x && this._dragPosition === "before" ? "drop-before" : "",
         x && this._dragPosition === "after" ? "drop-after" : ""
       ].filter(Boolean).join(" "), d = e || !t.enabled;
@@ -762,7 +762,7 @@ let _ = class extends S {
         ${t.rules.map((o, i) => {
       const l = !o.childDocType || o.childDocType === "*" ? this.localize.term("dotseeDiscipline_common_anyDoctypeLowercase") : o.childDocType, p = o.parentDocType ? `(${o.parentDocType} → ${l})` : "", h = this.localize.term("dotseeDiscipline_common_ruleNumber", i + 1), v = p ? `${h} ${p}` : h, c = this.localize.term("dotseeDiscipline_nodeRestrict_ruleDetailMax", o.maxNodes ?? 0), $ = () => {
         this._removeRuleAndReindex("nodeRestrict", i), a({ rules: t.rules.filter((u, N) => N !== i) });
-      }, z = this._isRuleCollapsed("nodeRestrict", i) ? this._renderCollapsedRule("nodeRestrict", i, v, c, e || !t.enabled, $) : r`
+      }, w = this._isRuleCollapsed("nodeRestrict", i) ? this._renderCollapsedRule("nodeRestrict", i, v, c, e || !t.enabled, $) : r`
                 <uui-box class="rule-card">
                   ${this._renderRuleHeader("nodeRestrict", i, e || !t.enabled, $, p || void 0)}
               <div class="grid">
@@ -876,7 +876,7 @@ let _ = class extends S {
               >
                 <umb-icon name="icon-navigation"></umb-icon>
               </span>
-              <div class="rule-content">${z}</div>
+              <div class="rule-content">${w}</div>
             </div>
           `;
     })}
@@ -1029,9 +1029,9 @@ let _ = class extends S {
       )}
                   </div>
                 </uui-box>
-              `, z = this._dragFeature === "nodeProtect" && this._dragIndex === i, x = this._dragFeature === "nodeProtect" && this._dragOverIndex === i, D = [
+              `, w = this._dragFeature === "nodeProtect" && this._dragIndex === i, x = this._dragFeature === "nodeProtect" && this._dragOverIndex === i, D = [
         "rule-wrapper",
-        z ? "dragging" : "",
+        w ? "dragging" : "",
         x && this._dragPosition === "before" ? "drop-before" : "",
         x && this._dragPosition === "after" ? "drop-after" : ""
       ].filter(Boolean).join(" "), d = e || !t.enabled;
@@ -1289,7 +1289,7 @@ let _ = class extends S {
       n ? i.add(d) : i.delete(d), o(Array.from(i).join(","));
     }, p = new Set(t.map((d) => d.alias)), h = Array.from(i).filter((d) => !p.has(d)), v = this._expandedFields.has(e), c = this._filterModes.get(e) ?? "all", $ = (d) => {
       d ? this._expandedFields.add(e) : this._expandedFields.delete(e), this.requestUpdate();
-    }, z = (d) => {
+    }, w = (d) => {
       this._filterModes.set(e, d), this.requestUpdate();
     }, x = c === "selected" ? t.filter((d) => i.has(d.alias)) : t, D = c === "selected" || c === "all" ? h : [];
     return r`
@@ -1319,7 +1319,7 @@ let _ = class extends S {
                         name="filter-${e}"
                         ?disabled=${s}
                         .checked=${c === "all"}
-                        @change=${() => z("all")}
+                        @change=${() => w("all")}
                       />
                       <span>${this.localize.term("dotseeDiscipline_common_filterAll")}</span>
                     </label>
@@ -1329,7 +1329,7 @@ let _ = class extends S {
                         name="filter-${e}"
                         ?disabled=${s}
                         .checked=${c === "selected"}
-                        @change=${() => z("selected")}
+                        @change=${() => w("selected")}
                       />
                       <span>${this.localize.term("dotseeDiscipline_common_filterSelectedOnly")}</span>
                     </label>
@@ -1902,4 +1902,4 @@ export {
   _ as DisciplineSettingsWorkspaceElement,
   Z as default
 };
-//# sourceMappingURL=discipline-settings.workspace.element-CvJxvnN8.js.map
+//# sourceMappingURL=discipline-settings.workspace.element-CC0NAqWl.js.map

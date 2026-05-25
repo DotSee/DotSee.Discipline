@@ -2,13 +2,16 @@ import type { BlueprintOption, DisciplineSettings, DisciplineSettingsResponse, D
 
 const BASE = '/umbraco/api/discipline';
 
-export class DisciplineSettingsRepository {
-  constructor(private readonly authToken: string) {}
+export type TokenGetter = () => Promise<string | undefined>;
 
-  private headers(extra: Record<string, string> = {}): HeadersInit {
+export class DisciplineSettingsRepository {
+  constructor(private readonly getToken: TokenGetter) {}
+
+  private async headers(extra: Record<string, string> = {}): Promise<HeadersInit> {
+    const token = await this.getToken();
     return {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${this.authToken}`,
+      Authorization: `Bearer ${token}`,
       ...extra,
     };
   }
@@ -16,7 +19,7 @@ export class DisciplineSettingsRepository {
   async getSettings(): Promise<DisciplineSettingsResponse> {
     const response = await fetch(`${BASE}/settings`, {
       method: 'GET',
-      headers: this.headers(),
+      headers: await this.headers(),
     });
     if (!response.ok) {
       throw new Error(`Failed to load Discipline settings (${response.status})`);
@@ -27,7 +30,7 @@ export class DisciplineSettingsRepository {
   async saveSettings(settings: DisciplineSettings): Promise<DisciplineSettingsResponse> {
     const response = await fetch(`${BASE}/settings`, {
       method: 'PUT',
-      headers: this.headers(),
+      headers: await this.headers(),
       body: JSON.stringify(settings),
     });
     if (!response.ok) {
@@ -39,7 +42,7 @@ export class DisciplineSettingsRepository {
   async getDocTypes(): Promise<DocTypeOption[]> {
     const response = await fetch(`${BASE}/doctypes`, {
       method: 'GET',
-      headers: this.headers(),
+      headers: await this.headers(),
     });
     if (!response.ok) {
       throw new Error(`Failed to load doctypes (${response.status})`);
@@ -50,7 +53,7 @@ export class DisciplineSettingsRepository {
   async getTrueFalseProperties(): Promise<PropertyOption[]> {
     const response = await fetch(`${BASE}/properties/truefalse`, {
       method: 'GET',
-      headers: this.headers(),
+      headers: await this.headers(),
     });
     if (!response.ok) {
       throw new Error(`Failed to load true/false properties (${response.status})`);
@@ -61,7 +64,7 @@ export class DisciplineSettingsRepository {
   async getTextContentProperties(): Promise<PropertyOption[]> {
     const response = await fetch(`${BASE}/properties/text-content`, {
       method: 'GET',
-      headers: this.headers(),
+      headers: await this.headers(),
     });
     if (!response.ok) {
       throw new Error(`Failed to load text content properties (${response.status})`);
@@ -72,7 +75,7 @@ export class DisciplineSettingsRepository {
   async getTextInputProperties(): Promise<PropertyOption[]> {
     const response = await fetch(`${BASE}/properties/text-input`, {
       method: 'GET',
-      headers: this.headers(),
+      headers: await this.headers(),
     });
     if (!response.ok) {
       throw new Error(`Failed to load text input properties (${response.status})`);
@@ -83,7 +86,7 @@ export class DisciplineSettingsRepository {
   async getBlueprints(): Promise<BlueprintOption[]> {
     const response = await fetch(`${BASE}/blueprints`, {
       method: 'GET',
-      headers: this.headers(),
+      headers: await this.headers(),
     });
     if (!response.ok) {
       throw new Error(`Failed to load blueprints (${response.status})`);
@@ -94,7 +97,7 @@ export class DisciplineSettingsRepository {
   async importFromAppSettings(): Promise<DisciplineSettingsResponse> {
     const response = await fetch(`${BASE}/import-from-appsettings`, {
       method: 'POST',
-      headers: this.headers(),
+      headers: await this.headers(),
     });
     if (!response.ok) {
       throw new Error(`Failed to import from appsettings (${response.status})`);
