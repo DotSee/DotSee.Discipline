@@ -1,3 +1,4 @@
+using DotSee.Discipline.Backoffice;
 using DotSee.Discipline.Interfaces;
 using Serilog;
 using Umbraco.Cms.Core.Models;
@@ -68,7 +69,8 @@ namespace DotSee.Discipline.AutoNode
             , ILogger logger
             , IRuleProviderService<IEnumerable<Rule>> ruleProviderService
             , ISqlContext sqlContext
-            , AutoNodeUtils autoNodeUtils)
+            , AutoNodeUtils autoNodeUtils
+            , IDisciplineSettingsResolver settingsResolver)
         {
             _contentService = contentService;
             _logger = logger;
@@ -77,6 +79,9 @@ namespace DotSee.Discipline.AutoNode
             _ruleProviderService = ruleProviderService;
             _sqlContext = sqlContext;
             _rules = ruleProviderService.Rules?.ToList() ?? new List<Rule>();
+
+            // Backoffice saves invalidate cached rules so the next publish reloads them.
+            settingsResolver.SettingsChanged += ClearRules;
         }
 
         #endregion Constructors

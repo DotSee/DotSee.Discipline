@@ -1,9 +1,13 @@
+using System;
+
 namespace DotSee.Discipline.Backoffice
 {
     public class DisciplineSettingsResolver : IDisciplineSettingsResolver
     {
         private readonly IDisciplineSettingsStore _store;
         private readonly IDisciplineAppSettingsReader _reader;
+
+        public event Action SettingsChanged;
 
         public DisciplineSettingsResolver(
             IDisciplineSettingsStore store,
@@ -43,8 +47,9 @@ namespace DotSee.Discipline.Backoffice
 
         public void NotifySettingsChanged()
         {
-            // The store invalidates its own cache inside Save(). Nothing else to do here —
-            // feature providers delegate directly to this resolver without caching.
+            // The store invalidates its own cache inside Save(); this event lets feature
+            // services that hold their own caches (e.g. AutoNodeService's rule list) drop them.
+            SettingsChanged?.Invoke();
         }
 
         private bool UseBackoffice() => _store.Load().UseBackoffice;

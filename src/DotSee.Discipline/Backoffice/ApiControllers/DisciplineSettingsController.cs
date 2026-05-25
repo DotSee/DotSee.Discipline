@@ -27,6 +27,7 @@ namespace DotSee.Discipline.Backoffice.ApiControllers
 
         private readonly IDisciplineSettingsStore _store;
         private readonly IDisciplineAppSettingsReader _appSettingsReader;
+        private readonly IDisciplineSettingsResolver _settingsResolver;
         private readonly IConfiguration _configuration;
         private readonly IContentTypeService _contentTypeService;
         private readonly IContentService _contentService;
@@ -35,6 +36,7 @@ namespace DotSee.Discipline.Backoffice.ApiControllers
         public DisciplineSettingsController(
             IDisciplineSettingsStore store,
             IDisciplineAppSettingsReader appSettingsReader,
+            IDisciplineSettingsResolver settingsResolver,
             IConfiguration configuration,
             IContentTypeService contentTypeService,
             IContentService contentService,
@@ -42,6 +44,7 @@ namespace DotSee.Discipline.Backoffice.ApiControllers
         {
             _store = store;
             _appSettingsReader = appSettingsReader;
+            _settingsResolver = settingsResolver;
             _configuration = configuration;
             _contentTypeService = contentTypeService;
             _contentService = contentService;
@@ -67,6 +70,7 @@ namespace DotSee.Discipline.Backoffice.ApiControllers
             }
 
             _store.Save(settings);
+            _settingsResolver.NotifySettingsChanged();
             return Ok(BuildResponse(settings));
         }
 
@@ -95,6 +99,7 @@ namespace DotSee.Discipline.Backoffice.ApiControllers
             snapshot.UseBackoffice = current.UseBackoffice;
 
             _store.Save(snapshot);
+            _settingsResolver.NotifySettingsChanged();
             return Ok(BuildResponse(snapshot));
         }
 

@@ -1,3 +1,5 @@
+using System;
+
 namespace DotSee.Discipline.Backoffice
 {
     /// <summary>
@@ -19,6 +21,12 @@ namespace DotSee.Discipline.Backoffice
         PropertyVersionsFeatureSettings GetPropertyVersions();
 
         AiSummaryFeatureSettings GetAiSummary();
+
+        /// <summary>
+        /// Raised after <see cref="NotifySettingsChanged"/> fires. Feature services that
+        /// cache rules or settings should subscribe and invalidate their caches.
+        /// </summary>
+        event Action SettingsChanged;
 
         /// <summary>
         /// Invalidates any caches held by feature-level providers so the next read

@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using DotSee.Discipline.AutoNode;
+using DotSee.Discipline.Backoffice;
 using DotSee.Discipline.Interfaces;
 using Moq;
 using Serilog;
@@ -24,6 +25,7 @@ namespace DotSee.Discipline.Tests.AutoNode
         private Mock<Serilog.ILogger> _loggerMock;
         private Mock<IRuleProviderService<IEnumerable<Rule>>> _ruleProviderMock;
         private Mock<ISqlContext> _sqlContextMock;
+        private Mock<IDisciplineSettingsResolver> _settingsResolverMock;
         private AutoNodeUtils _autoNodeUtils;
         private long _totalRecords;
 
@@ -35,6 +37,7 @@ namespace DotSee.Discipline.Tests.AutoNode
             _loggerMock = new Mock<Serilog.ILogger>();
             _ruleProviderMock = new Mock<IRuleProviderService<IEnumerable<Rule>>>();
             _sqlContextMock = new Mock<ISqlContext>();
+            _settingsResolverMock = new Mock<IDisciplineSettingsResolver>();
             var langMock = new Mock<ILanguageService>();
             var dictMock = new Mock<IDictionaryItemService>();
             _autoNodeUtils = new AutoNodeUtils(_loggerMock.Object, langMock.Object, dictMock.Object);
@@ -79,7 +82,8 @@ namespace DotSee.Discipline.Tests.AutoNode
                 _loggerMock.Object,
                 _ruleProviderMock.Object,
                 _sqlContextMock.Object,
-                _autoNodeUtils);
+                _autoNodeUtils,
+                _settingsResolverMock.Object);
         }
 
         [Test]
@@ -103,7 +107,8 @@ namespace DotSee.Discipline.Tests.AutoNode
                 _loggerMock.Object,
                 _ruleProviderMock.Object,
                 _sqlContextMock.Object,
-                _autoNodeUtils);
+                _autoNodeUtils,
+                _settingsResolverMock.Object);
             var node = CreateMockNode(1, "HomePage");
 
             var result = sut.Run(node);
