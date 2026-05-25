@@ -44,7 +44,8 @@ const e = {
     savedToast: "Settings saved.",
     loadFailedToast: "Could not load settings: %0%",
     importFailedToast: "Import failed: %0%",
-    saveFailedToast: "Save failed: %0%"
+    saveFailedToast: "Save failed: %0%",
+    reloadHintToast: "Changes to VariantsHider or PropertyVersions take effect after you refresh the backoffice."
   },
   // ────────────────────────────────────────────────────────────────────
   // Menu / sidebar
@@ -207,4 +208,4 @@ const e = {
 export {
   e as default
 };
-//# sourceMappingURL=en-Bd-uooF6.js.map
+//# sourceMappingURL=en-DnFByWA7.js.map

@@ -123,6 +123,12 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
 
   private _repository?: DisciplineSettingsRepository;
 
+  // Snapshot of last server-known state for sections whose changes only take effect
+  // after a backoffice reload (VariantsHider + PropertyVersions are registered once
+  // at extension entry-point init). Compared against pre-save state to decide whether
+  // to show the reload hint toast.
+  private _refreshSensitiveSnapshot = '';
+
   override connectedCallback() {
     super.connectedCallback();
     this._init();
@@ -181,7 +187,12 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
   private _applyResponse(response: DisciplineSettingsResponse) {
     this._hasAppSettings = response.hasAppSettings;
     this._settings = response.settings ?? emptySettings();
+    this._refreshSensitiveSnapshot = this._snapshotRefreshSensitive(this._settings);
     this.requestUpdate();
+  }
+
+  private _snapshotRefreshSensitive(s: DisciplineSettings): string {
+    return JSON.stringify({ variantsHider: s.variantsHider, propertyVersions: s.propertyVersions });
   }
 
   private _errorMessage(error: unknown): string {
@@ -246,12 +257,17 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
 
   private async _onSaveClick() {
     if (!this._repository || !this._canSave()) return;
+    const refreshSensitiveChanged =
+      this._snapshotRefreshSensitive(this._settings) !== this._refreshSensitiveSnapshot;
     try {
       this._saving = true;
       this.requestUpdate();
       const response = await this._repository.saveSettings(this._settings);
       this._applyResponse(response);
       await this._notify('positive', this.localize.term('dotseeDiscipline_settings_savedToast'));
+      if (refreshSensitiveChanged) {
+        await this._notify('warning', this.localize.term('dotseeDiscipline_settings_reloadHintToast'));
+      }
     } catch (error) {
       await this._notify(
         'danger',

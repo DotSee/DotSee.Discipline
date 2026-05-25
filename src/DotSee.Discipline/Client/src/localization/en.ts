@@ -48,6 +48,7 @@ export default {
     loadFailedToast: 'Could not load settings: %0%',
     importFailedToast: 'Import failed: %0%',
     saveFailedToast: 'Save failed: %0%',
+    reloadHintToast: 'Changes to VariantsHider or PropertyVersions take effect after you refresh the backoffice.',
   },
 
   // ────────────────────────────────────────────────────────────────────
