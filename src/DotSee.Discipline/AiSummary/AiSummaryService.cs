@@ -36,24 +36,14 @@ namespace DotSee.Discipline.AiSummary
             IDisciplineSettingsResolver settingsResolver)
         {
             _settingsProviderService = settingsProviderService;
-            LoadFromProvider();
             _logger = logger;
             _jsonSerializer = jsonSerializer;
             _contentTypeService = contentTypeService;
-
-            // Backoffice saves invalidate the cache so the next save reloads fresh values.
-            settingsResolver.SettingsChanged += ClearCache;
         }
 
-        /// <summary>
-        /// Drops the cached settings so the next run reloads from the provider.
-        /// Wired to <see cref="IDisciplineSettingsResolver.SettingsChanged"/>.
-        /// </summary>
-        public void ClearCache()
-        {
-            _settings = null;
-        }
-
+        // Read settings fresh from the provider on every run. The provider reads them from the
+        // in-memory settings store (no file I/O), which Save() updates synchronously, so enabling/
+        // disabling the feature or editing settings takes effect immediately — no restart.
         private void LoadFromProvider()
         {
             _settings = ((ISettings<AiSummarySettings>)_settingsProviderService).Settings;
@@ -76,7 +66,7 @@ namespace DotSee.Discipline.AiSummary
         /// <returns>True if at least one AI summary was generated; false otherwise.</returns>
         public virtual bool Run(IContent node, IEnumerable<string> savingCultures = null)
         {
-            if (_settings == null) { LoadFromProvider(); }
+            LoadFromProvider();
 
             //Make all the necessary checks to decide if we should continue.
             //If so, return an object with other useful info to use further down the line.

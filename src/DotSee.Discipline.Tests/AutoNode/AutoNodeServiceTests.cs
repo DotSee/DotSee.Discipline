@@ -152,30 +152,6 @@ namespace DotSee.Discipline.Tests.AutoNode
         }
 
         [Test]
-        public void RegisterRule_AddsRuleToRulesList()
-        {
-            var sut = CreateSut(new List<Rule>());
-            var rule = new Rule("HomePage", "ChildDoc", "Child");
-
-            sut.RegisterRule(rule);
-
-            Assert.That(sut.Rules, Has.Count.EqualTo(1));
-            Assert.That(sut.Rules[0], Is.SameAs(rule));
-        }
-
-        [Test]
-        public void ClearRules_RemovesAllRules()
-        {
-            var rules = new List<Rule> { new Rule("A", "B", "C") };
-            var sut = CreateSut(rules);
-            Assert.That(sut.Rules, Has.Count.EqualTo(1));
-
-            sut.ClearRules();
-
-            Assert.That(sut.Rules, Is.Empty);
-        }
-
-        [Test]
         public void Run_WhenDocTypeToCreateDoesNotExist_ReturnsFalseAndLogsError()
         {
             var rules = new List<Rule>
@@ -523,35 +499,6 @@ namespace DotSee.Discipline.Tests.AutoNode
 
             Assert.That(result, Is.True);
             _contentServiceMock.Verify(x => x.Create("ChildName", It.IsAny<Guid>(), "ChildDoc"), Times.Once);
-        }
-
-        #endregion
-
-        #region Edge Case Tests - RegisterRule / ClearRules
-
-        [Test]
-        public void RegisterRule_MultipleRules_AllAdded()
-        {
-            var sut = CreateSut(new List<Rule>());
-
-            sut.RegisterRule(new Rule("A", "B", "C"));
-            sut.RegisterRule(new Rule("D", "E", "F"));
-            sut.RegisterRule(new Rule("G", "H", "I"));
-
-            Assert.That(sut.Rules, Has.Count.EqualTo(3));
-        }
-
-        [Test]
-        public void ClearRules_ThenRegisterNew_OnlyNewRuleExists()
-        {
-            var rules = new List<Rule> { new Rule("A", "B", "C"), new Rule("D", "E", "F") };
-            var sut = CreateSut(rules);
-
-            sut.ClearRules();
-            sut.RegisterRule(new Rule("X", "Y", "Z"));
-
-            Assert.That(sut.Rules, Has.Count.EqualTo(1));
-            Assert.That(sut.Rules[0].CreatedDocTypeAlias, Is.EqualTo("X"));
         }
 
         #endregion

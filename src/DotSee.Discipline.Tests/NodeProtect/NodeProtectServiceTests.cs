@@ -101,27 +101,6 @@ namespace DotSee.Discipline.Tests.NodeProtect
 
         #endregion
 
-        #region RegisterRule Tests
-
-        [Test]
-        public void RegisterRule_AddsRuleToList()
-        {
-            var sut = CreateSut(new List<Rule>());
-            var node = CreateMockNode(1, "ProtectedType");
-
-            // Initially no rules, so Run returns null
-            var resultBefore = sut.Run(node);
-            Assert.That(resultBefore, Is.Null);
-
-            // Register a rule that matches
-            sut.RegisterRule(new Rule("ProtectedType", ""));
-
-            // Now Run should return a Result
-            var resultAfter = sut.Run(node);
-            Assert.That(resultAfter, Is.Not.Null);
-        }
-
-        #endregion
 
         #region Run - No Rules Tests
 

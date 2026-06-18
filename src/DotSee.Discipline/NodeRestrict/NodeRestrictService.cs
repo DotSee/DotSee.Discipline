@@ -38,37 +38,15 @@ namespace DotSee.Discipline.NodeRestrict
             _sql = sqlContext;
             _ruleProviderService = ruleProviderService;
             _contentTypeService = contentTypeService;
-
-            LoadFromProvider();
-
-            // Backoffice saves invalidate the cache so the next publish reloads fresh values.
-            settingsResolver.SettingsChanged += ClearCache;
         }
 
         #endregion
 
         #region Public Methods
 
-        /// <summary>
-        /// Registers a new rule object
-        /// </summary>
-        /// <param name="rule">The rule object</param>
-        public void RegisterRule(Rule rule)
-        {
-            if (_rules == null) { LoadFromProvider(); }
-            _rules.Add(rule);
-        }
-
-        /// <summary>
-        /// Drops the cached rules / settings so the next run reloads them from the provider.
-        /// Wired to <see cref="IDisciplineSettingsResolver.SettingsChanged"/>.
-        /// </summary>
-        public void ClearCache()
-        {
-            _rules = null;
-            _settings = null;
-        }
-
+        // Read settings and rules fresh from the provider on every run. The provider reads them
+        // from the in-memory settings store (no file I/O), which Save() updates synchronously, so
+        // enabling/disabling the feature or editing rules takes effect immediately — no restart.
         private void LoadFromProvider()
         {
             _settings = ((ISettings<NodeRestrictSettings>)_ruleProviderService).Settings;
@@ -88,7 +66,7 @@ namespace DotSee.Discipline.NodeRestrict
         /// </param>
         public virtual Result Run(IContent node, IEnumerable<string> publishingCultures = null)
         {
-            if (_rules == null || _settings == null) { LoadFromProvider(); }
+            LoadFromProvider();
 
             //Get the parent node.
             var parent = _cs.GetById(node.ParentId);
