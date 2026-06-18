@@ -113,7 +113,7 @@ export default {
     label: 'NodeRestrict',
     description:
       'Limits the number of child nodes of a given type that can be created under a parent node. Editors see a configurable warning or error message when they try to exceed the limit.',
-    propertyAlias: 'Property alias *',
+    propertyAlias: 'Property alias',
     propertyAliasHelp:
       'Optional property alias that, when present on a node and set to true, excludes that node from NodeRestrict limits. Leave empty to apply limits to every node that matches a rule.',
     showWarnings: 'Show warnings',
@@ -143,7 +143,6 @@ export default {
     customWarningCategoryHelp:
       'Optional Umbraco dictionary category used to localise the Custom warning message. When set, the message value is treated as a dictionary key within this category.',
     ruleDetailMax: 'Max %0%',
-    validationPropertyAlias: 'NodeRestrict: Property alias is required',
     validationParentDoctype: 'NodeRestrict rule %0%: Parent doctype is required',
     validationMaxNodes: 'NodeRestrict rule %0%: Max nodes must be a non-negative number',
   },

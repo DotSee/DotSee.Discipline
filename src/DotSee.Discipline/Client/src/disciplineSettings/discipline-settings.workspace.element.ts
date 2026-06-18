@@ -302,8 +302,7 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     }
 
     if (s.nodeRestrict.enabled) {
-      if (!s.nodeRestrict.propertyAlias)
-        errors.push(t('dotseeDiscipline_nodeRestrict_validationPropertyAlias'));
+      // propertyAlias is optional — it only enables the per-parent "special property" override.
       s.nodeRestrict.rules.forEach((rule, i) => {
         if (!rule.parentDocType)
           errors.push(t('dotseeDiscipline_nodeRestrict_validationParentDoctype', i + 1));

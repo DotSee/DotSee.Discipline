@@ -1,12 +1,12 @@
 var T = Object.defineProperty;
 var k = (f, t, e) => t in f ? T(f, t, { enumerable: !0, configurable: !0, writable: !0, value: e }) : f[t] = e;
 var _ = (f, t, e) => k(f, typeof t != "symbol" ? t + "" : t, e);
-import { html as r, nothing as g, css as S, state as y, customElement as P } from "@umbraco-cms/backoffice/external/lit";
-import { UmbLitElement as H } from "@umbraco-cms/backoffice/lit-element";
+import { html as r, nothing as g, css as S, state as y, customElement as H } from "@umbraco-cms/backoffice/external/lit";
+import { UmbLitElement as P } from "@umbraco-cms/backoffice/lit-element";
 import { UMB_AUTH_CONTEXT as C } from "@umbraco-cms/backoffice/auth";
 import { UMB_MODAL_MANAGER_CONTEXT as A, UMB_CONFIRM_MODAL as E } from "@umbraco-cms/backoffice/modal";
 import { UMB_NOTIFICATION_CONTEXT as M } from "@umbraco-cms/backoffice/notification";
-import { c as B, b as I, d as V } from "./index-ChUE-4zX.js";
+import { c as B, b as I, d as V } from "./index-DRS_tEys.js";
 const z = "/umbraco/api/discipline";
 class O {
   constructor(t) {
@@ -135,7 +135,7 @@ function F() {
     }
   };
 }
-let m = class extends H {
+let m = class extends P {
   constructor() {
     super(...arguments);
     _(this, "_loading", !0);
@@ -273,9 +273,9 @@ let m = class extends H {
     const t = [], e = this._settings, a = (s, ...o) => this.localize.term(s, ...o);
     return e.autoNode.enabled && e.autoNode.rules.forEach((s, o) => {
       s.createdDocTypeAlias || t.push(a("dotseeDiscipline_autoNode_validationCreatedDoctype", o + 1)), s.docTypeAliasToCreate || t.push(a("dotseeDiscipline_autoNode_validationDoctypeToCreate", o + 1)), s.nodeName || t.push(a("dotseeDiscipline_autoNode_validationNodeName", o + 1));
-    }), e.nodeRestrict.enabled && (e.nodeRestrict.propertyAlias || t.push(a("dotseeDiscipline_nodeRestrict_validationPropertyAlias")), e.nodeRestrict.rules.forEach((s, o) => {
+    }), e.nodeRestrict.enabled && e.nodeRestrict.rules.forEach((s, o) => {
       s.parentDocType || t.push(a("dotseeDiscipline_nodeRestrict_validationParentDoctype", o + 1)), (!Number.isFinite(s.maxNodes) || s.maxNodes < 0) && t.push(a("dotseeDiscipline_nodeRestrict_validationMaxNodes", o + 1));
-    })), e.nodeProtect.enabled && (e.nodeProtect.propertyAlias || t.push(a("dotseeDiscipline_nodeProtect_validationPropertyAlias")), e.nodeProtect.rules.forEach((s, o) => {
+    }), e.nodeProtect.enabled && (e.nodeProtect.propertyAlias || t.push(a("dotseeDiscipline_nodeProtect_validationPropertyAlias")), e.nodeProtect.rules.forEach((s, o) => {
       !s.docTypeAlias && !s.documentGuids && t.push(a("dotseeDiscipline_nodeProtect_validationDoctypeOrGuids", o + 1));
     })), e.virtualNodes.enabled && e.virtualNodes.rules.forEach((s, o) => {
       s || t.push(a("dotseeDiscipline_virtualNodes_validationDoctype", o + 1));
@@ -1904,11 +1904,11 @@ b([
   y()
 ], m.prototype, "_dragFeature", 2);
 m = b([
-  P("dotsee-discipline-settings-workspace")
+  H("dotsee-discipline-settings-workspace")
 ], m);
 const Z = m;
 export {
   m as DisciplineSettingsWorkspaceElement,
   Z as default
 };
-//# sourceMappingURL=discipline-settings.workspace.element-CixpLrI4.js.map
+//# sourceMappingURL=discipline-settings.workspace.element-CLBrzvuW.js.map
