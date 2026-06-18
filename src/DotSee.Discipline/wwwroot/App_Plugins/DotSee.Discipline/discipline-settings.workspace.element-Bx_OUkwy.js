@@ -6,7 +6,7 @@ import { UmbLitElement as P } from "@umbraco-cms/backoffice/lit-element";
 import { UMB_AUTH_CONTEXT as C } from "@umbraco-cms/backoffice/auth";
 import { UMB_MODAL_MANAGER_CONTEXT as A, UMB_CONFIRM_MODAL as E } from "@umbraco-cms/backoffice/modal";
 import { UMB_NOTIFICATION_CONTEXT as M } from "@umbraco-cms/backoffice/notification";
-import { c as B, b as I, d as V } from "./index-DRS_tEys.js";
+import { c as B, b as I, d as V } from "./index-4CRw-gGh.js";
 const z = "/umbraco/api/discipline";
 class O {
   constructor(t) {
@@ -275,9 +275,9 @@ let m = class extends P {
       s.createdDocTypeAlias || t.push(a("dotseeDiscipline_autoNode_validationCreatedDoctype", o + 1)), s.docTypeAliasToCreate || t.push(a("dotseeDiscipline_autoNode_validationDoctypeToCreate", o + 1)), s.nodeName || t.push(a("dotseeDiscipline_autoNode_validationNodeName", o + 1));
     }), e.nodeRestrict.enabled && e.nodeRestrict.rules.forEach((s, o) => {
       s.parentDocType || t.push(a("dotseeDiscipline_nodeRestrict_validationParentDoctype", o + 1)), (!Number.isFinite(s.maxNodes) || s.maxNodes < 0) && t.push(a("dotseeDiscipline_nodeRestrict_validationMaxNodes", o + 1));
-    }), e.nodeProtect.enabled && (e.nodeProtect.propertyAlias || t.push(a("dotseeDiscipline_nodeProtect_validationPropertyAlias")), e.nodeProtect.rules.forEach((s, o) => {
+    }), e.nodeProtect.enabled && e.nodeProtect.rules.forEach((s, o) => {
       !s.docTypeAlias && !s.documentGuids && t.push(a("dotseeDiscipline_nodeProtect_validationDoctypeOrGuids", o + 1));
-    })), e.virtualNodes.enabled && e.virtualNodes.rules.forEach((s, o) => {
+    }), e.virtualNodes.enabled && e.virtualNodes.rules.forEach((s, o) => {
       s || t.push(a("dotseeDiscipline_virtualNodes_validationDoctype", o + 1));
     }), e.aiSummary.enabled && (e.aiSummary.llm || t.push(a("dotseeDiscipline_aiSummary_validationLlm")), e.aiSummary.apiKey || t.push(a("dotseeDiscipline_aiSummary_validationApiKey")), e.aiSummary.model || t.push(a("dotseeDiscipline_aiSummary_validationModel")), e.aiSummary.propertyAlias || t.push(a("dotseeDiscipline_aiSummary_validationPropertyAlias"))), t;
   }
@@ -1911,4 +1911,4 @@ export {
   m as DisciplineSettingsWorkspaceElement,
   Z as default
 };
-//# sourceMappingURL=discipline-settings.workspace.element-CLBrzvuW.js.map
+//# sourceMappingURL=discipline-settings.workspace.element-Bx_OUkwy.js.map

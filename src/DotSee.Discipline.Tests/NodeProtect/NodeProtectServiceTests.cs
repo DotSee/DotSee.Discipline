@@ -57,18 +57,15 @@ namespace DotSee.Discipline.Tests.NodeProtect
             var simpleContentTypeMock = new Mock<ISimpleContentType>();
             simpleContentTypeMock.Setup(c => c.Alias).Returns(contentTypeAlias);
 
-            var propertyMock = new Mock<IProperty>();
-            var propertiesMock = new Mock<IPropertyCollection>();
-            propertiesMock.Setup(p => p[propertyAlias]).Returns(propertyMock.Object);
-
             var nodeMock = new Mock<IContent>();
             nodeMock.Setup(n => n.Id).Returns(id);
             nodeMock.Setup(n => n.Key).Returns(Guid.NewGuid());
             nodeMock.Setup(n => n.ContentType).Returns(simpleContentTypeMock.Object);
             nodeMock.Setup(n => n.Name).Returns($"TestNode{id}");
             nodeMock.Setup(n => n.HasProperty(propertyAlias)).Returns(true);
-            nodeMock.Setup(n => n.Properties).Returns(propertiesMock.Object);
-            nodeMock.Setup(n => n.GetValue<bool>(propertyAlias, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>())).Returns(propertyValue);
+            nodeMock.Setup(n => n.AvailableCultures).Returns(new List<string>());
+            // True/False persists as 1/0; this node carries an invariant value.
+            nodeMock.Setup(n => n.GetValue(propertyAlias, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>())).Returns(propertyValue ? 1 : 0);
 
             return nodeMock.Object;
         }
@@ -79,7 +76,8 @@ namespace DotSee.Discipline.Tests.NodeProtect
             return new NodeProtectService(
                 _contentServiceMock.Object,
                 _ruleProviderMock.Object,
-                _settingsResolverMock.Object);
+                _settingsResolverMock.Object,
+                new Mock<Serilog.ILogger>().Object);
         }
 
         #region Constructor Tests
@@ -268,6 +266,92 @@ namespace DotSee.Discipline.Tests.NodeProtect
         #endregion
 
         #region Run - Property-Based Protection Tests
+
+        [Test]
+        public void Run_WhenNodeHasProtectionPropertyTrueAndNoRules_ReturnsResult()
+        {
+            // Regression: property-based protection must work even with NO doctype/GUID rules.
+            _settings.PropertyAlias = "umbracoProtect";
+            var sut = CreateSut(new List<Rule>());
+            var node = CreateMockNodeWithProtectionProperty(1, "AnyType", "umbracoProtect", true);
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.NodeId, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Run_WhenDescendantHasProtectionPropertyTrueAndNoRules_ReturnsResultForDescendant()
+        {
+            _settings.PropertyAlias = "umbracoProtect";
+            var parentNode = CreateMockNode(1, "ParentType");
+            var childNode = CreateMockNodeWithProtectionProperty(2, "ChildType", "umbracoProtect", true);
+            _contentServiceMock
+                .Setup(x => x.GetPagedDescendants(1, 0, int.MaxValue, out _totalRecords, It.IsAny<IQuery<IContent>>(), It.IsAny<Ordering>()))
+                .Returns(new List<IContent> { childNode });
+            var sut = CreateSut(new List<Rule>());
+
+            var result = sut.Run(parentNode);
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.NodeId, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void Run_WhenProtectionPropertyStoredAsStringOne_ReturnsResult()
+        {
+            // GetValue<bool> can return false for a True/False value persisted as the string "1";
+            // the raw-value fallback must still treat it as protected.
+            _settings.PropertyAlias = "umbracoProtect";
+
+            var simpleContentTypeMock = new Mock<ISimpleContentType>();
+            simpleContentTypeMock.Setup(c => c.Alias).Returns("AnyType");
+            var nodeMock = new Mock<IContent>();
+            nodeMock.Setup(n => n.Id).Returns(1);
+            nodeMock.Setup(n => n.Key).Returns(Guid.NewGuid());
+            nodeMock.Setup(n => n.ContentType).Returns(simpleContentTypeMock.Object);
+            nodeMock.Setup(n => n.Name).Returns("TestNode1");
+            nodeMock.Setup(n => n.HasProperty("umbracoProtect")).Returns(true);
+            nodeMock.Setup(n => n.GetValue<bool>("umbracoProtect", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>())).Returns(false);
+            nodeMock.Setup(n => n.GetValue("umbracoProtect", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>())).Returns("1");
+
+            var sut = CreateSut(new List<Rule>());
+
+            var result = sut.Run(nodeMock.Object);
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.NodeId, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Run_WhenProtectionPropertyIsVariantAndTrueForACulture_ReturnsResult()
+        {
+            // Mirrors the real failure: the property varies by culture, so the invariant read is
+            // null and the value lives under a culture. NodeProtect must check the cultures too.
+            _settings.PropertyAlias = "donotdelete";
+
+            var simpleContentTypeMock = new Mock<ISimpleContentType>();
+            simpleContentTypeMock.Setup(c => c.Alias).Returns("VariantType");
+            var nodeMock = new Mock<IContent>();
+            nodeMock.Setup(n => n.Id).Returns(1117);
+            nodeMock.Setup(n => n.Key).Returns(Guid.NewGuid());
+            nodeMock.Setup(n => n.ContentType).Returns(simpleContentTypeMock.Object);
+            nodeMock.Setup(n => n.Name).Returns("VariantNode");
+            nodeMock.Setup(n => n.HasProperty("donotdelete")).Returns(true);
+            nodeMock.Setup(n => n.AvailableCultures).Returns(new List<string> { "en-US", "da-DK" });
+            // Invariant read is null (the property varies by culture)...
+            nodeMock.Setup(n => n.GetValue("donotdelete", null, It.IsAny<string>(), It.IsAny<bool>())).Returns((object)null);
+            // ...but it is set to true under en-US.
+            nodeMock.Setup(n => n.GetValue("donotdelete", "en-US", It.IsAny<string>(), It.IsAny<bool>())).Returns(1);
+
+            var sut = CreateSut(new List<Rule>());
+
+            var result = sut.Run(nodeMock.Object);
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.NodeId, Is.EqualTo(1117));
+        }
 
         [Test]
         public void Run_WhenNodeHasProtectionPropertySetToTrue_ReturnsResult()
@@ -777,7 +861,7 @@ namespace DotSee.Discipline.Tests.NodeProtect
             nodeMock.Setup(n => n.ContentType).Returns(simpleContentTypeMock.Object);
             nodeMock.Setup(n => n.Name).Returns("TestNode1");
             nodeMock.Setup(n => n.HasProperty("brokenProperty")).Returns(true);
-            nodeMock.Setup(n => n.Properties).Throws(new Exception("Property access error"));
+            nodeMock.Setup(n => n.GetValue("brokenProperty", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>())).Throws(new Exception("Property access error"));
 
             var result = sut.Run(nodeMock.Object);
 

@@ -143,7 +143,7 @@ const e = {
   dotseeDiscipline_nodeProtect: {
     label: "NodeProtect",
     description: "Prevents deletion of important nodes, either by document type or by specific GUID. Editors see a configurable message explaining why the node can't be deleted.",
-    propertyAlias: "Property alias *",
+    propertyAlias: "Property alias",
     propertyAliasHelp: "The alias of a true/false property on your document types. When a node has this property set to true, NodeProtect will treat it as protected and block deletion.",
     doctypeAlias: "DocType alias",
     doctypeAliasHelp: "Protect every node of this doctype from deletion. Leave empty if you want to protect specific nodes by GUID instead.",
@@ -155,7 +155,6 @@ const e = {
     customMessageCategoryHelp: "Optional Umbraco dictionary category used to localise the Custom message. When set, the message value is treated as a dictionary key within this category.",
     byGuids: "By GUIDs",
     byDoctype: "By doctype",
-    validationPropertyAlias: "NodeProtect: Property alias is required",
     validationDoctypeOrGuids: "NodeProtect rule %0%: DocType alias or Document GUIDs is required"
   },
   // ────────────────────────────────────────────────────────────────────
@@ -207,4 +206,4 @@ const e = {
 export {
   e as default
 };
-//# sourceMappingURL=en-BaVIpADG.js.map
+//# sourceMappingURL=en-B13jxrkK.js.map

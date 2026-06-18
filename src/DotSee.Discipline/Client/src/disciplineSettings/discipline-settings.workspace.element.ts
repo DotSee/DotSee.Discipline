@@ -312,8 +312,7 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     }
 
     if (s.nodeProtect.enabled) {
-      if (!s.nodeProtect.propertyAlias)
-        errors.push(t('dotseeDiscipline_nodeProtect_validationPropertyAlias'));
+      // propertyAlias is optional — it only enables the per-node "protected" property override.
       s.nodeProtect.rules.forEach((rule, i) => {
         if (!rule.docTypeAlias && !rule.documentGuids)
           errors.push(t('dotseeDiscipline_nodeProtect_validationDoctypeOrGuids', i + 1));
