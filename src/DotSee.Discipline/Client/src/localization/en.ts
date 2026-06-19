@@ -204,7 +204,8 @@ export default {
   // AiSummary
   // ────────────────────────────────────────────────────────────────────
   dotseeDiscipline_aiSummary: {
-    label: 'AiSummary',
+      label: 'AiSummary',
+      aiSummaryCategory: 'Ai Summarization',
     description:
       'Generates AI-powered content summaries using OpenAI or Gemini and writes the result into a configured property. A toggle property on the node controls whether a summary should be produced for that item.',
     llm: 'LLM *',

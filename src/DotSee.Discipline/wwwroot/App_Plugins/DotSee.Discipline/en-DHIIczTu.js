@@ -162,6 +162,7 @@ const e = {
   // ────────────────────────────────────────────────────────────────────
   dotseeDiscipline_aiSummary: {
     label: "AiSummary",
+    aiSummaryCategory: "Ai Summarization",
     description: "Generates AI-powered content summaries using OpenAI or Gemini and writes the result into a configured property. A toggle property on the node controls whether a summary should be produced for that item.",
     llm: "LLM *",
     llmHelp: "Which large-language-model provider to use for summaries. Determines which Model names and API key format are valid.",
@@ -206,4 +207,4 @@ const e = {
 export {
   e as default
 };
-//# sourceMappingURL=en-B13jxrkK.js.map
+//# sourceMappingURL=en-DHIIczTu.js.map

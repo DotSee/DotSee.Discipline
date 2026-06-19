@@ -6,7 +6,7 @@ import { UmbLitElement as P } from "@umbraco-cms/backoffice/lit-element";
 import { UMB_AUTH_CONTEXT as C } from "@umbraco-cms/backoffice/auth";
 import { UMB_MODAL_MANAGER_CONTEXT as A, UMB_CONFIRM_MODAL as E } from "@umbraco-cms/backoffice/modal";
 import { UMB_NOTIFICATION_CONTEXT as M } from "@umbraco-cms/backoffice/notification";
-import { c as B, b as I, d as V } from "./index-4CRw-gGh.js";
+import { c as B, b as I, d as V } from "./index-KiGPPV0g.js";
 const z = "/umbraco/api/discipline";
 class O {
   constructor(t) {
@@ -1911,4 +1911,4 @@ export {
   m as DisciplineSettingsWorkspaceElement,
   Z as default
 };
-//# sourceMappingURL=discipline-settings.workspace.element-Bx_OUkwy.js.map
+//# sourceMappingURL=discipline-settings.workspace.element-DJbZXr6K.js.map
