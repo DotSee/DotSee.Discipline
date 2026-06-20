@@ -10,7 +10,7 @@ function I(i) {
     alias: "DotSee.Discipline.VariantsHider.ToggleAction",
     name: "Toggle Unset Variants Display",
     weight: 100,
-    api: () => import("./toggle-variants.action-Dv6hm9se.js"),
+    api: () => import("./toggle-variants.action-DMRz7hOn.js"),
     forEntityTypes: ["document-root"],
     meta: {
       icon: "icon-axis-rotation",
@@ -35,7 +35,7 @@ function w(i) {
       type: "propertyAction",
       alias: "DotSee.Discipline.PropertyVersions.PrevVersion",
       name: "Previous Version",
-      api: () => import("./prev-version.action-DI5i4P3A.js"),
+      api: () => import("./prev-version.action-CUhtnrMw.js"),
       element: () => import("./version-action.element-DAiNSxFv.js"),
       forPropertyEditorUis: S,
       meta: {
@@ -318,12 +318,12 @@ function Y() {
     customMessageCategory: ""
   };
 }
-const P = "DotSee.Discipline.Settings.Workspace", f = "DotSee.Discipline.Settings.Menu", H = "DotSee.Discipline.Settings.SidebarApp", k = "DotSee.Discipline.Settings.MenuItem", W = [
+const P = "DotSee.Discipline.Settings.Workspace", f = "DotSee.Discipline.Settings.Menu", H = "DotSee.Discipline.Settings.SidebarApp", W = "DotSee.Discipline.Settings.MenuItem", k = [
   {
     type: "workspace",
     alias: P,
     name: "DotSee Discipline Settings Workspace",
-    element: () => import("./discipline-settings.workspace.element-DegiXnpD.js"),
+    element: () => import("./discipline-settings.workspace.element-DEbWzHjY.js"),
     meta: {
       entityType: g
     }
@@ -338,7 +338,7 @@ const P = "DotSee.Discipline.Settings.Workspace", f = "DotSee.Discipline.Setting
   },
   {
     type: "menuItem",
-    alias: k,
+    alias: W,
     name: "DotSee Discipline Menu Item",
     weight: 50,
     meta: {
@@ -349,13 +349,13 @@ const P = "DotSee.Discipline.Settings.Workspace", f = "DotSee.Discipline.Setting
     }
   },
   {
+    // Custom element (not kind: 'menu') so no group headline is rendered — just the menu link.
     type: "sectionSidebarApp",
-    kind: "menu",
     alias: H,
     name: "DotSee Discipline Sidebar App",
     weight: 50,
+    element: () => import("./discipline-sidebar-app.element-DpKXH40p.js"),
     meta: {
-      label: "#dotseeDiscipline_menu_label",
       menu: f
     },
     conditions: [
@@ -389,7 +389,7 @@ const K = async (i, e) => {
     x(),
     z(s)
   ]);
-  if (l.uiEnabled && e.registerMany(W), n.enabled) {
+  if (l.uiEnabled && e.registerMany(k), n.enabled) {
     L(n.noVersionsCaption);
     const r = w({
       nextVersionCaption: n.nextVersionCaption,
@@ -412,4 +412,4 @@ export {
   F as g,
   K as o
 };
-//# sourceMappingURL=index-HqJKh-8w.js.map
+//# sourceMappingURL=index-C-t3t4Xh.js.map

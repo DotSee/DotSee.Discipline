@@ -36,13 +36,13 @@ export const disciplineSettingsManifests: Array<UmbExtensionManifest> = [
     },
   },
   {
+    // Custom element (not kind: 'menu') so no group headline is rendered — just the menu link.
     type: 'sectionSidebarApp',
-    kind: 'menu',
     alias: SIDEBAR_APP_ALIAS,
     name: 'DotSee Discipline Sidebar App',
     weight: 50,
+    element: () => import('./discipline-sidebar-app.element.js'),
     meta: {
-      label: '#dotseeDiscipline_menu_label',
       menu: MENU_ALIAS,
     },
     conditions: [
@@ -51,5 +51,5 @@ export const disciplineSettingsManifests: Array<UmbExtensionManifest> = [
         match: 'Umb.Section.Settings',
       },
     ],
-  },
+  } as unknown as UmbExtensionManifest,
 ];
