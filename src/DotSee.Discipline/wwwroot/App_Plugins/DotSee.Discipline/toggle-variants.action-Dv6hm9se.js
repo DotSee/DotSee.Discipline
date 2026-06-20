@@ -1,5 +1,5 @@
 import { UmbEntityActionBase as e } from "@umbraco-cms/backoffice/entity-action";
-import { g as s } from "./index-KiGPPV0g.js";
+import { g as s } from "./index-HqJKh-8w.js";
 class c extends e {
   constructor(t, i) {
     super(t, i);
@@ -13,4 +13,4 @@ export {
   c as ToggleVariantsAction,
   c as api
 };
-//# sourceMappingURL=toggle-variants.action-BhD3GrST.js.map
+//# sourceMappingURL=toggle-variants.action-Dv6hm9se.js.map

@@ -1,4 +1,4 @@
-import type { BlueprintOption, DisciplineSettings, DisciplineSettingsResponse, DocTypeOption, PropertyOption } from './types.js';
+import type { AiModelListResult, BlueprintOption, DisciplineSettings, DisciplineSettingsResponse, DocTypeOption, PropertyOption } from './types.js';
 
 const BASE = '/umbraco/api/discipline';
 
@@ -92,6 +92,27 @@ export class DisciplineSettingsRepository {
       throw new Error(`Failed to load blueprints (${response.status})`);
     }
     return (await response.json()) as BlueprintOption[];
+  }
+
+  async getAiSummaryModels(llm: string, apiKey: string): Promise<AiModelListResult> {
+    const response = await fetch(`${BASE}/aisummary/models`, {
+      method: 'POST',
+      headers: await this.headers(),
+      body: JSON.stringify({ llm, apiKey }),
+    });
+    if (!response.ok) {
+      let message = `Failed to load models (${response.status})`;
+      try {
+        const body = await response.json();
+        if (body && typeof body.message === 'string') {
+          message = body.message;
+        }
+      } catch {
+        /* keep default message */
+      }
+      throw new Error(message);
+    }
+    return (await response.json()) as AiModelListResult;
   }
 
   async importFromAppSettings(): Promise<DisciplineSettingsResponse> {

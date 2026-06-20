@@ -110,6 +110,11 @@ export interface BlueprintOption {
   docTypeAlias: string;
 }
 
+export interface AiModelListResult {
+  models: string[];
+  defaultModel: string;
+}
+
 export const DISCIPLINE_SETTINGS_ENTITY_TYPE = 'dotsee-discipline-settings';
 export const DISCIPLINE_SETTINGS_ROOT_UNIQUE = 'root';
 

@@ -100,6 +100,19 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
   @state()
   private _blueprints: BlueprintOption[] = [];
 
+  // AiSummary model dropdown — populated on demand from the OpenAI/Gemini models endpoint.
+  @state()
+  private _aiModels: string[] = [];
+
+  @state()
+  private _aiModelsLoading = false;
+
+  @state()
+  private _aiModelsError = '';
+
+  // llm|apiKey signature the model list was last loaded for (avoids redundant fetches).
+  private _aiModelsKey = '';
+
   @state()
   private _expandedFields = new Set<string>();
 
@@ -217,6 +230,60 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
   private _patchSettings<K extends keyof DisciplineSettings>(key: K, value: DisciplineSettings[K]) {
     this._settings = { ...this._settings, [key]: value };
     this.requestUpdate();
+  }
+
+  private _selectTab(alias: TabAlias) {
+    this._activeTab = alias;
+    if (alias === 'aiSummary') {
+      void this._loadAiModels();
+    }
+    this.requestUpdate();
+  }
+
+  // Loads the available model names for the selected LLM + API key into the model dropdown,
+  // and defaults the selection to the lower (cheapest) model when nothing valid is selected.
+  private async _loadAiModels(force = false) {
+    if (!this._repository) return;
+
+    const feat = this._settings.aiSummary;
+    const llm = feat.llm || 'openai';
+    const apiKey = feat.apiKey;
+
+    if (!apiKey) {
+      this._aiModels = [];
+      this._aiModelsError = '';
+      this._aiModelsKey = '';
+      this.requestUpdate();
+      return;
+    }
+
+    const signature = `${llm}|${apiKey}`;
+    if (!force && signature === this._aiModelsKey && this._aiModels.length > 0) return;
+
+    this._aiModelsLoading = true;
+    this._aiModelsError = '';
+    this.requestUpdate();
+
+    try {
+      const result = await this._repository.getAiSummaryModels(llm, apiKey);
+      this._aiModels = result.models ?? [];
+      this._aiModelsKey = signature;
+
+      const current = this._settings.aiSummary.model;
+      if (this._aiModels.length > 0 && !this._aiModels.includes(current)) {
+        this._patchSettings('aiSummary', {
+          ...this._settings.aiSummary,
+          model: result.defaultModel || this._aiModels[0],
+        });
+      }
+    } catch (error) {
+      this._aiModels = [];
+      this._aiModelsKey = '';
+      this._aiModelsError = this._errorMessage(error);
+    } finally {
+      this._aiModelsLoading = false;
+      this.requestUpdate();
+    }
   }
 
   private async _onImportClick() {
@@ -371,10 +438,7 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
                     <button
                       type="button"
                       class=${classes}
-                      @click=${() => {
-                        this._activeTab = tab.alias;
-                        this.requestUpdate();
-                      }}
+                      @click=${() => this._selectTab(tab.alias)}
                     >
                       ${isEnabled
                         ? html`<umb-icon name="icon-check" class="tab-icon"></umb-icon>`
@@ -1341,6 +1405,73 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     `;
   }
 
+  private _aiModelField(
+    feat: DisciplineSettings['aiSummary'],
+    onChange: (value: string) => void,
+    disabled: boolean,
+  ) {
+    // Show the loaded models; keep the current value selectable even if it isn't in the list.
+    const options = [...this._aiModels];
+    if (feat.model && !options.includes(feat.model)) {
+      options.unshift(feat.model);
+    }
+    const selectOptions = options.map((m) => ({ name: m, value: m, selected: m === feat.model }));
+
+    // A single inline status slot (only one state at a time) sits next to the Refresh button, so the
+    // field stays one row tall and never pushes the other controls down. Full text shows on hover.
+    let message = '';
+    let isError = false;
+    if (this._aiModelsLoading) {
+      message = '';
+    } else if (this._aiModelsError) {
+      message = this._aiModelsError;
+      isError = true;
+    } else if (!feat.apiKey) {
+      message = this.localize.term('dotseeDiscipline_aiSummary_modelNoKey');
+    } else if (this._aiModels.length === 0) {
+      message = this.localize.term('dotseeDiscipline_aiSummary_modelEmpty');
+    }
+
+    // When there's no message, size the dropdown to its content (the longest option). When a
+    // message is shown, cap the dropdown so the message gets the remaining row width.
+    const selectStyle = message
+      ? 'flex:0 1 280px; min-width:0;'
+      : 'flex:0 0 auto; width:auto; min-width:fit-content;';
+
+    return html`
+      <label>
+        <span>${this.localize.term('dotseeDiscipline_aiSummary_model')}</span>
+        <div style="display:flex; gap:0.5rem; align-items:center; width:100%;">
+          <uui-select
+            style=${selectStyle}
+            ?disabled=${disabled || this._aiModelsLoading || selectOptions.length === 0}
+            .options=${selectOptions}
+            @change=${(e: Event) => onChange((e.target as HTMLSelectElement).value)}
+          ></uui-select>
+          <uui-button
+            look="secondary"
+            label=${this.localize.term('dotseeDiscipline_aiSummary_modelRefresh')}
+            ?disabled=${disabled || this._aiModelsLoading || !feat.apiKey}
+            @click=${() => this._loadAiModels(true)}
+          >
+            ${this._aiModelsLoading
+              ? html`<uui-loader></uui-loader>`
+              : this.localize.term('dotseeDiscipline_aiSummary_modelRefresh')}
+          </uui-button>
+          ${message
+            ? html`<small
+                title=${message}
+                style="flex:1 1 0; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:${isError
+                  ? 'var(--uui-color-danger, #d42054)'
+                  : 'var(--uui-color-text-alt, #666)'};"
+                >${message}</small
+              >`
+            : nothing}
+        </div>
+      </label>
+    `;
+  }
+
   private _renderAiSummaryTab(disabled: boolean) {
     const feat = this._settings.aiSummary;
     const update = (patch: Partial<typeof feat>) => {
@@ -1366,7 +1497,10 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
                     { name: 'OpenAI', value: 'openai', selected: feat.llm === 'openai' },
                     { name: 'Gemini', value: 'gemini', selected: feat.llm === 'gemini' },
                   ]}
-                  @change=${(e: Event) => update({ llm: (e.target as HTMLSelectElement).value })}
+                  @change=${(e: Event) => {
+                    update({ llm: (e.target as HTMLSelectElement).value });
+                    void this._loadAiModels(true);
+                  }}
                 ></uui-select>
               </label>
             `,
@@ -1384,14 +1518,11 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
             this.localize.term('dotseeDiscipline_aiSummary_apiKeyHelp'),
           )}
           ${this._withFieldHelp(
-            this._textField(
-              this.localize.term('dotseeDiscipline_aiSummary_model'),
-              feat.model,
-              disabled || !feat.enabled,
-              (v) => update({ model: v }),
-            ),
+            this._aiModelField(feat, (v) => update({ model: v }), disabled || !feat.enabled),
             'aisummary-model-help',
             this.localize.term('dotseeDiscipline_aiSummary_modelHelp'),
+            'stretch',
+            'span-all',
           )}
           ${this._withFieldHelp(
             this._numberField(
@@ -1997,6 +2128,9 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     }
     .row-break {
       grid-column-start: 1;
+    }
+    .span-all {
+      grid-column: 1 / -1;
     }
     .uui-h3 {
       font-size: var(--uui-type-h3-size, 30px);

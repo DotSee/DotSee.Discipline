@@ -10,7 +10,7 @@ function I(i) {
     alias: "DotSee.Discipline.VariantsHider.ToggleAction",
     name: "Toggle Unset Variants Display",
     weight: 100,
-    api: () => import("./toggle-variants.action-BhD3GrST.js"),
+    api: () => import("./toggle-variants.action-Dv6hm9se.js"),
     forEntityTypes: ["document-root"],
     meta: {
       icon: "icon-axis-rotation",
@@ -35,7 +35,7 @@ function w(i) {
       type: "propertyAction",
       alias: "DotSee.Discipline.PropertyVersions.PrevVersion",
       name: "Previous Version",
-      api: () => import("./prev-version.action-BhDMUsTo.js"),
+      api: () => import("./prev-version.action-DI5i4P3A.js"),
       element: () => import("./version-action.element-DAiNSxFv.js"),
       forPropertyEditorUis: S,
       meta: {
@@ -64,7 +64,7 @@ const U = {
   meta: {
     culture: "en"
   },
-  js: () => import("./en-DHIIczTu.js")
+  js: () => import("./en-OCLItuVc.js")
 }, N = [U];
 class v {
   constructor() {
@@ -323,7 +323,7 @@ const P = "DotSee.Discipline.Settings.Workspace", f = "DotSee.Discipline.Setting
     type: "workspace",
     alias: P,
     name: "DotSee Discipline Settings Workspace",
-    element: () => import("./discipline-settings.workspace.element-DJbZXr6K.js"),
+    element: () => import("./discipline-settings.workspace.element-DegiXnpD.js"),
     meta: {
       entityType: g
     }
@@ -412,4 +412,4 @@ export {
   F as g,
   K as o
 };
-//# sourceMappingURL=index-KiGPPV0g.js.map
+//# sourceMappingURL=index-HqJKh-8w.js.map

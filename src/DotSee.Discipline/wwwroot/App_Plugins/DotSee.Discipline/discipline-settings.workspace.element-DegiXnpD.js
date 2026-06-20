@@ -1,104 +1,121 @@
 var T = Object.defineProperty;
-var k = (f, t, e) => t in f ? T(f, t, { enumerable: !0, configurable: !0, writable: !0, value: e }) : f[t] = e;
-var _ = (f, t, e) => k(f, typeof t != "symbol" ? t + "" : t, e);
-import { html as r, nothing as g, css as S, state as y, customElement as H } from "@umbraco-cms/backoffice/external/lit";
+var S = (f, e, t) => e in f ? T(f, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : f[e] = t;
+var _ = (f, e, t) => S(f, typeof e != "symbol" ? e + "" : e, t);
+import { html as l, nothing as g, css as k, state as y, customElement as H } from "@umbraco-cms/backoffice/external/lit";
 import { UmbLitElement as P } from "@umbraco-cms/backoffice/lit-element";
-import { UMB_AUTH_CONTEXT as C } from "@umbraco-cms/backoffice/auth";
-import { UMB_MODAL_MANAGER_CONTEXT as A, UMB_CONFIRM_MODAL as E } from "@umbraco-cms/backoffice/modal";
-import { UMB_NOTIFICATION_CONTEXT as M } from "@umbraco-cms/backoffice/notification";
-import { c as B, b as I, d as V } from "./index-KiGPPV0g.js";
-const z = "/umbraco/api/discipline";
+import { UMB_AUTH_CONTEXT as M } from "@umbraco-cms/backoffice/auth";
+import { UMB_MODAL_MANAGER_CONTEXT as C, UMB_CONFIRM_MODAL as A } from "@umbraco-cms/backoffice/modal";
+import { UMB_NOTIFICATION_CONTEXT as E } from "@umbraco-cms/backoffice/notification";
+import { c as B, b as I, d as L } from "./index-HqJKh-8w.js";
+const w = "/umbraco/api/discipline";
 class O {
-  constructor(t) {
-    this.getToken = t;
+  constructor(e) {
+    this.getToken = e;
   }
-  async headers(t = {}) {
+  async headers(e = {}) {
     return {
       "Content-Type": "application/json",
       Authorization: `Bearer ${await this.getToken()}`,
-      ...t
+      ...e
     };
   }
   async getSettings() {
-    const t = await fetch(`${z}/settings`, {
+    const e = await fetch(`${w}/settings`, {
       method: "GET",
       headers: await this.headers()
-    });
-    if (!t.ok)
-      throw new Error(`Failed to load Discipline settings (${t.status})`);
-    return await t.json();
-  }
-  async saveSettings(t) {
-    const e = await fetch(`${z}/settings`, {
-      method: "PUT",
-      headers: await this.headers(),
-      body: JSON.stringify(t)
     });
     if (!e.ok)
-      throw new Error(`Failed to save Discipline settings (${e.status})`);
+      throw new Error(`Failed to load Discipline settings (${e.status})`);
     return await e.json();
   }
+  async saveSettings(e) {
+    const t = await fetch(`${w}/settings`, {
+      method: "PUT",
+      headers: await this.headers(),
+      body: JSON.stringify(e)
+    });
+    if (!t.ok)
+      throw new Error(`Failed to save Discipline settings (${t.status})`);
+    return await t.json();
+  }
   async getDocTypes() {
-    const t = await fetch(`${z}/doctypes`, {
+    const e = await fetch(`${w}/doctypes`, {
       method: "GET",
       headers: await this.headers()
     });
-    if (!t.ok)
-      throw new Error(`Failed to load doctypes (${t.status})`);
-    return await t.json();
+    if (!e.ok)
+      throw new Error(`Failed to load doctypes (${e.status})`);
+    return await e.json();
   }
   async getTrueFalseProperties() {
-    const t = await fetch(`${z}/properties/truefalse`, {
+    const e = await fetch(`${w}/properties/truefalse`, {
       method: "GET",
       headers: await this.headers()
     });
-    if (!t.ok)
-      throw new Error(`Failed to load true/false properties (${t.status})`);
-    return await t.json();
+    if (!e.ok)
+      throw new Error(`Failed to load true/false properties (${e.status})`);
+    return await e.json();
   }
   async getTextContentProperties() {
-    const t = await fetch(`${z}/properties/text-content`, {
+    const e = await fetch(`${w}/properties/text-content`, {
       method: "GET",
       headers: await this.headers()
     });
-    if (!t.ok)
-      throw new Error(`Failed to load text content properties (${t.status})`);
-    return await t.json();
+    if (!e.ok)
+      throw new Error(`Failed to load text content properties (${e.status})`);
+    return await e.json();
   }
   async getTextInputProperties() {
-    const t = await fetch(`${z}/properties/text-input`, {
+    const e = await fetch(`${w}/properties/text-input`, {
       method: "GET",
       headers: await this.headers()
     });
-    if (!t.ok)
-      throw new Error(`Failed to load text input properties (${t.status})`);
-    return await t.json();
+    if (!e.ok)
+      throw new Error(`Failed to load text input properties (${e.status})`);
+    return await e.json();
   }
   async getBlueprints() {
-    const t = await fetch(`${z}/blueprints`, {
+    const e = await fetch(`${w}/blueprints`, {
       method: "GET",
       headers: await this.headers()
     });
-    if (!t.ok)
-      throw new Error(`Failed to load blueprints (${t.status})`);
-    return await t.json();
+    if (!e.ok)
+      throw new Error(`Failed to load blueprints (${e.status})`);
+    return await e.json();
+  }
+  async getAiSummaryModels(e, t) {
+    const a = await fetch(`${w}/aisummary/models`, {
+      method: "POST",
+      headers: await this.headers(),
+      body: JSON.stringify({ llm: e, apiKey: t })
+    });
+    if (!a.ok) {
+      let s = `Failed to load models (${a.status})`;
+      try {
+        const o = await a.json();
+        o && typeof o.message == "string" && (s = o.message);
+      } catch {
+      }
+      throw new Error(s);
+    }
+    return await a.json();
   }
   async importFromAppSettings() {
-    const t = await fetch(`${z}/import-from-appsettings`, {
+    const e = await fetch(`${w}/import-from-appsettings`, {
       method: "POST",
       headers: await this.headers()
     });
-    if (!t.ok)
-      throw new Error(`Failed to import from appsettings (${t.status})`);
-    return await t.json();
+    if (!e.ok)
+      throw new Error(`Failed to import from appsettings (${e.status})`);
+    return await e.json();
   }
 }
-var R = Object.defineProperty, U = Object.getOwnPropertyDescriptor, L = (f, t, e) => t in f ? R(f, t, { enumerable: !0, configurable: !0, writable: !0, value: e }) : f[t] = e, b = (f, t, e, a) => {
-  for (var s = a > 1 ? void 0 : a ? U(t, e) : t, o = f.length - 1, i; o >= 0; o--)
-    (i = f[o]) && (s = (a ? i(t, e, s) : i(s)) || s);
-  return a && s && R(t, e, s), s;
-}, W = (f, t, e) => L(f, t + "", e);
-const j = [
+var R = Object.defineProperty, V = Object.getOwnPropertyDescriptor, U = (f, e, t) => e in f ? R(f, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : f[e] = t, b = (f, e, t, a) => {
+  for (var s = a > 1 ? void 0 : a ? V(e, t) : e, o = f.length - 1, i; o >= 0; o--)
+    (i = f[o]) && (s = (a ? i(e, t, s) : i(s)) || s);
+  return a && s && R(e, t, s), s;
+}, K = (f, e, t) => U(f, e + "", t);
+const W = [
   { alias: "autoNode", labelKey: "dotseeDiscipline_autoNode_label" },
   { alias: "nodeRestrict", labelKey: "dotseeDiscipline_nodeRestrict_label" },
   { alias: "virtualNodes", labelKey: "dotseeDiscipline_virtualNodes_label" },
@@ -148,6 +165,11 @@ let m = class extends P {
     _(this, "_textContentProperties", []);
     _(this, "_textInputProperties", []);
     _(this, "_blueprints", []);
+    _(this, "_aiModels", []);
+    _(this, "_aiModelsLoading", !1);
+    _(this, "_aiModelsError", "");
+    // llm|apiKey signature the model list was last loaded for (avoids redundant fetches).
+    _(this, "_aiModelsKey", "");
     _(this, "_expandedFields", /* @__PURE__ */ new Set());
     _(this, "_filterModes", /* @__PURE__ */ new Map());
     _(this, "_collapsedRules", /* @__PURE__ */ new Set());
@@ -161,9 +183,9 @@ let m = class extends P {
     // at extension entry-point init). Compared against pre-save state to decide whether
     // to show the reload hint toast.
     _(this, "_refreshSensitiveSnapshot", "");
-    _(this, "_onDocumentMouseDown", (t) => {
+    _(this, "_onDocumentMouseDown", (e) => {
       if (this._expandedFields.size === 0) return;
-      t.composedPath().some((a) => {
+      e.composedPath().some((a) => {
         var s;
         return a instanceof HTMLElement && ((s = a.classList) == null ? void 0 : s.contains("multi-box"));
       }) || (this._expandedFields.clear(), this.requestUpdate());
@@ -176,10 +198,10 @@ let m = class extends P {
     super.disconnectedCallback(), document.removeEventListener("mousedown", this._onDocumentMouseDown);
   }
   async _init() {
-    const t = await this.getContext(C);
-    this._repository = new O(() => t.getLatestToken());
+    const e = await this.getContext(M);
+    this._repository = new O(() => e.getLatestToken());
     try {
-      const [e, a, s, o, i, l] = await Promise.all([
+      const [t, a, s, o, i, r] = await Promise.all([
         this._repository.getSettings(),
         this._repository.getDocTypes().catch(() => []),
         this._repository.getTrueFalseProperties().catch(() => []),
@@ -187,44 +209,74 @@ let m = class extends P {
         this._repository.getTextInputProperties().catch(() => []),
         this._repository.getBlueprints().catch(() => [])
       ]);
-      this._docTypes = a, this._trueFalseProperties = s, this._textContentProperties = o, this._textInputProperties = i, this._blueprints = l, this._applyResponse(e), this._collapseAllRules();
-    } catch (e) {
+      this._docTypes = a, this._trueFalseProperties = s, this._textContentProperties = o, this._textInputProperties = i, this._blueprints = r, this._applyResponse(t), this._collapseAllRules();
+    } catch (t) {
       await this._notify(
         "danger",
-        this.localize.term("dotseeDiscipline_settings_loadFailedToast", this._errorMessage(e))
+        this.localize.term("dotseeDiscipline_settings_loadFailedToast", this._errorMessage(t))
       );
     } finally {
       this._loading = !1, this.requestUpdate();
     }
   }
-  _applyResponse(t) {
-    this._hasAppSettings = t.hasAppSettings, this._settings = t.settings ?? F(), this._refreshSensitiveSnapshot = this._snapshotRefreshSensitive(this._settings), this.requestUpdate();
+  _applyResponse(e) {
+    this._hasAppSettings = e.hasAppSettings, this._settings = e.settings ?? F(), this._refreshSensitiveSnapshot = this._snapshotRefreshSensitive(this._settings), this.requestUpdate();
   }
-  _snapshotRefreshSensitive(t) {
-    return JSON.stringify({ variantsHider: t.variantsHider, propertyVersions: t.propertyVersions });
+  _snapshotRefreshSensitive(e) {
+    return JSON.stringify({ variantsHider: e.variantsHider, propertyVersions: e.propertyVersions });
   }
-  _errorMessage(t) {
-    return t instanceof Error ? t.message : String(t);
+  _errorMessage(e) {
+    return e instanceof Error ? e.message : String(e);
   }
-  async _notify(t, e) {
+  async _notify(e, t) {
     try {
-      const a = await this.getContext(M);
-      a == null || a.peek(t, { data: { message: e } });
+      const a = await this.getContext(E);
+      a == null || a.peek(e, { data: { message: t } });
     } catch {
     }
   }
-  _onMasterToggleChange(t) {
-    const e = t.target;
-    this._settings = { ...this._settings, useBackoffice: e.checked }, this.requestUpdate();
+  _onMasterToggleChange(e) {
+    const t = e.target;
+    this._settings = { ...this._settings, useBackoffice: t.checked }, this.requestUpdate();
   }
-  _patchSettings(t, e) {
-    this._settings = { ...this._settings, [t]: e }, this.requestUpdate();
+  _patchSettings(e, t) {
+    this._settings = { ...this._settings, [e]: t }, this.requestUpdate();
+  }
+  _selectTab(e) {
+    this._activeTab = e, e === "aiSummary" && this._loadAiModels(), this.requestUpdate();
+  }
+  // Loads the available model names for the selected LLM + API key into the model dropdown,
+  // and defaults the selection to the lower (cheapest) model when nothing valid is selected.
+  async _loadAiModels(e = !1) {
+    if (!this._repository) return;
+    const t = this._settings.aiSummary, a = t.llm || "openai", s = t.apiKey;
+    if (!s) {
+      this._aiModels = [], this._aiModelsError = "", this._aiModelsKey = "", this.requestUpdate();
+      return;
+    }
+    const o = `${a}|${s}`;
+    if (!(!e && o === this._aiModelsKey && this._aiModels.length > 0)) {
+      this._aiModelsLoading = !0, this._aiModelsError = "", this.requestUpdate();
+      try {
+        const i = await this._repository.getAiSummaryModels(a, s);
+        this._aiModels = i.models ?? [], this._aiModelsKey = o;
+        const r = this._settings.aiSummary.model;
+        this._aiModels.length > 0 && !this._aiModels.includes(r) && this._patchSettings("aiSummary", {
+          ...this._settings.aiSummary,
+          model: i.defaultModel || this._aiModels[0]
+        });
+      } catch (i) {
+        this._aiModels = [], this._aiModelsKey = "", this._aiModelsError = this._errorMessage(i);
+      } finally {
+        this._aiModelsLoading = !1, this.requestUpdate();
+      }
+    }
   }
   async _onImportClick() {
     if (!this._hasAppSettings || !this._repository) return;
-    const t = await this.getContext(A);
-    if (!t) return;
-    const e = t.open(this, E, {
+    const e = await this.getContext(C);
+    if (!e) return;
+    const t = e.open(this, A, {
       data: {
         headline: this.localize.term("dotseeDiscipline_settings_loadFromAppsettings"),
         content: this.localize.term("dotseeDiscipline_settings_importConfirmContent"),
@@ -233,7 +285,7 @@ let m = class extends P {
       }
     });
     try {
-      await e.onSubmit();
+      await t.onSubmit();
     } catch {
       return;
     }
@@ -252,15 +304,15 @@ let m = class extends P {
   }
   async _onSaveClick() {
     if (!this._repository || !this._canSave()) return;
-    const t = this._snapshotRefreshSensitive(this._settings) !== this._refreshSensitiveSnapshot;
+    const e = this._snapshotRefreshSensitive(this._settings) !== this._refreshSensitiveSnapshot;
     try {
       this._saving = !0, this.requestUpdate();
-      const e = await this._repository.saveSettings(this._settings);
-      this._applyResponse(e), await this._notify("positive", this.localize.term("dotseeDiscipline_settings_savedToast")), t && await this._notify("warning", this.localize.term("dotseeDiscipline_settings_reloadHintToast"));
-    } catch (e) {
+      const t = await this._repository.saveSettings(this._settings);
+      this._applyResponse(t), await this._notify("positive", this.localize.term("dotseeDiscipline_settings_savedToast")), e && await this._notify("warning", this.localize.term("dotseeDiscipline_settings_reloadHintToast"));
+    } catch (t) {
       await this._notify(
         "danger",
-        this.localize.term("dotseeDiscipline_settings_saveFailedToast", this._errorMessage(e))
+        this.localize.term("dotseeDiscipline_settings_saveFailedToast", this._errorMessage(t))
       );
     } finally {
       this._saving = !1, this.requestUpdate();
@@ -270,61 +322,59 @@ let m = class extends P {
     return this._settings.useBackoffice ? this._validationErrors().length === 0 : !1;
   }
   _validationErrors() {
-    const t = [], e = this._settings, a = (s, ...o) => this.localize.term(s, ...o);
-    return e.autoNode.enabled && e.autoNode.rules.forEach((s, o) => {
-      s.createdDocTypeAlias || t.push(a("dotseeDiscipline_autoNode_validationCreatedDoctype", o + 1)), s.docTypeAliasToCreate || t.push(a("dotseeDiscipline_autoNode_validationDoctypeToCreate", o + 1)), s.nodeName || t.push(a("dotseeDiscipline_autoNode_validationNodeName", o + 1));
-    }), e.nodeRestrict.enabled && e.nodeRestrict.rules.forEach((s, o) => {
-      s.parentDocType || t.push(a("dotseeDiscipline_nodeRestrict_validationParentDoctype", o + 1)), (!Number.isFinite(s.maxNodes) || s.maxNodes < 0) && t.push(a("dotseeDiscipline_nodeRestrict_validationMaxNodes", o + 1));
-    }), e.nodeProtect.enabled && e.nodeProtect.rules.forEach((s, o) => {
-      !s.docTypeAlias && !s.documentGuids && t.push(a("dotseeDiscipline_nodeProtect_validationDoctypeOrGuids", o + 1));
-    }), e.virtualNodes.enabled && e.virtualNodes.rules.forEach((s, o) => {
-      s || t.push(a("dotseeDiscipline_virtualNodes_validationDoctype", o + 1));
-    }), e.aiSummary.enabled && (e.aiSummary.llm || t.push(a("dotseeDiscipline_aiSummary_validationLlm")), e.aiSummary.apiKey || t.push(a("dotseeDiscipline_aiSummary_validationApiKey")), e.aiSummary.model || t.push(a("dotseeDiscipline_aiSummary_validationModel")), e.aiSummary.propertyAlias || t.push(a("dotseeDiscipline_aiSummary_validationPropertyAlias"))), t;
+    const e = [], t = this._settings, a = (s, ...o) => this.localize.term(s, ...o);
+    return t.autoNode.enabled && t.autoNode.rules.forEach((s, o) => {
+      s.createdDocTypeAlias || e.push(a("dotseeDiscipline_autoNode_validationCreatedDoctype", o + 1)), s.docTypeAliasToCreate || e.push(a("dotseeDiscipline_autoNode_validationDoctypeToCreate", o + 1)), s.nodeName || e.push(a("dotseeDiscipline_autoNode_validationNodeName", o + 1));
+    }), t.nodeRestrict.enabled && t.nodeRestrict.rules.forEach((s, o) => {
+      s.parentDocType || e.push(a("dotseeDiscipline_nodeRestrict_validationParentDoctype", o + 1)), (!Number.isFinite(s.maxNodes) || s.maxNodes < 0) && e.push(a("dotseeDiscipline_nodeRestrict_validationMaxNodes", o + 1));
+    }), t.nodeProtect.enabled && t.nodeProtect.rules.forEach((s, o) => {
+      !s.docTypeAlias && !s.documentGuids && e.push(a("dotseeDiscipline_nodeProtect_validationDoctypeOrGuids", o + 1));
+    }), t.virtualNodes.enabled && t.virtualNodes.rules.forEach((s, o) => {
+      s || e.push(a("dotseeDiscipline_virtualNodes_validationDoctype", o + 1));
+    }), t.aiSummary.enabled && (t.aiSummary.llm || e.push(a("dotseeDiscipline_aiSummary_validationLlm")), t.aiSummary.apiKey || e.push(a("dotseeDiscipline_aiSummary_validationApiKey")), t.aiSummary.model || e.push(a("dotseeDiscipline_aiSummary_validationModel")), t.aiSummary.propertyAlias || e.push(a("dotseeDiscipline_aiSummary_validationPropertyAlias"))), e;
   }
   get _fieldsDisabled() {
     return !this._settings.useBackoffice || this._saving;
   }
   render() {
-    const t = this.localize.term("dotseeDiscipline_settings_headline");
+    const e = this.localize.term("dotseeDiscipline_settings_headline");
     if (this._loading)
-      return r`<umb-body-layout headline=${t}>
+      return l`<umb-body-layout headline=${e}>
         <div class="center"><uui-loader></uui-loader></div>
       </umb-body-layout>`;
-    const e = this._fieldsDisabled, a = this._settings.useBackoffice;
-    return r`
-      <umb-body-layout headline=${t}>
+    const t = this._fieldsDisabled, a = this._settings.useBackoffice;
+    return l`
+      <umb-body-layout headline=${e}>
         ${this._renderSourceBanner()}
-        ${a ? r`
+        ${a ? l`
               <div class="tab-bar">
-                ${j.map((s) => {
-      var l;
-      const o = !!((l = this._settings[s.alias]) != null && l.enabled), i = [
+                ${W.map((s) => {
+      var r;
+      const o = !!((r = this._settings[s.alias]) != null && r.enabled), i = [
         "tab-button",
         this._activeTab === s.alias ? "active" : "",
         o ? "enabled" : ""
       ].filter(Boolean).join(" ");
-      return r`
+      return l`
                     <button
                       type="button"
                       class=${i}
-                      @click=${() => {
-        this._activeTab = s.alias, this.requestUpdate();
-      }}
+                      @click=${() => this._selectTab(s.alias)}
                     >
-                      ${o ? r`<umb-icon name="icon-check" class="tab-icon"></umb-icon>` : g}
+                      ${o ? l`<umb-icon name="icon-check" class="tab-icon"></umb-icon>` : g}
                       <span>${this.localize.term(s.labelKey)}</span>
                     </button>
                   `;
     })}
               </div>
               <div class="tab-content">
-                <div ?hidden=${this._activeTab !== "autoNode"}>${this._renderAutoNodeTab(e)}</div>
-                <div ?hidden=${this._activeTab !== "nodeRestrict"}>${this._renderNodeRestrictTab(e)}</div>
-                <div ?hidden=${this._activeTab !== "virtualNodes"}>${this._renderVirtualNodesTab(e)}</div>
-                <div ?hidden=${this._activeTab !== "variantsHider"}>${this._renderVariantsHiderTab(e)}</div>
-                <div ?hidden=${this._activeTab !== "nodeProtect"}>${this._renderNodeProtectTab(e)}</div>
-                <div ?hidden=${this._activeTab !== "aiSummary"}>${this._renderAiSummaryTab(e)}</div>
-                <div ?hidden=${this._activeTab !== "propertyVersions"}>${this._renderPropertyVersionsTab(e)}</div>
+                <div ?hidden=${this._activeTab !== "autoNode"}>${this._renderAutoNodeTab(t)}</div>
+                <div ?hidden=${this._activeTab !== "nodeRestrict"}>${this._renderNodeRestrictTab(t)}</div>
+                <div ?hidden=${this._activeTab !== "virtualNodes"}>${this._renderVirtualNodesTab(t)}</div>
+                <div ?hidden=${this._activeTab !== "variantsHider"}>${this._renderVariantsHiderTab(t)}</div>
+                <div ?hidden=${this._activeTab !== "nodeProtect"}>${this._renderNodeProtectTab(t)}</div>
+                <div ?hidden=${this._activeTab !== "aiSummary"}>${this._renderAiSummaryTab(t)}</div>
+                <div ?hidden=${this._activeTab !== "propertyVersions"}>${this._renderPropertyVersionsTab(t)}</div>
               </div>
               ${this._renderFooter()}
             ` : g}
@@ -332,9 +382,9 @@ let m = class extends P {
     `;
   }
   _renderSourceBanner() {
-    const t = this.localize.term("dotseeDiscipline_settings_sourceHeadline");
-    return this._hasAppSettings ? r`
-      <uui-box headline=${t}>
+    const e = this.localize.term("dotseeDiscipline_settings_sourceHeadline");
+    return this._hasAppSettings ? l`
+      <uui-box headline=${e}>
         <div class="banner-row">
           <uui-toggle
             .checked=${this._settings.useBackoffice}
@@ -342,7 +392,7 @@ let m = class extends P {
             label-position="right"
             @change=${this._onMasterToggleChange}
           ></uui-toggle>
-          ${this._settings.useBackoffice ? r`
+          ${this._settings.useBackoffice ? l`
                 <uui-button
                   look="primary"
                   color="positive"
@@ -353,112 +403,112 @@ let m = class extends P {
               ` : g}
         </div>
       </uui-box>
-    ` : r`
-        <uui-box headline=${t}>
+    ` : l`
+        <uui-box headline=${e}>
           <p>${this.localize.term("dotseeDiscipline_settings_noAppsettingsFound")}</p>
         </uui-box>
       `;
   }
-  _renderEnableButton(t, e, a) {
-    return r`
+  _renderEnableButton(e, t, a) {
+    return l`
       <uui-button
         slot="header-actions"
-        look=${t ? "secondary" : "primary"}
-        color=${t ? "default" : "positive"}
+        look=${e ? "secondary" : "primary"}
+        color=${e ? "default" : "positive"}
         label=${this.localize.term(
-      t ? "dotseeDiscipline_common_disable" : "dotseeDiscipline_common_enable"
+      e ? "dotseeDiscipline_common_disable" : "dotseeDiscipline_common_enable"
     )}
-        ?disabled=${e}
-        @click=${() => a(!t)}
+        ?disabled=${t}
+        @click=${() => a(!e)}
       ></uui-button>
     `;
   }
-  _isRuleCollapsed(t, e) {
-    return this._collapsedRules.has(`${t}:${e}`);
+  _isRuleCollapsed(e, t) {
+    return this._collapsedRules.has(`${e}:${t}`);
   }
-  _toggleRuleCollapsed(t, e) {
-    const a = `${t}:${e}`;
+  _toggleRuleCollapsed(e, t) {
+    const a = `${e}:${t}`;
     this._collapsedRules.has(a) ? this._collapsedRules.delete(a) : this._collapsedRules.add(a), this.requestUpdate();
   }
-  _remapCollapsedRules(t, e) {
-    const a = `${t}:`, s = /* @__PURE__ */ new Set();
+  _remapCollapsedRules(e, t) {
+    const a = `${e}:`, s = /* @__PURE__ */ new Set();
     for (const o of this._collapsedRules) {
       if (!o.startsWith(a)) {
         s.add(o);
         continue;
       }
-      const i = Number(o.slice(a.length)), l = e.get(i);
-      l !== void 0 && s.add(`${a}${l}`);
+      const i = Number(o.slice(a.length)), r = t.get(i);
+      r !== void 0 && s.add(`${a}${r}`);
     }
     this._collapsedRules = s;
   }
-  _reorderRules(t, e, a) {
-    const s = this._settings[t];
-    if (e === a || e < 0 || e >= s.rules.length) return;
+  _reorderRules(e, t, a) {
+    const s = this._settings[e];
+    if (t === a || t < 0 || t >= s.rules.length) return;
     const o = Math.max(0, Math.min(a, s.rules.length - 1));
-    if (e === o) return;
-    const i = s.rules.slice(), [l] = i.splice(e, 1);
-    i.splice(o, 0, l);
-    const p = /* @__PURE__ */ new Map(), h = s.rules.map((c, $) => $), [v] = h.splice(e, 1);
-    h.splice(o, 0, v), h.forEach((c, $) => p.set(c, $)), this._remapCollapsedRules(t, p), this._patchSettings(t, { ...s, rules: i });
+    if (t === o) return;
+    const i = s.rules.slice(), [r] = i.splice(t, 1);
+    i.splice(o, 0, r);
+    const u = /* @__PURE__ */ new Map(), c = s.rules.map((d, $) => $), [v] = c.splice(t, 1);
+    c.splice(o, 0, v), c.forEach((d, $) => u.set(d, $)), this._remapCollapsedRules(e, u), this._patchSettings(e, { ...s, rules: i });
   }
-  _onRuleDragStart(t, e, a) {
-    if (this._dragFeature = e, this._dragIndex = a, t.dataTransfer) {
-      t.dataTransfer.effectAllowed = "move", t.dataTransfer.setData("text/plain", String(a));
-      const s = t.currentTarget, o = s == null ? void 0 : s.closest(".rule-wrapper");
+  _onRuleDragStart(e, t, a) {
+    if (this._dragFeature = t, this._dragIndex = a, e.dataTransfer) {
+      e.dataTransfer.effectAllowed = "move", e.dataTransfer.setData("text/plain", String(a));
+      const s = e.currentTarget, o = s == null ? void 0 : s.closest(".rule-wrapper");
       if (o) {
         const i = o.getBoundingClientRect();
-        t.dataTransfer.setDragImage(
+        e.dataTransfer.setDragImage(
           o,
-          t.clientX - i.left,
-          t.clientY - i.top
+          e.clientX - i.left,
+          e.clientY - i.top
         );
       }
     }
     this.requestUpdate();
   }
-  _onRuleDragOver(t, e, a) {
-    if (this._dragIndex === null || this._dragFeature !== e) return;
-    t.preventDefault(), t.dataTransfer && (t.dataTransfer.dropEffect = "move");
-    const o = t.currentTarget.getBoundingClientRect(), i = o.top + o.height / 2, l = t.clientY < i ? "before" : "after";
-    (this._dragOverIndex !== a || this._dragPosition !== l) && (this._dragOverIndex = a, this._dragPosition = l, this.requestUpdate());
+  _onRuleDragOver(e, t, a) {
+    if (this._dragIndex === null || this._dragFeature !== t) return;
+    e.preventDefault(), e.dataTransfer && (e.dataTransfer.dropEffect = "move");
+    const o = e.currentTarget.getBoundingClientRect(), i = o.top + o.height / 2, r = e.clientY < i ? "before" : "after";
+    (this._dragOverIndex !== a || this._dragPosition !== r) && (this._dragOverIndex = a, this._dragPosition = r, this.requestUpdate());
   }
-  _onRuleDragLeave(t, e) {
-    this._dragFeature === t && this._dragOverIndex === e && (this._dragOverIndex = null, this._dragPosition = null, this.requestUpdate());
+  _onRuleDragLeave(e, t) {
+    this._dragFeature === e && this._dragOverIndex === t && (this._dragOverIndex = null, this._dragPosition = null, this.requestUpdate());
   }
-  _onRuleDrop(t, e, a) {
-    if (t.preventDefault(), this._dragIndex === null || this._dragFeature !== e) return;
+  _onRuleDrop(e, t, a) {
+    if (e.preventDefault(), this._dragIndex === null || this._dragFeature !== t) return;
     const s = this._dragIndex, o = this._dragPosition ?? "after";
     let i = a + (o === "after" ? 1 : 0);
-    s < i && i--, this._reorderRules(e, s, i), this._dragFeature = null, this._dragIndex = null, this._dragOverIndex = null, this._dragPosition = null, this.requestUpdate();
+    s < i && i--, this._reorderRules(t, s, i), this._dragFeature = null, this._dragIndex = null, this._dragOverIndex = null, this._dragPosition = null, this.requestUpdate();
   }
   _onRuleDragEnd() {
     this._dragFeature = null, this._dragIndex = null, this._dragOverIndex = null, this._dragPosition = null, this.requestUpdate();
   }
-  _removeRuleAndReindex(t, e) {
-    const a = `${t}:`, s = /* @__PURE__ */ new Set();
+  _removeRuleAndReindex(e, t) {
+    const a = `${e}:`, s = /* @__PURE__ */ new Set();
     for (const o of this._collapsedRules) {
       if (!o.startsWith(a)) {
         s.add(o);
         continue;
       }
       const i = Number(o.slice(a.length));
-      i < e ? s.add(o) : i > e && s.add(`${a}${i - 1}`);
+      i < t ? s.add(o) : i > t && s.add(`${a}${i - 1}`);
     }
     this._collapsedRules = s;
   }
   _collapseAllRules() {
-    const t = /* @__PURE__ */ new Set();
-    this._settings.autoNode.rules.forEach((e, a) => t.add(`autoNode:${a}`)), this._settings.nodeRestrict.rules.forEach((e, a) => t.add(`nodeRestrict:${a}`)), this._settings.nodeProtect.rules.forEach((e, a) => t.add(`nodeProtect:${a}`)), this._collapsedRules = t, this.requestUpdate();
+    const e = /* @__PURE__ */ new Set();
+    this._settings.autoNode.rules.forEach((t, a) => e.add(`autoNode:${a}`)), this._settings.nodeRestrict.rules.forEach((t, a) => e.add(`nodeRestrict:${a}`)), this._settings.nodeProtect.rules.forEach((t, a) => e.add(`nodeProtect:${a}`)), this._collapsedRules = e, this.requestUpdate();
   }
-  _renderCollapsedRule(t, e, a, s, o, i) {
-    return r`
+  _renderCollapsedRule(e, t, a, s, o, i) {
+    return l`
       <uui-ref-node
         class="rule-ref"
         name=${a}
         detail=${s}
         ?disabled=${o}
-        @open=${() => this._toggleRuleCollapsed(t, e)}
+        @open=${() => this._toggleRuleCollapsed(e, t)}
       >
         <umb-icon slot="icon" name="icon-navigation-right"></umb-icon>
         <uui-action-bar slot="actions">
@@ -473,9 +523,9 @@ let m = class extends P {
       </uui-ref-node>
     `;
   }
-  _renderRuleHeader(t, e, a, s, o) {
-    const i = this._isRuleCollapsed(t, e), l = this.localize.term("dotseeDiscipline_common_remove");
-    return r`
+  _renderRuleHeader(e, t, a, s, o) {
+    const i = this._isRuleCollapsed(e, t), r = this.localize.term("dotseeDiscipline_common_remove");
+    return l`
       <div slot="header" class="rule-header">
         <button
           type="button"
@@ -484,30 +534,30 @@ let m = class extends P {
       i ? "dotseeDiscipline_common_expandRule" : "dotseeDiscipline_common_collapseRule"
     )}
           aria-expanded=${!i}
-          @click=${() => this._toggleRuleCollapsed(t, e)}
+          @click=${() => this._toggleRuleCollapsed(e, t)}
         >
           <umb-icon
             name=${i ? "icon-navigation-right" : "icon-navigation-down"}
           ></umb-icon>
-          <strong>${this.localize.term("dotseeDiscipline_common_ruleNumber", e + 1)}</strong>
-          ${o ? r`<span class="rule-suffix">${o}</span>` : g}
+          <strong>${this.localize.term("dotseeDiscipline_common_ruleNumber", t + 1)}</strong>
+          ${o ? l`<span class="rule-suffix">${o}</span>` : g}
         </button>
         <uui-button
           look="secondary"
           color="danger"
-          label=${l}
+          label=${r}
           ?disabled=${a}
           @click=${s}
-        >${l}</uui-button>
+        >${r}</uui-button>
       </div>
     `;
   }
   _renderFooter() {
-    const t = this._validationErrors();
-    return r`
+    const e = this._validationErrors();
+    return l`
       <div slot="footer" class="footer">
-        ${t.length > 0 && this._settings.useBackoffice ? r`<ul class="errors">
-              ${t.map((e) => r`<li>${e}</li>`)}
+        ${e.length > 0 && this._settings.useBackoffice ? l`<ul class="errors">
+              ${e.map((t) => l`<li>${t}</li>`)}
             </ul>` : g}
         <uui-button
           look="primary"
@@ -516,7 +566,7 @@ let m = class extends P {
           ?disabled=${!this._canSave()}
           @click=${this._onSaveClick}
         >
-          ${this._saving ? r`<uui-loader></uui-loader>` : this.localize.term("dotseeDiscipline_common_save")}
+          ${this._saving ? l`<uui-loader></uui-loader>` : this.localize.term("dotseeDiscipline_common_save")}
         </uui-button>
       </div>
     `;
@@ -524,38 +574,38 @@ let m = class extends P {
   /* ------------------------------------------------------------------ */
   /* Tab renderers                                                      */
   /* ------------------------------------------------------------------ */
-  _renderAutoNodeTab(t) {
-    const e = this._settings.autoNode, a = (o) => {
-      this._patchSettings("autoNode", { ...e, ...o });
+  _renderAutoNodeTab(e) {
+    const t = this._settings.autoNode, a = (o) => {
+      this._patchSettings("autoNode", { ...t, ...o });
     }, s = (o, i) => {
-      const l = e.rules.map((p, h) => h === o ? { ...p, ...i } : p);
-      a({ rules: l });
+      const r = t.rules.map((u, c) => c === o ? { ...u, ...i } : u);
+      a({ rules: r });
     };
-    return r`
+    return l`
       <uui-box>
         <h4 slot="headline" class="uui-h4">${this.localize.term("dotseeDiscipline_autoNode_label")}</h4>
-        ${this._renderEnableButton(e.enabled, t, (o) => a({ enabled: o }))}
+        ${this._renderEnableButton(t.enabled, e, (o) => a({ enabled: o }))}
         <p class="feature-description no-divider">
           ${this.localize.term("dotseeDiscipline_autoNode_description")}
         </p>
-        ${e.enabled ? r`
+        ${t.enabled ? l`
         <div class="grid">
           ${this._withFieldHelp(
-      r`
+      l`
               <label class="fit">
                 <span>${this.localize.term("dotseeDiscipline_autoNode_logLevel")}</span>
                 <uui-select
-                  ?disabled=${t || !e.enabled}
+                  ?disabled=${e || !t.enabled}
                   .options=${[
         {
           name: this.localize.term("dotseeDiscipline_autoNode_logLevelNormal"),
           value: "Normal",
-          selected: e.logLevel === "Normal"
+          selected: t.logLevel === "Normal"
         },
         {
           name: this.localize.term("dotseeDiscipline_autoNode_logLevelVerbose"),
           value: "Verbose",
-          selected: e.logLevel === "Verbose"
+          selected: t.logLevel === "Verbose"
         }
       ]}
                   @change=${(o) => a({ logLevel: o.target.value })}
@@ -567,10 +617,10 @@ let m = class extends P {
       "inline"
     )}
           ${this._withFieldHelp(
-      r`
+      l`
               <uui-toggle
-                .checked=${e.republishExistingNodes}
-                ?disabled=${t || !e.enabled}
+                .checked=${t.republishExistingNodes}
+                ?disabled=${e || !t.enabled}
                 label=${this.localize.term("dotseeDiscipline_autoNode_republish")}
                 label-position="right"
                 @change=${(o) => a({ republishExistingNodes: o.target.checked })}
@@ -582,19 +632,19 @@ let m = class extends P {
     )}
         </div>
         <h4>${this.localize.term("dotseeDiscipline_common_rules")}</h4>
-        ${e.rules.length === 0 ? r`<p class="empty">${this.localize.term("dotseeDiscipline_common_noRulesDefined")}</p>` : g}
-        ${e.rules.map((o, i) => {
-      const l = o.createdDocTypeAlias && o.docTypeAliasToCreate ? `(${o.createdDocTypeAlias} → ${o.docTypeAliasToCreate})` : "", p = this.localize.term("dotseeDiscipline_common_ruleNumber", i + 1), h = l ? `${p} ${l}` : p, v = o.nodeName ?? "", c = () => {
-        this._removeRuleAndReindex("autoNode", i), a({ rules: e.rules.filter((n, u) => u !== i) });
-      }, $ = this._isRuleCollapsed("autoNode", i) ? this._renderCollapsedRule("autoNode", i, h, v, t || !e.enabled, c) : r`
+        ${t.rules.length === 0 ? l`<p class="empty">${this.localize.term("dotseeDiscipline_common_noRulesDefined")}</p>` : g}
+        ${t.rules.map((o, i) => {
+      const r = o.createdDocTypeAlias && o.docTypeAliasToCreate ? `(${o.createdDocTypeAlias} → ${o.docTypeAliasToCreate})` : "", u = this.localize.term("dotseeDiscipline_common_ruleNumber", i + 1), c = r ? `${u} ${r}` : u, v = o.nodeName ?? "", d = () => {
+        this._removeRuleAndReindex("autoNode", i), a({ rules: t.rules.filter((n, h) => h !== i) });
+      }, $ = this._isRuleCollapsed("autoNode", i) ? this._renderCollapsedRule("autoNode", i, c, v, e || !t.enabled, d) : l`
                 <uui-box class="rule-card">
-                  ${this._renderRuleHeader("autoNode", i, t || !e.enabled, c, l || void 0)}
+                  ${this._renderRuleHeader("autoNode", i, e || !t.enabled, d, r || void 0)}
                   <div class="grid">
                     ${this._withFieldHelp(
         this._docTypeField(
           this.localize.term("dotseeDiscipline_autoNode_triggeringDoctype"),
           o.createdDocTypeAlias,
-          t || !e.enabled,
+          e || !t.enabled,
           (n) => s(i, { createdDocTypeAlias: n })
         ),
         `autonode-rule-${i}-trigger-help`,
@@ -604,7 +654,7 @@ let m = class extends P {
         this._docTypeField(
           this.localize.term("dotseeDiscipline_autoNode_doctypeToCreate"),
           o.docTypeAliasToCreate,
-          t || !e.enabled,
+          e || !t.enabled,
           (n) => s(i, { docTypeAliasToCreate: n })
         ),
         `autonode-rule-${i}-create-help`,
@@ -614,7 +664,7 @@ let m = class extends P {
         this._textField(
           this.localize.term("dotseeDiscipline_autoNode_nodeName"),
           o.nodeName,
-          t || !e.enabled,
+          e || !t.enabled,
           (n) => s(i, { nodeName: n })
         ),
         `autonode-rule-${i}-nodename-help`,
@@ -624,7 +674,7 @@ let m = class extends P {
         this._textField(
           this.localize.term("dotseeDiscipline_autoNode_dictionaryItem"),
           o.dictionaryItemForName,
-          t || !e.enabled,
+          e || !t.enabled,
           (n) => s(i, { dictionaryItemForName: n })
         ),
         `autonode-rule-${i}-dictionary-help`,
@@ -637,7 +687,7 @@ let m = class extends P {
           this.localize.term("dotseeDiscipline_autoNode_blueprint"),
           o.docTypeAliasToCreate,
           o.blueprint,
-          t || !e.enabled,
+          e || !t.enabled,
           (n) => s(i, { blueprint: n })
         ),
         `autonode-rule-${i}-blueprint-help`,
@@ -647,7 +697,7 @@ let m = class extends P {
         this._toggleField(
           this.localize.term("dotseeDiscipline_autoNode_bringFirst"),
           o.bringNewNodeFirst,
-          t || !e.enabled,
+          e || !t.enabled,
           (n) => s(i, { bringNewNodeFirst: n })
         ),
         `autonode-rule-${i}-bringfirst-help`,
@@ -659,7 +709,7 @@ let m = class extends P {
         this._toggleField(
           this.localize.term("dotseeDiscipline_autoNode_onlyIfNoChildren"),
           o.onlyCreateIfNoChildren,
-          t || !e.enabled,
+          e || !t.enabled,
           (n) => s(i, { onlyCreateIfNoChildren: n })
         ),
         `autonode-rule-${i}-nochildren-help`,
@@ -670,7 +720,7 @@ let m = class extends P {
         this._toggleField(
           this.localize.term("dotseeDiscipline_autoNode_existsDifferentName"),
           o.createIfExistsWithDifferentName,
-          t || !e.enabled,
+          e || !t.enabled,
           (n) => s(i, { createIfExistsWithDifferentName: n })
         ),
         `autonode-rule-${i}-existsdiffname-help`,
@@ -681,7 +731,7 @@ let m = class extends P {
         this._toggleField(
           this.localize.term("dotseeDiscipline_autoNode_keepUnpublished"),
           o.keepNewNodeUnpublished,
-          t || !e.enabled,
+          e || !t.enabled,
           (n) => s(i, { keepNewNodeUnpublished: n })
         ),
         `autonode-rule-${i}-unpublished-help`,
@@ -690,13 +740,13 @@ let m = class extends P {
       )}
                   </div>
                 </uui-box>
-              `, w = this._dragFeature === "autoNode" && this._dragIndex === i, x = this._dragFeature === "autoNode" && this._dragOverIndex === i, D = [
+              `, z = this._dragFeature === "autoNode" && this._dragIndex === i, x = this._dragFeature === "autoNode" && this._dragOverIndex === i, D = [
         "rule-wrapper",
-        w ? "dragging" : "",
+        z ? "dragging" : "",
         x && this._dragPosition === "before" ? "drop-before" : "",
         x && this._dragPosition === "after" ? "drop-after" : ""
-      ].filter(Boolean).join(" "), d = t || !e.enabled;
-      return r`
+      ].filter(Boolean).join(" "), p = e || !t.enabled;
+      return l`
             <div
               class=${D}
               @dragover=${(n) => this._onRuleDragOver(n, "autoNode", i)}
@@ -705,7 +755,7 @@ let m = class extends P {
             >
               <span
                 class="drag-handle"
-                draggable=${d ? "false" : "true"}
+                draggable=${p ? "false" : "true"}
                 aria-label=${this.localize.term("dotseeDiscipline_common_dragToReorder")}
                 title=${this.localize.term("dotseeDiscipline_common_dragToReorder")}
                 @dragstart=${(n) => this._onRuleDragStart(n, "autoNode", i)}
@@ -720,34 +770,34 @@ let m = class extends P {
         <uui-button
           look="secondary"
           label=${this.localize.term("dotseeDiscipline_common_addRule")}
-          ?disabled=${t || !e.enabled}
-          @click=${() => a({ rules: [...e.rules, B()] })}
+          ?disabled=${e || !t.enabled}
+          @click=${() => a({ rules: [...t.rules, B()] })}
         >${this.localize.term("dotseeDiscipline_common_addRuleButton")}</uui-button>
         ` : g}
       </uui-box>
     `;
   }
-  _renderNodeRestrictTab(t) {
-    const e = this._settings.nodeRestrict, a = (o) => {
-      this._patchSettings("nodeRestrict", { ...e, ...o });
+  _renderNodeRestrictTab(e) {
+    const t = this._settings.nodeRestrict, a = (o) => {
+      this._patchSettings("nodeRestrict", { ...t, ...o });
     }, s = (o, i) => {
-      const l = e.rules.map((p, h) => h === o ? { ...p, ...i } : p);
-      a({ rules: l });
+      const r = t.rules.map((u, c) => c === o ? { ...u, ...i } : u);
+      a({ rules: r });
     };
-    return r`
+    return l`
       <uui-box>
         <h4 slot="headline" class="uui-h4">${this.localize.term("dotseeDiscipline_nodeRestrict_label")}</h4>
-        ${this._renderEnableButton(e.enabled, t, (o) => a({ enabled: o }))}
+        ${this._renderEnableButton(t.enabled, e, (o) => a({ enabled: o }))}
         <p class="feature-description no-divider">
           ${this.localize.term("dotseeDiscipline_nodeRestrict_description")}
         </p>
-        ${e.enabled ? r`
+        ${t.enabled ? l`
         <div class="grid">
           ${this._withFieldHelp(
       this._textField(
         this.localize.term("dotseeDiscipline_nodeRestrict_propertyAlias"),
-        e.propertyAlias,
-        t || !e.enabled,
+        t.propertyAlias,
+        e || !t.enabled,
         (o) => a({ propertyAlias: o })
       ),
       "noderestrict-propertyalias-help",
@@ -756,8 +806,8 @@ let m = class extends P {
           ${this._withFieldHelp(
       this._toggleField(
         this.localize.term("dotseeDiscipline_nodeRestrict_showWarnings"),
-        e.showWarnings,
-        t || !e.enabled,
+        t.showWarnings,
+        e || !t.enabled,
         (o) => a({ showWarnings: o })
       ),
       "noderestrict-showwarnings-help",
@@ -767,20 +817,20 @@ let m = class extends P {
     )}
         </div>
         <h4>${this.localize.term("dotseeDiscipline_common_rules")}</h4>
-        ${e.rules.length === 0 ? r`<p class="empty">${this.localize.term("dotseeDiscipline_common_noRulesDefined")}</p>` : g}
-        ${e.rules.map((o, i) => {
-      const l = !o.childDocType || o.childDocType === "*" ? this.localize.term("dotseeDiscipline_common_anyDoctypeLowercase") : o.childDocType, p = o.parentDocType ? `(${o.parentDocType} → ${l})` : "", h = this.localize.term("dotseeDiscipline_common_ruleNumber", i + 1), v = p ? `${h} ${p}` : h, c = this.localize.term("dotseeDiscipline_nodeRestrict_ruleDetailMax", o.maxNodes ?? 0), $ = () => {
-        this._removeRuleAndReindex("nodeRestrict", i), a({ rules: e.rules.filter((u, N) => N !== i) });
-      }, w = this._isRuleCollapsed("nodeRestrict", i) ? this._renderCollapsedRule("nodeRestrict", i, v, c, t || !e.enabled, $) : r`
+        ${t.rules.length === 0 ? l`<p class="empty">${this.localize.term("dotseeDiscipline_common_noRulesDefined")}</p>` : g}
+        ${t.rules.map((o, i) => {
+      const r = !o.childDocType || o.childDocType === "*" ? this.localize.term("dotseeDiscipline_common_anyDoctypeLowercase") : o.childDocType, u = o.parentDocType ? `(${o.parentDocType} → ${r})` : "", c = this.localize.term("dotseeDiscipline_common_ruleNumber", i + 1), v = u ? `${c} ${u}` : c, d = this.localize.term("dotseeDiscipline_nodeRestrict_ruleDetailMax", o.maxNodes ?? 0), $ = () => {
+        this._removeRuleAndReindex("nodeRestrict", i), a({ rules: t.rules.filter((h, N) => N !== i) });
+      }, z = this._isRuleCollapsed("nodeRestrict", i) ? this._renderCollapsedRule("nodeRestrict", i, v, d, e || !t.enabled, $) : l`
                 <uui-box class="rule-card">
-                  ${this._renderRuleHeader("nodeRestrict", i, t || !e.enabled, $, p || void 0)}
+                  ${this._renderRuleHeader("nodeRestrict", i, e || !t.enabled, $, u || void 0)}
               <div class="grid">
                 ${this._withFieldHelp(
         this._docTypeField(
           this.localize.term("dotseeDiscipline_nodeRestrict_parentDoctype"),
           o.parentDocType,
-          t || !e.enabled,
-          (u) => s(i, { parentDocType: u })
+          e || !t.enabled,
+          (h) => s(i, { parentDocType: h })
         ),
         `noderestrict-rule-${i}-parent-help`,
         this.localize.term("dotseeDiscipline_nodeRestrict_parentDoctypeHelp")
@@ -789,8 +839,8 @@ let m = class extends P {
         this._docTypeField(
           this.localize.term("dotseeDiscipline_nodeRestrict_childDoctype"),
           o.childDocType || "*",
-          t || !e.enabled,
-          (u) => s(i, { childDocType: u }),
+          e || !t.enabled,
+          (h) => s(i, { childDocType: h }),
           {
             label: this.localize.term("dotseeDiscipline_common_anyDoctype"),
             value: "*"
@@ -803,8 +853,8 @@ let m = class extends P {
         this._numberField(
           this.localize.term("dotseeDiscipline_nodeRestrict_maxNodes"),
           o.maxNodes,
-          t || !e.enabled,
-          (u) => s(i, { maxNodes: u })
+          e || !t.enabled,
+          (h) => s(i, { maxNodes: h })
         ),
         `noderestrict-rule-${i}-max-help`,
         this.localize.term("dotseeDiscipline_nodeRestrict_maxNodesHelp")
@@ -813,8 +863,8 @@ let m = class extends P {
         this._toggleField(
           this.localize.term("dotseeDiscipline_nodeRestrict_showWarnings"),
           o.showWarnings,
-          t || !e.enabled,
-          (u) => s(i, { showWarnings: u })
+          e || !t.enabled,
+          (h) => s(i, { showWarnings: h })
         ),
         `noderestrict-rule-${i}-warnings-help`,
         this.localize.term("dotseeDiscipline_nodeRestrict_ruleShowWarningsHelp"),
@@ -824,8 +874,8 @@ let m = class extends P {
         this._textField(
           this.localize.term("dotseeDiscipline_nodeRestrict_customMessage"),
           o.customMessage,
-          t || !e.enabled,
-          (u) => s(i, { customMessage: u })
+          e || !t.enabled,
+          (h) => s(i, { customMessage: h })
         ),
         `noderestrict-rule-${i}-limitmsg-help`,
         this.localize.term("dotseeDiscipline_nodeRestrict_customMessageHelp")
@@ -834,8 +884,8 @@ let m = class extends P {
         this._textField(
           this.localize.term("dotseeDiscipline_nodeRestrict_customMessageCategory"),
           o.customMessageCategory,
-          t || !e.enabled,
-          (u) => s(i, { customMessageCategory: u })
+          e || !t.enabled,
+          (h) => s(i, { customMessageCategory: h })
         ),
         `noderestrict-rule-${i}-limitcat-help`,
         this.localize.term("dotseeDiscipline_nodeRestrict_customMessageCategoryHelp")
@@ -844,8 +894,8 @@ let m = class extends P {
         this._textField(
           this.localize.term("dotseeDiscipline_nodeRestrict_customWarning"),
           o.customWarningMessage,
-          t || !e.enabled,
-          (u) => s(i, { customWarningMessage: u })
+          e || !t.enabled,
+          (h) => s(i, { customWarningMessage: h })
         ),
         `noderestrict-rule-${i}-warnmsg-help`,
         this.localize.term("dotseeDiscipline_nodeRestrict_customWarningHelp")
@@ -854,70 +904,70 @@ let m = class extends P {
         this._textField(
           this.localize.term("dotseeDiscipline_nodeRestrict_customWarningCategory"),
           o.customWarningMessageCategory,
-          t || !e.enabled,
-          (u) => s(i, { customWarningMessageCategory: u })
+          e || !t.enabled,
+          (h) => s(i, { customWarningMessageCategory: h })
         ),
         `noderestrict-rule-${i}-warncat-help`,
         this.localize.term("dotseeDiscipline_nodeRestrict_customWarningCategoryHelp")
       )}
                   </div>
                 </uui-box>
-              `, x = this._dragFeature === "nodeRestrict" && this._dragIndex === i, D = this._dragFeature === "nodeRestrict" && this._dragOverIndex === i, d = [
+              `, x = this._dragFeature === "nodeRestrict" && this._dragIndex === i, D = this._dragFeature === "nodeRestrict" && this._dragOverIndex === i, p = [
         "rule-wrapper",
         x ? "dragging" : "",
         D && this._dragPosition === "before" ? "drop-before" : "",
         D && this._dragPosition === "after" ? "drop-after" : ""
-      ].filter(Boolean).join(" "), n = t || !e.enabled;
-      return r`
+      ].filter(Boolean).join(" "), n = e || !t.enabled;
+      return l`
             <div
-              class=${d}
-              @dragover=${(u) => this._onRuleDragOver(u, "nodeRestrict", i)}
+              class=${p}
+              @dragover=${(h) => this._onRuleDragOver(h, "nodeRestrict", i)}
               @dragleave=${() => this._onRuleDragLeave("nodeRestrict", i)}
-              @drop=${(u) => this._onRuleDrop(u, "nodeRestrict", i)}
+              @drop=${(h) => this._onRuleDrop(h, "nodeRestrict", i)}
             >
               <span
                 class="drag-handle"
                 draggable=${n ? "false" : "true"}
                 aria-label=${this.localize.term("dotseeDiscipline_common_dragToReorder")}
                 title=${this.localize.term("dotseeDiscipline_common_dragToReorder")}
-                @dragstart=${(u) => this._onRuleDragStart(u, "nodeRestrict", i)}
+                @dragstart=${(h) => this._onRuleDragStart(h, "nodeRestrict", i)}
                 @dragend=${() => this._onRuleDragEnd()}
               >
                 <umb-icon name="icon-navigation"></umb-icon>
               </span>
-              <div class="rule-content">${w}</div>
+              <div class="rule-content">${z}</div>
             </div>
           `;
     })}
         <uui-button
           look="secondary"
           label=${this.localize.term("dotseeDiscipline_common_addRule")}
-          ?disabled=${t || !e.enabled}
-          @click=${() => a({ rules: [...e.rules, I()] })}
+          ?disabled=${e || !t.enabled}
+          @click=${() => a({ rules: [...t.rules, I()] })}
         >${this.localize.term("dotseeDiscipline_common_addRuleButton")}</uui-button>
         ` : g}
       </uui-box>
     `;
   }
-  _renderVirtualNodesTab(t) {
-    const e = this._settings.virtualNodes, a = (s) => {
-      this._patchSettings("virtualNodes", { ...e, ...s });
+  _renderVirtualNodesTab(e) {
+    const t = this._settings.virtualNodes, a = (s) => {
+      this._patchSettings("virtualNodes", { ...t, ...s });
     };
-    return r`
+    return l`
       <uui-box>
         <h4 slot="headline" class="uui-h4">${this.localize.term("dotseeDiscipline_virtualNodes_label")}</h4>
-        ${this._renderEnableButton(e.enabled, t, (s) => a({ enabled: s }))}
+        ${this._renderEnableButton(t.enabled, e, (s) => a({ enabled: s }))}
         <p class="feature-description no-divider">
           ${this.localize.term("dotseeDiscipline_virtualNodes_description")}
         </p>
-        ${e.enabled ? r`
+        ${t.enabled ? l`
         <div class="grid">
           ${this._withFieldHelp(
       this._multiAliasField(
         this.localize.term("dotseeDiscipline_virtualNodes_doctypes"),
         this._docTypes,
-        (e.rules ?? []).join(","),
-        t || !e.enabled,
+        (t.rules ?? []).join(","),
+        e || !t.enabled,
         (s) => {
           const o = s ? s.split(",").map((i) => i.trim()).filter((i) => i.length > 0) : [];
           a({ rules: o });
@@ -931,24 +981,24 @@ let m = class extends P {
       </uui-box>
     `;
   }
-  _renderVariantsHiderTab(t) {
-    const e = this._settings.variantsHider, a = (s) => {
-      this._patchSettings("variantsHider", { ...e, ...s });
+  _renderVariantsHiderTab(e) {
+    const t = this._settings.variantsHider, a = (s) => {
+      this._patchSettings("variantsHider", { ...t, ...s });
     };
-    return r`
+    return l`
       <uui-box>
         <h4 slot="headline" class="uui-h4">${this.localize.term("dotseeDiscipline_variantsHider_label")}</h4>
-        ${this._renderEnableButton(e.enabled, t, (s) => a({ enabled: s }))}
+        ${this._renderEnableButton(t.enabled, e, (s) => a({ enabled: s }))}
         <p class="feature-description no-divider">
           ${this.localize.term("dotseeDiscipline_variantsHider_description")}
         </p>
-        ${e.enabled ? r`
+        ${t.enabled ? l`
         <div class="grid">
           ${this._withFieldHelp(
       this._textField(
         this.localize.term("dotseeDiscipline_variantsHider_caption"),
-        e.caption,
-        t || !e.enabled,
+        t.caption,
+        e || !t.enabled,
         (s) => a({ caption: s })
       ),
       "variantshider-caption-help",
@@ -959,28 +1009,28 @@ let m = class extends P {
       </uui-box>
     `;
   }
-  _renderNodeProtectTab(t) {
-    const e = this._settings.nodeProtect, a = (o) => {
-      this._patchSettings("nodeProtect", { ...e, ...o });
+  _renderNodeProtectTab(e) {
+    const t = this._settings.nodeProtect, a = (o) => {
+      this._patchSettings("nodeProtect", { ...t, ...o });
     }, s = (o, i) => {
-      const l = e.rules.map((p, h) => h === o ? { ...p, ...i } : p);
-      a({ rules: l });
+      const r = t.rules.map((u, c) => c === o ? { ...u, ...i } : u);
+      a({ rules: r });
     };
-    return r`
+    return l`
       <uui-box>
         <h4 slot="headline" class="uui-h4">${this.localize.term("dotseeDiscipline_nodeProtect_label")}</h4>
-        ${this._renderEnableButton(e.enabled, t, (o) => a({ enabled: o }))}
+        ${this._renderEnableButton(t.enabled, e, (o) => a({ enabled: o }))}
         <p class="feature-description no-divider">
           ${this.localize.term("dotseeDiscipline_nodeProtect_description")}
         </p>
-        ${e.enabled ? r`
+        ${t.enabled ? l`
         <div class="grid">
           ${this._withFieldHelp(
       this._propertyField(
         this.localize.term("dotseeDiscipline_nodeProtect_propertyAlias"),
         this._trueFalseProperties,
-        e.propertyAlias,
-        t || !e.enabled,
+        t.propertyAlias,
+        e || !t.enabled,
         (o) => a({ propertyAlias: o })
       ),
       "nodeprotect-propertyalias-help",
@@ -988,19 +1038,19 @@ let m = class extends P {
     )}
         </div>
         <h4>${this.localize.term("dotseeDiscipline_common_rules")}</h4>
-        ${e.rules.length === 0 ? r`<p class="empty">${this.localize.term("dotseeDiscipline_common_noRulesDefined")}</p>` : g}
-        ${e.rules.map((o, i) => {
-      const l = o.docTypeAlias ? `(${o.docTypeAlias})` : "", p = this.localize.term("dotseeDiscipline_common_ruleNumber", i + 1), h = l ? `${p} ${l}` : p, v = o.documentGuids ? this.localize.term("dotseeDiscipline_nodeProtect_byGuids") : o.docTypeAlias ? this.localize.term("dotseeDiscipline_nodeProtect_byDoctype") : "", c = () => {
-        this._removeRuleAndReindex("nodeProtect", i), a({ rules: e.rules.filter((n, u) => u !== i) });
-      }, $ = this._isRuleCollapsed("nodeProtect", i) ? this._renderCollapsedRule("nodeProtect", i, h, v, t || !e.enabled, c) : r`
+        ${t.rules.length === 0 ? l`<p class="empty">${this.localize.term("dotseeDiscipline_common_noRulesDefined")}</p>` : g}
+        ${t.rules.map((o, i) => {
+      const r = o.docTypeAlias ? `(${o.docTypeAlias})` : "", u = this.localize.term("dotseeDiscipline_common_ruleNumber", i + 1), c = r ? `${u} ${r}` : u, v = o.documentGuids ? this.localize.term("dotseeDiscipline_nodeProtect_byGuids") : o.docTypeAlias ? this.localize.term("dotseeDiscipline_nodeProtect_byDoctype") : "", d = () => {
+        this._removeRuleAndReindex("nodeProtect", i), a({ rules: t.rules.filter((n, h) => h !== i) });
+      }, $ = this._isRuleCollapsed("nodeProtect", i) ? this._renderCollapsedRule("nodeProtect", i, c, v, e || !t.enabled, d) : l`
                 <uui-box class="rule-card">
-                  ${this._renderRuleHeader("nodeProtect", i, t || !e.enabled, c, l || void 0)}
+                  ${this._renderRuleHeader("nodeProtect", i, e || !t.enabled, d, r || void 0)}
                   <div class="grid">
                     ${this._withFieldHelp(
         this._docTypeField(
           this.localize.term("dotseeDiscipline_nodeProtect_doctypeAlias"),
           o.docTypeAlias,
-          t || !e.enabled,
+          e || !t.enabled,
           (n) => s(i, { docTypeAlias: n })
         ),
         `nodeprotect-rule-${i}-doctype-help`,
@@ -1010,7 +1060,7 @@ let m = class extends P {
         this._textField(
           this.localize.term("dotseeDiscipline_nodeProtect_guids"),
           o.documentGuids,
-          t || !e.enabled,
+          e || !t.enabled,
           (n) => s(i, { documentGuids: n })
         ),
         `nodeprotect-rule-${i}-guids-help`,
@@ -1020,7 +1070,7 @@ let m = class extends P {
         this._textField(
           this.localize.term("dotseeDiscipline_nodeProtect_customMessage"),
           o.customMessage,
-          t || !e.enabled,
+          e || !t.enabled,
           (n) => s(i, { customMessage: n })
         ),
         `nodeprotect-rule-${i}-msg-help`,
@@ -1030,7 +1080,7 @@ let m = class extends P {
         this._textField(
           this.localize.term("dotseeDiscipline_nodeProtect_customMessageCategory"),
           o.customMessageCategory,
-          t || !e.enabled,
+          e || !t.enabled,
           (n) => s(i, { customMessageCategory: n })
         ),
         `nodeprotect-rule-${i}-msgcat-help`,
@@ -1038,13 +1088,13 @@ let m = class extends P {
       )}
                   </div>
                 </uui-box>
-              `, w = this._dragFeature === "nodeProtect" && this._dragIndex === i, x = this._dragFeature === "nodeProtect" && this._dragOverIndex === i, D = [
+              `, z = this._dragFeature === "nodeProtect" && this._dragIndex === i, x = this._dragFeature === "nodeProtect" && this._dragOverIndex === i, D = [
         "rule-wrapper",
-        w ? "dragging" : "",
+        z ? "dragging" : "",
         x && this._dragPosition === "before" ? "drop-before" : "",
         x && this._dragPosition === "after" ? "drop-after" : ""
-      ].filter(Boolean).join(" "), d = t || !e.enabled;
-      return r`
+      ].filter(Boolean).join(" "), p = e || !t.enabled;
+      return l`
             <div
               class=${D}
               @dragover=${(n) => this._onRuleDragOver(n, "nodeProtect", i)}
@@ -1053,7 +1103,7 @@ let m = class extends P {
             >
               <span
                 class="drag-handle"
-                draggable=${d ? "false" : "true"}
+                draggable=${p ? "false" : "true"}
                 aria-label=${this.localize.term("dotseeDiscipline_common_dragToReorder")}
                 title=${this.localize.term("dotseeDiscipline_common_dragToReorder")}
                 @dragstart=${(n) => this._onRuleDragStart(n, "nodeProtect", i)}
@@ -1068,37 +1118,73 @@ let m = class extends P {
         <uui-button
           look="secondary"
           label=${this.localize.term("dotseeDiscipline_common_addRule")}
-          ?disabled=${t || !e.enabled}
-          @click=${() => a({ rules: [...e.rules, V()] })}
+          ?disabled=${e || !t.enabled}
+          @click=${() => a({ rules: [...t.rules, L()] })}
         >${this.localize.term("dotseeDiscipline_common_addRuleButton")}</uui-button>
         ` : g}
       </uui-box>
     `;
   }
-  _renderAiSummaryTab(t) {
-    const e = this._settings.aiSummary, a = (s) => {
-      this._patchSettings("aiSummary", { ...e, ...s });
+  _aiModelField(e, t, a) {
+    const s = [...this._aiModels];
+    e.model && !s.includes(e.model) && s.unshift(e.model);
+    const o = s.map((c) => ({ name: c, value: c, selected: c === e.model }));
+    let i = "", r = !1;
+    this._aiModelsLoading ? i = "" : this._aiModelsError ? (i = this._aiModelsError, r = !0) : e.apiKey ? this._aiModels.length === 0 && (i = this.localize.term("dotseeDiscipline_aiSummary_modelEmpty")) : i = this.localize.term("dotseeDiscipline_aiSummary_modelNoKey");
+    const u = i ? "flex:0 1 280px; min-width:0;" : "flex:0 0 auto; width:auto; min-width:fit-content;";
+    return l`
+      <label>
+        <span>${this.localize.term("dotseeDiscipline_aiSummary_model")}</span>
+        <div style="display:flex; gap:0.5rem; align-items:center; width:100%;">
+          <uui-select
+            style=${u}
+            ?disabled=${a || this._aiModelsLoading || o.length === 0}
+            .options=${o}
+            @change=${(c) => t(c.target.value)}
+          ></uui-select>
+          <uui-button
+            look="secondary"
+            label=${this.localize.term("dotseeDiscipline_aiSummary_modelRefresh")}
+            ?disabled=${a || this._aiModelsLoading || !e.apiKey}
+            @click=${() => this._loadAiModels(!0)}
+          >
+            ${this._aiModelsLoading ? l`<uui-loader></uui-loader>` : this.localize.term("dotseeDiscipline_aiSummary_modelRefresh")}
+          </uui-button>
+          ${i ? l`<small
+                title=${i}
+                style="flex:1 1 0; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:${r ? "var(--uui-color-danger, #d42054)" : "var(--uui-color-text-alt, #666)"};"
+                >${i}</small
+              >` : g}
+        </div>
+      </label>
+    `;
+  }
+  _renderAiSummaryTab(e) {
+    const t = this._settings.aiSummary, a = (s) => {
+      this._patchSettings("aiSummary", { ...t, ...s });
     };
-    return r`
+    return l`
       <uui-box>
         <h4 slot="headline" class="uui-h4">${this.localize.term("dotseeDiscipline_aiSummary_label")}</h4>
-        ${this._renderEnableButton(e.enabled, t, (s) => a({ enabled: s }))}
+        ${this._renderEnableButton(t.enabled, e, (s) => a({ enabled: s }))}
         <p class="feature-description no-divider">
           ${this.localize.term("dotseeDiscipline_aiSummary_description")}
         </p>
-        ${e.enabled ? r`
+        ${t.enabled ? l`
         <div class="grid">
           ${this._withFieldHelp(
-      r`
+      l`
               <label>
                 <span>${this.localize.term("dotseeDiscipline_aiSummary_llm")}</span>
                 <uui-select
-                  ?disabled=${t || !e.enabled}
+                  ?disabled=${e || !t.enabled}
                   .options=${[
-        { name: "OpenAI", value: "openai", selected: e.llm === "openai" },
-        { name: "Gemini", value: "gemini", selected: e.llm === "gemini" }
+        { name: "OpenAI", value: "openai", selected: t.llm === "openai" },
+        { name: "Gemini", value: "gemini", selected: t.llm === "gemini" }
       ]}
-                  @change=${(s) => a({ llm: s.target.value })}
+                  @change=${(s) => {
+        a({ llm: s.target.value }), this._loadAiModels(!0);
+      }}
                 ></uui-select>
               </label>
             `,
@@ -1108,28 +1194,25 @@ let m = class extends P {
           ${this._withFieldHelp(
       this._textField(
         this.localize.term("dotseeDiscipline_aiSummary_apiKey"),
-        e.apiKey,
-        t || !e.enabled,
+        t.apiKey,
+        e || !t.enabled,
         (s) => a({ apiKey: s })
       ),
       "aisummary-apikey-help",
       this.localize.term("dotseeDiscipline_aiSummary_apiKeyHelp")
     )}
           ${this._withFieldHelp(
-      this._textField(
-        this.localize.term("dotseeDiscipline_aiSummary_model"),
-        e.model,
-        t || !e.enabled,
-        (s) => a({ model: s })
-      ),
+      this._aiModelField(t, (s) => a({ model: s }), e || !t.enabled),
       "aisummary-model-help",
-      this.localize.term("dotseeDiscipline_aiSummary_modelHelp")
+      this.localize.term("dotseeDiscipline_aiSummary_modelHelp"),
+      "stretch",
+      "span-all"
     )}
           ${this._withFieldHelp(
       this._numberField(
         this.localize.term("dotseeDiscipline_aiSummary_maxChars"),
-        e.maxChars,
-        t || !e.enabled,
+        t.maxChars,
+        e || !t.enabled,
         (s) => a({ maxChars: s })
       ),
       "aisummary-maxchars-help",
@@ -1141,8 +1224,8 @@ let m = class extends P {
       this._propertyField(
         this.localize.term("dotseeDiscipline_aiSummary_propertyAlias"),
         this._textInputProperties,
-        e.propertyAlias,
-        t || !e.enabled,
+        t.propertyAlias,
+        e || !t.enabled,
         (s) => a({ propertyAlias: s })
       ),
       "aisummary-propertyalias-help",
@@ -1152,8 +1235,8 @@ let m = class extends P {
       this._propertyField(
         this.localize.term("dotseeDiscipline_aiSummary_toggleProperty"),
         this._trueFalseProperties,
-        e.togglePropertyAlias,
-        t || !e.enabled,
+        t.togglePropertyAlias,
+        e || !t.enabled,
         (s) => a({ togglePropertyAlias: s })
       ),
       "aisummary-toggleproperty-help",
@@ -1163,8 +1246,8 @@ let m = class extends P {
       this._multiAliasField(
         this.localize.term("dotseeDiscipline_aiSummary_doctypes"),
         this._docTypes,
-        e.docTypes,
-        t || !e.enabled,
+        t.docTypes,
+        e || !t.enabled,
         (s) => a({ docTypes: s })
       ),
       "aisummary-doctypes-help",
@@ -1176,8 +1259,8 @@ let m = class extends P {
       this._multiAliasField(
         this.localize.term("dotseeDiscipline_aiSummary_excludeProperties"),
         this._textContentProperties,
-        e.excludeProperties,
-        t || !e.enabled,
+        t.excludeProperties,
+        e || !t.enabled,
         (s) => a({ excludeProperties: s })
       ),
       "aisummary-excludeproperties-help",
@@ -1185,12 +1268,12 @@ let m = class extends P {
     )}
         </div>
         ${this._withFieldHelp(
-      r`
+      l`
             <label class="block">
               <span>${this.localize.term("dotseeDiscipline_aiSummary_tone")}</span>
               <uui-textarea
-                .value=${e.tone}
-                ?disabled=${t || !e.enabled}
+                .value=${t.tone}
+                ?disabled=${e || !t.enabled}
                 @input=${(s) => a({ tone: s.target.value })}
               ></uui-textarea>
             </label>
@@ -1202,24 +1285,24 @@ let m = class extends P {
       </uui-box>
     `;
   }
-  _renderPropertyVersionsTab(t) {
-    const e = this._settings.propertyVersions, a = (s) => {
-      this._patchSettings("propertyVersions", { ...e, ...s });
+  _renderPropertyVersionsTab(e) {
+    const t = this._settings.propertyVersions, a = (s) => {
+      this._patchSettings("propertyVersions", { ...t, ...s });
     };
-    return r`
+    return l`
       <uui-box>
         <h4 slot="headline" class="uui-h4">${this.localize.term("dotseeDiscipline_propertyVersions_label")}</h4>
-        ${this._renderEnableButton(e.enabled, t, (s) => a({ enabled: s }))}
+        ${this._renderEnableButton(t.enabled, e, (s) => a({ enabled: s }))}
         <p class="feature-description no-divider">
           ${this.localize.term("dotseeDiscipline_propertyVersions_description")}
         </p>
-        ${e.enabled ? r`
+        ${t.enabled ? l`
         <div class="grid">
           ${this._withFieldHelp(
       this._textField(
         this.localize.term("dotseeDiscipline_propertyVersions_nextDictionaryEntry"),
-        e.nextVersionButtonCaptionDictionaryEntry,
-        t || !e.enabled,
+        t.nextVersionButtonCaptionDictionaryEntry,
+        e || !t.enabled,
         (s) => a({ nextVersionButtonCaptionDictionaryEntry: s })
       ),
       "propertyversions-next-help",
@@ -1228,8 +1311,8 @@ let m = class extends P {
           ${this._withFieldHelp(
       this._textField(
         this.localize.term("dotseeDiscipline_propertyVersions_previousDictionaryEntry"),
-        e.previousVersionButtonCaptionDictionaryEntry,
-        t || !e.enabled,
+        t.previousVersionButtonCaptionDictionaryEntry,
+        e || !t.enabled,
         (s) => a({ previousVersionButtonCaptionDictionaryEntry: s })
       ),
       "propertyversions-previous-help",
@@ -1238,8 +1321,8 @@ let m = class extends P {
           ${this._withFieldHelp(
       this._textField(
         this.localize.term("dotseeDiscipline_propertyVersions_noVersionsDictionaryEntry"),
-        e.noVersionsButtonCaptionDictionaryEntry,
-        t || !e.enabled,
+        t.noVersionsButtonCaptionDictionaryEntry,
+        e || !t.enabled,
         (s) => a({ noVersionsButtonCaptionDictionaryEntry: s })
       ),
       "propertyversions-none-help",
@@ -1253,57 +1336,57 @@ let m = class extends P {
   /* ------------------------------------------------------------------ */
   /* Small field helpers                                                */
   /* ------------------------------------------------------------------ */
-  _textField(t, e, a, s) {
-    return r`
+  _textField(e, t, a, s) {
+    return l`
       <label>
-        <span>${t}</span>
+        <span>${e}</span>
         <uui-input
-          .value=${e ?? ""}
+          .value=${t ?? ""}
           ?disabled=${a}
           @input=${(o) => s(o.target.value)}
         ></uui-input>
       </label>
     `;
   }
-  _docTypeField(t, e, a, s, o) {
-    return this._aliasField(t, this._docTypes, e, a, s, o);
+  _docTypeField(e, t, a, s, o) {
+    return this._aliasField(e, this._docTypes, t, a, s, o);
   }
-  _propertyField(t, e, a, s, o) {
-    return this._aliasField(t, e, a, s, o);
+  _propertyField(e, t, a, s, o) {
+    return this._aliasField(e, t, a, s, o);
   }
-  _withFieldHelp(t, e, a, s = "stretch", o) {
+  _withFieldHelp(e, t, a, s = "stretch", o) {
     const i = `field-with-help ${s}${o ? ` ${o}` : ""}`;
-    return r`
+    return l`
       <div class=${i}>
-        ${t}
+        ${e}
         <uui-button
           class="help-button"
           look="secondary"
           compact
           label=${this.localize.term("dotseeDiscipline_common_help")}
-          popovertarget=${e}
+          popovertarget=${t}
         >
           <umb-icon name="icon-help-alt"></umb-icon>
         </uui-button>
-        <uui-popover-container id=${e} placement="top-end">
+        <uui-popover-container id=${t} placement="top-end">
           <div class="help-bubble">${a}</div>
         </uui-popover-container>
       </div>
     `;
   }
-  _multiAliasField(t, e, a, s, o) {
+  _multiAliasField(e, t, a, s, o) {
     const i = new Set(
-      (a ?? "").split(",").map((d) => d.trim()).filter((d) => d.length > 0)
-    ), l = (d, n) => {
-      n ? i.add(d) : i.delete(d), o(Array.from(i).join(","));
-    }, p = new Set(e.map((d) => d.alias)), h = Array.from(i).filter((d) => !p.has(d)), v = this._expandedFields.has(t), c = this._filterModes.get(t) ?? "all", $ = (d) => {
-      d ? this._expandedFields.add(t) : this._expandedFields.delete(t), this.requestUpdate();
-    }, w = (d) => {
-      this._filterModes.set(t, d), this.requestUpdate();
-    }, x = c === "selected" ? e.filter((d) => i.has(d.alias)) : e, D = c === "selected" || c === "all" ? h : [];
-    return r`
+      (a ?? "").split(",").map((p) => p.trim()).filter((p) => p.length > 0)
+    ), r = (p, n) => {
+      n ? i.add(p) : i.delete(p), o(Array.from(i).join(","));
+    }, u = new Set(t.map((p) => p.alias)), c = Array.from(i).filter((p) => !u.has(p)), v = this._expandedFields.has(e), d = this._filterModes.get(e) ?? "all", $ = (p) => {
+      p ? this._expandedFields.add(e) : this._expandedFields.delete(e), this.requestUpdate();
+    }, z = (p) => {
+      this._filterModes.set(e, p), this.requestUpdate();
+    }, x = d === "selected" ? t.filter((p) => i.has(p.alias)) : t, D = d === "selected" || d === "all" ? c : [];
+    return l`
       <label>
-        <span>${t}</span>
+        <span>${e}</span>
         <div class="multi-box">
           <div class="multi-bar">
             <button
@@ -1320,57 +1403,57 @@ let m = class extends P {
       i.size
     )}</span>
             </button>
-            ${v ? r`
+            ${v ? l`
                   <div class="multi-filter">
                     <label class="checkbox-row">
                       <input
                         type="radio"
-                        name="filter-${t}"
+                        name="filter-${e}"
                         ?disabled=${s}
-                        .checked=${c === "all"}
-                        @change=${() => w("all")}
+                        .checked=${d === "all"}
+                        @change=${() => z("all")}
                       />
                       <span>${this.localize.term("dotseeDiscipline_common_filterAll")}</span>
                     </label>
                     <label class="checkbox-row">
                       <input
                         type="radio"
-                        name="filter-${t}"
+                        name="filter-${e}"
                         ?disabled=${s}
-                        .checked=${c === "selected"}
-                        @change=${() => w("selected")}
+                        .checked=${d === "selected"}
+                        @change=${() => z("selected")}
                       />
                       <span>${this.localize.term("dotseeDiscipline_common_filterSelectedOnly")}</span>
                     </label>
                   </div>
                 ` : g}
           </div>
-          ${v ? r`
+          ${v ? l`
                 <div class="checkbox-list">
-                  ${x.length === 0 && D.length === 0 ? r`<p class="empty">${this.localize.term("dotseeDiscipline_common_noEntries")}</p>` : g}
+                  ${x.length === 0 && D.length === 0 ? l`<p class="empty">${this.localize.term("dotseeDiscipline_common_noEntries")}</p>` : g}
                   ${x.map(
-      (d) => r`
+      (p) => l`
                       <label class="checkbox-row">
                         <input
                           type="checkbox"
                           ?disabled=${s}
-                          .checked=${i.has(d.alias)}
-                          @change=${(n) => l(d.alias, n.target.checked)}
+                          .checked=${i.has(p.alias)}
+                          @change=${(n) => r(p.alias, n.target.checked)}
                         />
-                        <span>${d.name} (${d.alias})</span>
+                        <span>${p.name} (${p.alias})</span>
                       </label>
                     `
     )}
                   ${D.map(
-      (d) => r`
+      (p) => l`
                       <label class="checkbox-row">
                         <input
                           type="checkbox"
                           ?disabled=${s}
                           checked
-                          @change=${(n) => l(d, n.target.checked)}
+                          @change=${(n) => r(p, n.target.checked)}
                         />
-                        <span>${d} (${this.localize.term("dotseeDiscipline_common_notFoundSuffix")})</span>
+                        <span>${p} (${this.localize.term("dotseeDiscipline_common_notFoundSuffix")})</span>
                       </label>
                     `
     )}
@@ -1380,87 +1463,87 @@ let m = class extends P {
       </label>
     `;
   }
-  _aliasField(t, e, a, s, o, i) {
-    const l = a ?? "", p = new Set(e.map((c) => c.alias)), h = (i == null ? void 0 : i.value) ?? "", v = (i == null ? void 0 : i.label) ?? this.localize.term("dotseeDiscipline_common_selectPlaceholder");
-    return r`
+  _aliasField(e, t, a, s, o, i) {
+    const r = a ?? "", u = new Set(t.map((d) => d.alias)), c = (i == null ? void 0 : i.value) ?? "", v = (i == null ? void 0 : i.label) ?? this.localize.term("dotseeDiscipline_common_selectPlaceholder");
+    return l`
       <label>
-        <span>${t}</span>
+        <span>${e}</span>
         <select
           class="doctype-select"
           ?disabled=${s}
-          @change=${(c) => o(c.target.value)}
+          @change=${(d) => o(d.target.value)}
         >
-          <option value=${h} ?selected=${l === h || l === ""}>
+          <option value=${c} ?selected=${r === c || r === ""}>
             ${v}
           </option>
-          ${e.map(
-      (c) => r`
-              <option value=${c.alias} ?selected=${c.alias === l}>
-                ${c.name} (${c.alias})
+          ${t.map(
+      (d) => l`
+              <option value=${d.alias} ?selected=${d.alias === r}>
+                ${d.name} (${d.alias})
               </option>
             `
     )}
-          ${l && l !== h && !p.has(l) ? r`<option value=${l} selected>${l} (${this.localize.term("dotseeDiscipline_common_notFoundSuffix")})</option>` : g}
+          ${r && r !== c && !u.has(r) ? l`<option value=${r} selected>${r} (${this.localize.term("dotseeDiscipline_common_notFoundSuffix")})</option>` : g}
         </select>
       </label>
     `;
   }
-  _blueprintField(t, e, a, s, o) {
-    const i = a ?? "", l = e ? this._blueprints.filter(
-      (c) => c.docTypeAlias.localeCompare(e, void 0, { sensitivity: "accent" }) === 0
-    ) : [], p = new Set(l.map((c) => c.name)), h = s || !e, v = e ? l.length === 0 ? this.localize.term("dotseeDiscipline_common_noBlueprintsPlaceholder") : this.localize.term("dotseeDiscipline_common_selectPlaceholder") : this.localize.term("dotseeDiscipline_common_selectDoctypeFirstPlaceholder");
-    return r`
+  _blueprintField(e, t, a, s, o) {
+    const i = a ?? "", r = t ? this._blueprints.filter(
+      (d) => d.docTypeAlias.localeCompare(t, void 0, { sensitivity: "accent" }) === 0
+    ) : [], u = new Set(r.map((d) => d.name)), c = s || !t, v = t ? r.length === 0 ? this.localize.term("dotseeDiscipline_common_noBlueprintsPlaceholder") : this.localize.term("dotseeDiscipline_common_selectPlaceholder") : this.localize.term("dotseeDiscipline_common_selectDoctypeFirstPlaceholder");
+    return l`
       <label>
-        <span>${t}</span>
+        <span>${e}</span>
         <select
           class="doctype-select"
-          ?disabled=${h}
-          @change=${(c) => o(c.target.value)}
+          ?disabled=${c}
+          @change=${(d) => o(d.target.value)}
         >
           <option value="" ?selected=${i === ""}>${v}</option>
-          ${l.map(
-      (c) => r`
-              <option value=${c.name} ?selected=${c.name === i}>${c.name}</option>
+          ${r.map(
+      (d) => l`
+              <option value=${d.name} ?selected=${d.name === i}>${d.name}</option>
             `
     )}
-          ${i && !p.has(i) ? r`<option value=${i} selected>${i} (${this.localize.term("dotseeDiscipline_common_notFoundSuffix")})</option>` : g}
+          ${i && !u.has(i) ? l`<option value=${i} selected>${i} (${this.localize.term("dotseeDiscipline_common_notFoundSuffix")})</option>` : g}
         </select>
       </label>
     `;
   }
-  _numberField(t, e, a, s) {
-    return r`
+  _numberField(e, t, a, s) {
+    return l`
       <label>
-        <span>${t}</span>
+        <span>${e}</span>
         <uui-input
           .type=${"number"}
           min="0"
           step="1"
           inputmode="numeric"
-          .value=${(e == null ? void 0 : e.toString()) ?? "0"}
+          .value=${(t == null ? void 0 : t.toString()) ?? "0"}
           ?disabled=${a}
           @input=${(o) => {
-      const i = o.target.value, l = i === "" ? 0 : Number(i);
-      s(Number.isNaN(l) ? 0 : l);
+      const i = o.target.value, r = i === "" ? 0 : Number(i);
+      s(Number.isNaN(r) ? 0 : r);
     }}
         ></uui-input>
       </label>
     `;
   }
-  _toggleField(t, e, a, s, o) {
-    return r`
+  _toggleField(e, t, a, s, o) {
+    return l`
       <label class=${`inline${o ? ` ${o}` : ""}`}>
         <uui-toggle
-          .checked=${e}
+          .checked=${t}
           ?disabled=${a}
           @change=${(i) => s(i.target.checked)}
         ></uui-toggle>
-        <span>${t}</span>
+        <span>${e}</span>
       </label>
     `;
   }
 };
-W(m, "styles", S`
+K(m, "styles", k`
     :host {
       display: block;
       height: 100%;
@@ -1615,6 +1698,9 @@ W(m, "styles", S`
     }
     .row-break {
       grid-column-start: 1;
+    }
+    .span-all {
+      grid-column: 1 / -1;
     }
     .uui-h3 {
       font-size: var(--uui-type-h3-size, 30px);
@@ -1884,6 +1970,15 @@ b([
 ], m.prototype, "_blueprints", 2);
 b([
   y()
+], m.prototype, "_aiModels", 2);
+b([
+  y()
+], m.prototype, "_aiModelsLoading", 2);
+b([
+  y()
+], m.prototype, "_aiModelsError", 2);
+b([
+  y()
 ], m.prototype, "_expandedFields", 2);
 b([
   y()
@@ -1911,4 +2006,4 @@ export {
   m as DisciplineSettingsWorkspaceElement,
   Z as default
 };
-//# sourceMappingURL=discipline-settings.workspace.element-DJbZXr6K.js.map
+//# sourceMappingURL=discipline-settings.workspace.element-DegiXnpD.js.map

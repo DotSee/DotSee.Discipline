@@ -169,7 +169,10 @@ const e = {
     apiKey: "API key *",
     apiKeyHelp: "Secret key issued by the selected LLM provider. Stored as plain text in settings — protect access to this screen accordingly.",
     model: "Model *",
-    modelHelp: "The exact model identifier to call, e.g. gpt-4o-mini or gemini-1.5-flash. Must match a model your API key is entitled to use.",
+    modelHelp: "Pick the model to call. The list is loaded from your provider using the API key above (refresh after changing the key or provider). It defaults to the lowest-tier model.",
+    modelRefresh: "Refresh",
+    modelNoKey: "Enter an API key above, then refresh to load the available models.",
+    modelEmpty: "No models were returned for this provider/key.",
     maxChars: "Max chars",
     maxCharsHelp: "Upper bound for the generated summary length in characters. The prompt asks the model to stay under this limit; set it to match the space available in your front-end.",
     propertyAlias: "Property alias *",
@@ -207,4 +210,4 @@ const e = {
 export {
   e as default
 };
-//# sourceMappingURL=en-DHIIczTu.js.map
+//# sourceMappingURL=en-OCLItuVc.js.map

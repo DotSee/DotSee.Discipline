@@ -20,6 +20,10 @@
     <key alias="aiSummaryGenerated">AI summary generated.</key>
     <key alias="aiSummaryError">The AI summary could not be generated. See the log for details.</key>
 
+    <!-- AiSummary model dropdown (DisciplineSettingsController.GetAiSummaryModels) -->
+    <key alias="aiSummaryModelsApiKeyRequired">Models could not be loaded. Please make sure you are using a valid API key for the selected LLM.</key>
+    <key alias="aiSummaryModelsLoadFailed">Models could not be loaded. Please make sure you are using a valid API key for the selected LLM.</key>
+
     <!-- NodeProtect (RuleMessageManager) -->
     <key alias="nodeProtectDefaultCategory">Node protected</key>
     <key alias="nodeProtectDefaultMessage">The node '%0%' (id %1%) is protected and cannot be deleted.</key>

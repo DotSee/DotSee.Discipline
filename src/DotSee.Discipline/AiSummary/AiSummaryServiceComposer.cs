@@ -12,6 +12,10 @@ namespace DotSee.Discipline.AiSummary
             builder.Services.AddSingleton<AiSummaryService>();
             builder.Services.AddSingleton<JsonSettingsProviderService>();
             builder.AddNotificationHandler<ContentSavingNotification, ContentSavingHandler>();
+
+            // Backs the model dropdown in the backoffice settings UI (lists active OpenAI / Gemini models).
+            builder.Services.AddHttpClient();
+            builder.Services.AddSingleton<IAiModelCatalogService, AiModelCatalogService>();
         }
     }
 }
