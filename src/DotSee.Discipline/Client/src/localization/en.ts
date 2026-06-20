@@ -8,6 +8,7 @@ export default {
     enable: 'Enable',
     disable: 'Disable',
     help: 'Help',
+    close: 'Close',
     addRule: 'Add rule',
     addRuleButton: '+ Add rule',
     rules: 'Rules',
@@ -40,6 +41,7 @@ export default {
       'No DotSee.Discipline section was found in appsettings.json. All configuration is managed from this screen.',
     manageFromBackoffice: 'Manage settings from the backoffice',
     loadFromAppsettings: 'Load from appsettings.json',
+    about: 'About',
     importConfirmContent:
       'This will replace every field in this page with the values from appsettings.json. Your current backoffice settings will be lost. Continue?',
     importConfirmLabel: 'Load from appsettings',
@@ -49,6 +51,17 @@ export default {
     importFailedToast: 'Import failed: %0%',
     saveFailedToast: 'Save failed: %0%',
     reloadHintToast: 'Changes to VariantsHider or PropertyVersions take effect after you refresh the backoffice.',
+  },
+
+  // ────────────────────────────────────────────────────────────────────
+  // About dialog
+  // ────────────────────────────────────────────────────────────────────
+  dotseeDiscipline_about: {
+    headline: 'About Discipline',
+    body: 'Discipline is a content governance package that helps teams keep content structured, consistent, and easier to manage. It provides tools and conventions that support better editorial discipline, reduce messy content practices, and make large or long-running Umbraco projects easier to maintain.',
+    createdBy: 'Discipline was created with love by',
+    company: 'DotSee Web Services',
+    companyUrl: 'https://www.dot-see.com',
   },
 
   // ────────────────────────────────────────────────────────────────────

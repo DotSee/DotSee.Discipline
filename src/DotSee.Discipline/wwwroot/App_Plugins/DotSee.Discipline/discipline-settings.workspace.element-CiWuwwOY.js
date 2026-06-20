@@ -1,14 +1,14 @@
-var T = Object.defineProperty;
-var S = (f, e, t) => e in f ? T(f, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : f[e] = t;
-var _ = (f, e, t) => S(f, typeof e != "symbol" ? e + "" : e, t);
-import { html as l, nothing as g, css as k, state as y, customElement as H } from "@umbraco-cms/backoffice/external/lit";
-import { UmbLitElement as P } from "@umbraco-cms/backoffice/lit-element";
-import { UMB_AUTH_CONTEXT as M } from "@umbraco-cms/backoffice/auth";
-import { UMB_MODAL_MANAGER_CONTEXT as C, UMB_CONFIRM_MODAL as A } from "@umbraco-cms/backoffice/modal";
+var S = Object.defineProperty;
+var k = (f, e, t) => e in f ? S(f, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : f[e] = t;
+var _ = (f, e, t) => k(f, typeof e != "symbol" ? e + "" : e, t);
+import { html as l, nothing as g, css as H, state as y, customElement as P } from "@umbraco-cms/backoffice/external/lit";
+import { UmbLitElement as A } from "@umbraco-cms/backoffice/lit-element";
+import { UMB_AUTH_CONTEXT as C } from "@umbraco-cms/backoffice/auth";
+import { UMB_MODAL_MANAGER_CONTEXT as F, UMB_CONFIRM_MODAL as M } from "@umbraco-cms/backoffice/modal";
 import { UMB_NOTIFICATION_CONTEXT as E } from "@umbraco-cms/backoffice/notification";
-import { c as B, b as I, d as L } from "./index-C-t3t4Xh.js";
+import { D as B, c as I, b as L, d as O } from "./index-BiMJv13B.js";
 const w = "/umbraco/api/discipline";
-class O {
+class V {
   constructor(e) {
     this.getToken = e;
   }
@@ -110,12 +110,12 @@ class O {
     return await e.json();
   }
 }
-var R = Object.defineProperty, V = Object.getOwnPropertyDescriptor, U = (f, e, t) => e in f ? R(f, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : f[e] = t, b = (f, e, t, a) => {
-  for (var s = a > 1 ? void 0 : a ? V(e, t) : e, o = f.length - 1, i; o >= 0; o--)
+var N = Object.defineProperty, U = Object.getOwnPropertyDescriptor, K = (f, e, t) => e in f ? N(f, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : f[e] = t, b = (f, e, t, a) => {
+  for (var s = a > 1 ? void 0 : a ? U(e, t) : e, o = f.length - 1, i; o >= 0; o--)
     (i = f[o]) && (s = (a ? i(e, t, s) : i(s)) || s);
-  return a && s && R(e, t, s), s;
-}, K = (f, e, t) => U(f, e + "", t);
-const W = [
+  return a && s && N(e, t, s), s;
+}, W = (f, e, t) => K(f, e + "", t);
+const j = [
   { alias: "autoNode", labelKey: "dotseeDiscipline_autoNode_label" },
   { alias: "nodeRestrict", labelKey: "dotseeDiscipline_nodeRestrict_label" },
   { alias: "virtualNodes", labelKey: "dotseeDiscipline_virtualNodes_label" },
@@ -124,7 +124,7 @@ const W = [
   { alias: "aiSummary", labelKey: "dotseeDiscipline_aiSummary_label" },
   { alias: "propertyVersions", labelKey: "dotseeDiscipline_propertyVersions_label" }
 ];
-function F() {
+function R() {
   return {
     useBackoffice: !1,
     autoNode: { enabled: !1, logLevel: "Normal", republishExistingNodes: !1, rules: [] },
@@ -152,13 +152,13 @@ function F() {
     }
   };
 }
-let m = class extends P {
+let m = class extends A {
   constructor() {
     super(...arguments);
     _(this, "_loading", !0);
     _(this, "_saving", !1);
     _(this, "_hasAppSettings", !1);
-    _(this, "_settings", F());
+    _(this, "_settings", R());
     _(this, "_activeTab", "autoNode");
     _(this, "_docTypes", []);
     _(this, "_trueFalseProperties", []);
@@ -198,8 +198,8 @@ let m = class extends P {
     super.disconnectedCallback(), document.removeEventListener("mousedown", this._onDocumentMouseDown);
   }
   async _init() {
-    const e = await this.getContext(M);
-    this._repository = new O(() => e.getLatestToken());
+    const e = await this.getContext(C);
+    this._repository = new V(() => e.getLatestToken());
     try {
       const [t, a, s, o, i, r] = await Promise.all([
         this._repository.getSettings(),
@@ -220,7 +220,7 @@ let m = class extends P {
     }
   }
   _applyResponse(e) {
-    this._hasAppSettings = e.hasAppSettings, this._settings = e.settings ?? F(), this._refreshSensitiveSnapshot = this._snapshotRefreshSensitive(this._settings), this.requestUpdate();
+    this._hasAppSettings = e.hasAppSettings, this._settings = e.settings ?? R(), this._refreshSensitiveSnapshot = this._snapshotRefreshSensitive(this._settings), this.requestUpdate();
   }
   _snapshotRefreshSensitive(e) {
     return JSON.stringify({ variantsHider: e.variantsHider, propertyVersions: e.propertyVersions });
@@ -274,9 +274,9 @@ let m = class extends P {
   }
   async _onImportClick() {
     if (!this._hasAppSettings || !this._repository) return;
-    const e = await this.getContext(C);
+    const e = await this.getContext(F);
     if (!e) return;
-    const t = e.open(this, A, {
+    const t = e.open(this, M, {
       data: {
         headline: this.localize.term("dotseeDiscipline_settings_loadFromAppsettings"),
         content: this.localize.term("dotseeDiscipline_settings_importConfirmContent"),
@@ -348,7 +348,7 @@ let m = class extends P {
         ${this._renderSourceBanner()}
         ${a ? l`
               <div class="tab-bar">
-                ${W.map((s) => {
+                ${j.map((s) => {
       var r;
       const o = !!((r = this._settings[s.alias]) != null && r.enabled), i = [
         "tab-button",
@@ -392,22 +392,43 @@ let m = class extends P {
             label-position="right"
             @change=${this._onMasterToggleChange}
           ></uui-toggle>
-          ${this._settings.useBackoffice ? l`
-                <uui-button
-                  look="primary"
-                  color="positive"
-                  label=${this.localize.term("dotseeDiscipline_settings_loadFromAppsettings")}
-                  ?disabled=${this._saving}
-                  @click=${this._onImportClick}
-                ></uui-button>
-              ` : g}
+          <div class="banner-actions">
+            ${this._settings.useBackoffice ? l`
+                  <uui-button
+                    look="primary"
+                    color="positive"
+                    label=${this.localize.term("dotseeDiscipline_settings_loadFromAppsettings")}
+                    ?disabled=${this._saving}
+                    @click=${this._onImportClick}
+                  ></uui-button>
+                ` : g}
+            ${this._renderAboutButton()}
+          </div>
         </div>
       </uui-box>
     ` : l`
         <uui-box headline=${e}>
-          <p>${this.localize.term("dotseeDiscipline_settings_noAppsettingsFound")}</p>
+          <div class="banner-row">
+            <p>${this.localize.term("dotseeDiscipline_settings_noAppsettingsFound")}</p>
+            <div class="banner-actions">${this._renderAboutButton()}</div>
+          </div>
         </uui-box>
       `;
+  }
+  _renderAboutButton() {
+    return l`
+      <uui-button
+        look="secondary"
+        label=${this.localize.term("dotseeDiscipline_settings_about")}
+        @click=${() => this._onAboutClick()}
+      >
+        ${this.localize.term("dotseeDiscipline_settings_about")}
+      </uui-button>
+    `;
+  }
+  async _onAboutClick() {
+    const e = await this.getContext(F);
+    e == null || e.open(this, B);
   }
   _renderEnableButton(e, t, a) {
     return l`
@@ -771,7 +792,7 @@ let m = class extends P {
           look="secondary"
           label=${this.localize.term("dotseeDiscipline_common_addRule")}
           ?disabled=${e || !t.enabled}
-          @click=${() => a({ rules: [...t.rules, B()] })}
+          @click=${() => a({ rules: [...t.rules, I()] })}
         >${this.localize.term("dotseeDiscipline_common_addRuleButton")}</uui-button>
         ` : g}
       </uui-box>
@@ -820,7 +841,7 @@ let m = class extends P {
         ${t.rules.length === 0 ? l`<p class="empty">${this.localize.term("dotseeDiscipline_common_noRulesDefined")}</p>` : g}
         ${t.rules.map((o, i) => {
       const r = !o.childDocType || o.childDocType === "*" ? this.localize.term("dotseeDiscipline_common_anyDoctypeLowercase") : o.childDocType, u = o.parentDocType ? `(${o.parentDocType} → ${r})` : "", c = this.localize.term("dotseeDiscipline_common_ruleNumber", i + 1), v = u ? `${c} ${u}` : c, d = this.localize.term("dotseeDiscipline_nodeRestrict_ruleDetailMax", o.maxNodes ?? 0), $ = () => {
-        this._removeRuleAndReindex("nodeRestrict", i), a({ rules: t.rules.filter((h, N) => N !== i) });
+        this._removeRuleAndReindex("nodeRestrict", i), a({ rules: t.rules.filter((h, T) => T !== i) });
       }, z = this._isRuleCollapsed("nodeRestrict", i) ? this._renderCollapsedRule("nodeRestrict", i, v, d, e || !t.enabled, $) : l`
                 <uui-box class="rule-card">
                   ${this._renderRuleHeader("nodeRestrict", i, e || !t.enabled, $, u || void 0)}
@@ -943,7 +964,7 @@ let m = class extends P {
           look="secondary"
           label=${this.localize.term("dotseeDiscipline_common_addRule")}
           ?disabled=${e || !t.enabled}
-          @click=${() => a({ rules: [...t.rules, I()] })}
+          @click=${() => a({ rules: [...t.rules, L()] })}
         >${this.localize.term("dotseeDiscipline_common_addRuleButton")}</uui-button>
         ` : g}
       </uui-box>
@@ -1119,7 +1140,7 @@ let m = class extends P {
           look="secondary"
           label=${this.localize.term("dotseeDiscipline_common_addRule")}
           ?disabled=${e || !t.enabled}
-          @click=${() => a({ rules: [...t.rules, L()] })}
+          @click=${() => a({ rules: [...t.rules, O()] })}
         >${this.localize.term("dotseeDiscipline_common_addRuleButton")}</uui-button>
         ` : g}
       </uui-box>
@@ -1543,7 +1564,7 @@ let m = class extends P {
     `;
   }
 };
-K(m, "styles", k`
+W(m, "styles", H`
     :host {
       display: block;
       height: 100%;
@@ -1563,6 +1584,11 @@ K(m, "styles", k`
       align-items: center;
       gap: var(--uui-size-space-4, 16px);
       justify-content: space-between;
+    }
+    .banner-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--uui-size-space-3, 12px);
     }
     .toggle-label {
       display: flex;
@@ -1999,11 +2025,11 @@ b([
   y()
 ], m.prototype, "_dragFeature", 2);
 m = b([
-  H("dotsee-discipline-settings-workspace")
+  P("dotsee-discipline-settings-workspace")
 ], m);
-const Z = m;
+const ee = m;
 export {
   m as DisciplineSettingsWorkspaceElement,
-  Z as default
+  ee as default
 };
-//# sourceMappingURL=discipline-settings.workspace.element-DEbWzHjY.js.map
+//# sourceMappingURL=discipline-settings.workspace.element-CiWuwwOY.js.map

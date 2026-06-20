@@ -1,8 +1,9 @@
 var V = Object.defineProperty;
 var C = (i, e, t) => e in i ? V(i, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : i[e] = t;
 var c = (i, e, t) => C(i, typeof e != "symbol" ? e + "" : e, t);
-import { UMB_AUTH_CONTEXT as A } from "@umbraco-cms/backoffice/auth";
-function I(i) {
+import { UMB_AUTH_CONTEXT as D } from "@umbraco-cms/backoffice/auth";
+import { UmbModalToken as I } from "@umbraco-cms/backoffice/modal";
+function _(i) {
   const e = i && i.length > 0 ? i : "#dotseeDiscipline_variantsHider_toggle";
   return {
     type: "entityAction",
@@ -10,7 +11,7 @@ function I(i) {
     alias: "DotSee.Discipline.VariantsHider.ToggleAction",
     name: "Toggle Unset Variants Display",
     weight: 100,
-    api: () => import("./toggle-variants.action-DMRz7hOn.js"),
+    api: () => import("./toggle-variants.action-C3NFBgbJ.js"),
     forEntityTypes: ["document-root"],
     meta: {
       icon: "icon-axis-rotation",
@@ -24,23 +25,23 @@ function I(i) {
     ]
   };
 }
-const S = [
+const y = [
   "Umb.PropertyEditorUi.TextBox",
   "Umb.PropertyEditorUi.TextArea",
   "Umb.PropertyEditorUi.Tiptap"
-], D = "#dotseeDiscipline_propertyVersions_previousVersion", _ = "#dotseeDiscipline_propertyVersions_nextVersion";
-function w(i) {
+], w = "#dotseeDiscipline_propertyVersions_previousVersion", U = "#dotseeDiscipline_propertyVersions_nextVersion";
+function M(i) {
   return [
     {
       type: "propertyAction",
       alias: "DotSee.Discipline.PropertyVersions.PrevVersion",
       name: "Previous Version",
-      api: () => import("./prev-version.action-CUhtnrMw.js"),
+      api: () => import("./prev-version.action-DDmj22wn.js"),
       element: () => import("./version-action.element-DAiNSxFv.js"),
-      forPropertyEditorUis: S,
+      forPropertyEditorUis: y,
       meta: {
         icon: "icon-arrow-left",
-        label: i.previousVersionCaption ?? D
+        label: i.previousVersionCaption ?? w
       }
     },
     {
@@ -49,24 +50,24 @@ function w(i) {
       name: "Next Version",
       api: () => import("./next-version.action-DJq-VoNF.js"),
       element: () => import("./version-action.element-DAiNSxFv.js"),
-      forPropertyEditorUis: S,
+      forPropertyEditorUis: y,
       meta: {
         icon: "icon-arrow-right",
-        label: i.nextVersionCaption ?? _
+        label: i.nextVersionCaption ?? U
       }
     }
   ];
 }
-const U = {
+const N = {
   type: "localization",
   alias: "DotSee.Discipline.Localization.En",
   name: "DotSee Discipline Localization (English)",
   meta: {
     culture: "en"
   },
-  js: () => import("./en-OCLItuVc.js")
-}, N = [U];
-class v {
+  js: () => import("./en-B-UGgs1P.js")
+}, v = [N];
+class L {
   constructor() {
     c(this, "isHidden", !1);
     c(this, "rafId", null);
@@ -159,8 +160,8 @@ class v {
   processShadowRoots(e, t) {
     let s = 0;
     return e.querySelectorAll("*").forEach((o) => {
-      o.shadowRoot && (o.shadowRoot.querySelectorAll(this.TREE_ITEM_SELECTORS).forEach((r) => {
-        this.processTreeItem(r, t) && s++;
+      o.shadowRoot && (o.shadowRoot.querySelectorAll(this.TREE_ITEM_SELECTORS).forEach((a) => {
+        this.processTreeItem(a, t) && s++;
       }), s += this.processShadowRoots(o.shadowRoot, t));
     }), s;
   }
@@ -177,7 +178,7 @@ class v {
     return !1;
   }
   getTreeItemName(e) {
-    var o, l, r, m, y;
+    var o, l, a, m, S;
     const t = e.getAttribute("label") || e.getAttribute("name");
     if (t) return t.trim();
     const s = [
@@ -192,22 +193,22 @@ class v {
       'span:not([slot="icon"])'
     ];
     for (const p of s) {
-      const a = e.querySelector(p);
-      if ((o = a == null ? void 0 : a.textContent) != null && o.trim())
-        return a.textContent.trim();
+      const r = e.querySelector(p);
+      if ((o = r == null ? void 0 : r.textContent) != null && o.trim())
+        return r.textContent.trim();
     }
     if (e.shadowRoot) {
-      for (const a of s) {
-        const u = e.shadowRoot.querySelector(a);
+      for (const r of s) {
+        const u = e.shadowRoot.querySelector(r);
         if ((l = u == null ? void 0 : u.textContent) != null && l.trim())
           return u.textContent.trim();
       }
-      const p = (r = e.shadowRoot.textContent) == null ? void 0 : r.trim();
+      const p = (a = e.shadowRoot.textContent) == null ? void 0 : a.trim();
       if (p) return p;
     }
     const n = (m = e.textContent) == null ? void 0 : m.trim();
-    return n ? ((y = n.split(`
-`)[0]) == null ? void 0 : y.trim()) || n : "";
+    return n ? ((S = n.split(`
+`)[0]) == null ? void 0 : S.trim()) || n : "";
   }
   isUnsetVariant(e) {
     const t = e.trim();
@@ -218,10 +219,10 @@ class v {
   }
 }
 let d = null;
-function M() {
-  return d || (d = new v()), d;
+function R() {
+  return d || (d = new L()), d;
 }
-function F() {
+function q() {
   return d;
 }
 const h = {
@@ -233,7 +234,7 @@ const h = {
   previousVersionCaption: null,
   noVersionsCaption: null
 };
-async function R(i) {
+async function x(i) {
   try {
     const e = document.documentElement.lang || "", t = e ? `/umbraco/api/propertyversions/settings?culture=${encodeURIComponent(e)}` : "/umbraco/api/propertyversions/settings", s = await fetch(t, {
       method: "GET",
@@ -255,7 +256,7 @@ async function R(i) {
     return b;
   }
 }
-async function x() {
+async function P() {
   try {
     const i = await fetch("/umbraco/api/variantshider/settings", {
       method: "GET",
@@ -278,14 +279,14 @@ async function x() {
 }
 const E = "#dotseeDiscipline_propertyVersions_noPreviousVersions";
 let T = E;
-function L(i) {
+function H(i) {
   T = i && i.length > 0 ? i : E;
 }
-function G() {
+function Y() {
   return T;
 }
 const g = "dotsee-discipline-settings";
-function q() {
+function K() {
   return {
     createdDocTypeAlias: "",
     docTypeAliasToCreate: "",
@@ -298,7 +299,7 @@ function q() {
     blueprint: ""
   };
 }
-function O() {
+function $() {
   return {
     parentDocType: "",
     childDocType: "*",
@@ -310,7 +311,7 @@ function O() {
     customWarningMessageCategory: ""
   };
 }
-function Y() {
+function X() {
   return {
     docTypeAlias: "",
     documentGuids: "",
@@ -318,15 +319,23 @@ function Y() {
     customMessageCategory: ""
   };
 }
-const P = "DotSee.Discipline.Settings.Workspace", f = "DotSee.Discipline.Settings.Menu", H = "DotSee.Discipline.Settings.SidebarApp", W = "DotSee.Discipline.Settings.MenuItem", k = [
+const k = "DotSee.Discipline.Settings.Workspace", f = "DotSee.Discipline.Settings.Menu", z = "DotSee.Discipline.Settings.SidebarApp", W = "DotSee.Discipline.Settings.MenuItem", A = "DotSee.Discipline.AboutModal", J = new I(A, {
+  modal: { type: "dialog", size: "small" }
+}), O = [
   {
     type: "workspace",
-    alias: P,
+    alias: k,
     name: "DotSee Discipline Settings Workspace",
-    element: () => import("./discipline-settings.workspace.element-DEbWzHjY.js"),
+    element: () => import("./discipline-settings.workspace.element-CiWuwwOY.js"),
     meta: {
       entityType: g
     }
+  },
+  {
+    type: "modal",
+    alias: A,
+    name: "DotSee Discipline About Modal",
+    element: () => import("./discipline-about-modal.element-B3gGJCql.js")
   },
   {
     type: "menu",
@@ -351,7 +360,7 @@ const P = "DotSee.Discipline.Settings.Workspace", f = "DotSee.Discipline.Setting
   {
     // Custom element (not kind: 'menu') so no group headline is rendered — just the menu link.
     type: "sectionSidebarApp",
-    alias: H,
+    alias: z,
     name: "DotSee Discipline Sidebar App",
     weight: 50,
     element: () => import("./discipline-sidebar-app.element-DpKXH40p.js"),
@@ -366,7 +375,7 @@ const P = "DotSee.Discipline.Settings.Workspace", f = "DotSee.Discipline.Setting
     ]
   }
 ];
-async function z(i) {
+async function B(i) {
   try {
     const e = await fetch("/umbraco/api/discipline/settings", {
       method: "GET",
@@ -382,34 +391,35 @@ async function z(i) {
     return { uiEnabled: !0 };
   }
 }
-const K = async (i, e) => {
-  e.registerMany(N);
-  const s = await (await i.getContext(A)).getLatestToken(), [n, o, l] = await Promise.all([
-    R(s),
-    x(),
-    z(s)
+const Q = async (i, e) => {
+  e.registerMany(v);
+  const s = await (await i.getContext(D)).getLatestToken(), [n, o, l] = await Promise.all([
+    x(s),
+    P(),
+    B(s)
   ]);
-  if (l.uiEnabled && e.registerMany(k), n.enabled) {
-    L(n.noVersionsCaption);
-    const r = w({
+  if (l.uiEnabled && e.registerMany(O), n.enabled) {
+    H(n.noVersionsCaption);
+    const a = M({
       nextVersionCaption: n.nextVersionCaption,
       previousVersionCaption: n.previousVersionCaption,
       noVersionsCaption: n.noVersionsCaption
     });
-    e.registerMany(r);
+    e.registerMany(a);
   }
   if (o.enabled) {
-    const r = I(o.caption);
-    e.registerMany([r]), M().initializeWithSettings(o);
+    const a = _(o.caption);
+    e.registerMany([a]), R().initializeWithSettings(o);
   }
 };
 export {
-  v as V,
-  G as a,
-  O as b,
-  q as c,
-  Y as d,
-  F as g,
-  K as o
+  J as D,
+  L as V,
+  Y as a,
+  $ as b,
+  K as c,
+  X as d,
+  q as g,
+  Q as o
 };
-//# sourceMappingURL=index-C-t3t4Xh.js.map
+//# sourceMappingURL=index-BiMJv13B.js.map

@@ -14,6 +14,7 @@ import {
   createEmptyNodeRestrictRule,
 } from './types.js';
 import { DisciplineSettingsRepository } from './settings.repository.js';
+import { DISCIPLINE_ABOUT_MODAL } from './manifests.js';
 
 type TabAlias =
   | 'autoNode'
@@ -469,7 +470,10 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     if (!this._hasAppSettings) {
       return html`
         <uui-box headline=${sourceHeadline}>
-          <p>${this.localize.term('dotseeDiscipline_settings_noAppsettingsFound')}</p>
+          <div class="banner-row">
+            <p>${this.localize.term('dotseeDiscipline_settings_noAppsettingsFound')}</p>
+            <div class="banner-actions">${this._renderAboutButton()}</div>
+          </div>
         </uui-box>
       `;
     }
@@ -483,20 +487,40 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
             label-position="right"
             @change=${this._onMasterToggleChange}
           ></uui-toggle>
-          ${this._settings.useBackoffice
-            ? html`
-                <uui-button
-                  look="primary"
-                  color="positive"
-                  label=${this.localize.term('dotseeDiscipline_settings_loadFromAppsettings')}
-                  ?disabled=${this._saving}
-                  @click=${this._onImportClick}
-                ></uui-button>
-              `
-            : nothing}
+          <div class="banner-actions">
+            ${this._settings.useBackoffice
+              ? html`
+                  <uui-button
+                    look="primary"
+                    color="positive"
+                    label=${this.localize.term('dotseeDiscipline_settings_loadFromAppsettings')}
+                    ?disabled=${this._saving}
+                    @click=${this._onImportClick}
+                  ></uui-button>
+                `
+              : nothing}
+            ${this._renderAboutButton()}
+          </div>
         </div>
       </uui-box>
     `;
+  }
+
+  private _renderAboutButton() {
+    return html`
+      <uui-button
+        look="secondary"
+        label=${this.localize.term('dotseeDiscipline_settings_about')}
+        @click=${() => this._onAboutClick()}
+      >
+        ${this.localize.term('dotseeDiscipline_settings_about')}
+      </uui-button>
+    `;
+  }
+
+  private async _onAboutClick() {
+    const modalManager = await this.getContext(UMB_MODAL_MANAGER_CONTEXT);
+    modalManager?.open(this, DISCIPLINE_ABOUT_MODAL);
   }
 
   private _renderEnableButton(
@@ -1993,6 +2017,11 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
       align-items: center;
       gap: var(--uui-size-space-4, 16px);
       justify-content: space-between;
+    }
+    .banner-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--uui-size-space-3, 12px);
     }
     .toggle-label {
       display: flex;

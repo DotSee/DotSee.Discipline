@@ -1,9 +1,16 @@
+import { UmbModalToken } from '@umbraco-cms/backoffice/modal';
 import { DISCIPLINE_SETTINGS_ENTITY_TYPE } from './types.js';
 
 const WORKSPACE_ALIAS = 'DotSee.Discipline.Settings.Workspace';
 const MENU_ALIAS = 'DotSee.Discipline.Settings.Menu';
 const SIDEBAR_APP_ALIAS = 'DotSee.Discipline.Settings.SidebarApp';
 const MENU_ITEM_ALIAS = 'DotSee.Discipline.Settings.MenuItem';
+const ABOUT_MODAL_ALIAS = 'DotSee.Discipline.AboutModal';
+
+// Token used to open the About dialog from the settings workspace.
+export const DISCIPLINE_ABOUT_MODAL = new UmbModalToken(ABOUT_MODAL_ALIAS, {
+  modal: { type: 'dialog', size: 'small' },
+});
 
 export const disciplineSettingsManifests: Array<UmbExtensionManifest> = [
   {
@@ -14,6 +21,12 @@ export const disciplineSettingsManifests: Array<UmbExtensionManifest> = [
     meta: {
       entityType: DISCIPLINE_SETTINGS_ENTITY_TYPE,
     },
+  },
+  {
+    type: 'modal',
+    alias: ABOUT_MODAL_ALIAS,
+    name: 'DotSee Discipline About Modal',
+    element: () => import('./discipline-about-modal.element.js'),
   },
   {
     type: 'menu',
