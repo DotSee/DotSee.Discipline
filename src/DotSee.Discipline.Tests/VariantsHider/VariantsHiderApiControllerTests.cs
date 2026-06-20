@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
+using DotSee.Discipline.Backoffice;
 using DotSee.Discipline.VariantsHider.ApiControllers;
+using Moq;
 using NUnit.Framework;
 
 namespace DotSee.Discipline.Tests.VariantsHider
@@ -8,11 +9,11 @@ namespace DotSee.Discipline.Tests.VariantsHider
     [TestFixture]
     public class VariantsHiderApiControllerTests
     {
-        private IConfiguration BuildConfiguration(Dictionary<string, string> settings)
+        private static VariantsHiderApiController BuildController(VariantsHiderFeatureSettings feature)
         {
-            return new ConfigurationBuilder()
-                .AddInMemoryCollection(settings)
-                .Build();
+            var resolver = new Mock<IDisciplineSettingsResolver>();
+            resolver.Setup(r => r.GetVariantsHider()).Returns(feature);
+            return new VariantsHiderApiController(resolver.Object);
         }
 
         #region GetSettings - Enabled Tests
@@ -20,12 +21,11 @@ namespace DotSee.Discipline.Tests.VariantsHider
         [Test]
         public void GetSettings_WhenEnabledIsTrue_ReturnsEnabledTrue()
         {
-            var config = BuildConfiguration(new Dictionary<string, string>
+            var controller = BuildController(new VariantsHiderFeatureSettings
             {
-                { "DotSee.Discipline:VariantsHider:Enabled", "true" },
-                { "DotSee.Discipline:VariantsHider:Caption", "My Caption" }
+                Enabled = true,
+                Caption = "My Caption"
             });
-            var controller = new VariantsHiderApiController(config);
 
             var result = controller.GetSettings() as OkObjectResult;
             var response = result?.Value as VariantsHiderSettingsResponse;
@@ -37,126 +37,15 @@ namespace DotSee.Discipline.Tests.VariantsHider
         [Test]
         public void GetSettings_WhenEnabledIsFalse_ReturnsEnabledFalse()
         {
-            var config = BuildConfiguration(new Dictionary<string, string>
+            var controller = BuildController(new VariantsHiderFeatureSettings
             {
-                { "DotSee.Discipline:VariantsHider:Enabled", "false" }
+                Enabled = false
             });
-            var controller = new VariantsHiderApiController(config);
 
             var result = controller.GetSettings() as OkObjectResult;
             var response = result?.Value as VariantsHiderSettingsResponse;
 
             Assert.That(response, Is.Not.Null);
-            Assert.That(response.Enabled, Is.False);
-        }
-
-        [Test]
-        public void GetSettings_WhenEnabledIsTrueUpperCase_ReturnsEnabledTrue()
-        {
-            var config = BuildConfiguration(new Dictionary<string, string>
-            {
-                { "DotSee.Discipline:VariantsHider:Enabled", "TRUE" }
-            });
-            var controller = new VariantsHiderApiController(config);
-
-            var result = controller.GetSettings() as OkObjectResult;
-            var response = result?.Value as VariantsHiderSettingsResponse;
-
-            Assert.That(response, Is.Not.Null);
-            Assert.That(response.Enabled, Is.True);
-        }
-
-        [Test]
-        public void GetSettings_WhenEnabledIsMixedCase_ReturnsEnabledTrue()
-        {
-            var config = BuildConfiguration(new Dictionary<string, string>
-            {
-                { "DotSee.Discipline:VariantsHider:Enabled", "True" }
-            });
-            var controller = new VariantsHiderApiController(config);
-
-            var result = controller.GetSettings() as OkObjectResult;
-            var response = result?.Value as VariantsHiderSettingsResponse;
-
-            Assert.That(response, Is.Not.Null);
-            Assert.That(response.Enabled, Is.True);
-        }
-
-        [Test]
-        public void GetSettings_WhenEnabledIsEmpty_ReturnsEnabledFalse()
-        {
-            var config = BuildConfiguration(new Dictionary<string, string>
-            {
-                { "DotSee.Discipline:VariantsHider:Enabled", "" }
-            });
-            var controller = new VariantsHiderApiController(config);
-
-            var result = controller.GetSettings() as OkObjectResult;
-            var response = result?.Value as VariantsHiderSettingsResponse;
-
-            Assert.That(response, Is.Not.Null);
-            Assert.That(response.Enabled, Is.False);
-        }
-
-        [Test]
-        public void GetSettings_WhenEnabledKeyIsMissing_ReturnsEnabledFalse()
-        {
-            var config = BuildConfiguration(new Dictionary<string, string>());
-            var controller = new VariantsHiderApiController(config);
-
-            var result = controller.GetSettings() as OkObjectResult;
-            var response = result?.Value as VariantsHiderSettingsResponse;
-
-            Assert.That(response, Is.Not.Null);
-            Assert.That(response.Enabled, Is.False);
-        }
-
-        [Test]
-        public void GetSettings_WhenEnabledIsRandomString_ReturnsEnabledFalse()
-        {
-            var config = BuildConfiguration(new Dictionary<string, string>
-            {
-                { "DotSee.Discipline:VariantsHider:Enabled", "yes" }
-            });
-            var controller = new VariantsHiderApiController(config);
-
-            var result = controller.GetSettings() as OkObjectResult;
-            var response = result?.Value as VariantsHiderSettingsResponse;
-
-            Assert.That(response, Is.Not.Null);
-            Assert.That(response.Enabled, Is.False);
-        }
-
-        [Test]
-        public void GetSettings_WhenEnabledIs1_ReturnsEnabledFalse()
-        {
-            var config = BuildConfiguration(new Dictionary<string, string>
-            {
-                { "DotSee.Discipline:VariantsHider:Enabled", "1" }
-            });
-            var controller = new VariantsHiderApiController(config);
-
-            var result = controller.GetSettings() as OkObjectResult;
-            var response = result?.Value as VariantsHiderSettingsResponse;
-
-            Assert.That(response, Is.Not.Null);
-            Assert.That(response.Enabled, Is.False);
-        }
-
-        [Test]
-        public void GetSettings_WhenEnabledHasWhitespace_ReturnsEnabledFalse()
-        {
-            var config = BuildConfiguration(new Dictionary<string, string>
-            {
-                { "DotSee.Discipline:VariantsHider:Enabled", "  true  " }
-            });
-            var controller = new VariantsHiderApiController(config);
-
-            var result = controller.GetSettings() as OkObjectResult;
-            var response = result?.Value as VariantsHiderSettingsResponse;
-
-            Assert.That(response, Is.Not.Null);
-            // "  true  " with leading/trailing spaces should not equal "true" with OrdinalIgnoreCase
             Assert.That(response.Enabled, Is.False);
         }
 
@@ -167,12 +56,11 @@ namespace DotSee.Discipline.Tests.VariantsHider
         [Test]
         public void GetSettings_WhenCaptionIsSet_ReturnsCaptionValue()
         {
-            var config = BuildConfiguration(new Dictionary<string, string>
+            var controller = BuildController(new VariantsHiderFeatureSettings
             {
-                { "DotSee.Discipline:VariantsHider:Enabled", "true" },
-                { "DotSee.Discipline:VariantsHider:Caption", "Custom Toggle Text" }
+                Enabled = true,
+                Caption = "Custom Toggle Text"
             });
-            var controller = new VariantsHiderApiController(config);
 
             var result = controller.GetSettings() as OkObjectResult;
             var response = result?.Value as VariantsHiderSettingsResponse;
@@ -184,11 +72,11 @@ namespace DotSee.Discipline.Tests.VariantsHider
         [Test]
         public void GetSettings_WhenCaptionIsMissing_ReturnsDefaultCaption()
         {
-            var config = BuildConfiguration(new Dictionary<string, string>
+            var controller = BuildController(new VariantsHiderFeatureSettings
             {
-                { "DotSee.Discipline:VariantsHider:Enabled", "true" }
+                Enabled = true,
+                Caption = string.Empty
             });
-            var controller = new VariantsHiderApiController(config);
 
             var result = controller.GetSettings() as OkObjectResult;
             var response = result?.Value as VariantsHiderSettingsResponse;
@@ -200,12 +88,11 @@ namespace DotSee.Discipline.Tests.VariantsHider
         [Test]
         public void GetSettings_WhenCaptionIsEmpty_ReturnsDefaultCaption()
         {
-            var config = BuildConfiguration(new Dictionary<string, string>
+            var controller = BuildController(new VariantsHiderFeatureSettings
             {
-                { "DotSee.Discipline:VariantsHider:Enabled", "true" },
-                { "DotSee.Discipline:VariantsHider:Caption", "" }
+                Enabled = true,
+                Caption = string.Empty
             });
-            var controller = new VariantsHiderApiController(config);
 
             var result = controller.GetSettings() as OkObjectResult;
             var response = result?.Value as VariantsHiderSettingsResponse;
@@ -217,12 +104,11 @@ namespace DotSee.Discipline.Tests.VariantsHider
         [Test]
         public void GetSettings_WhenCaptionContainsSpecialCharacters_ReturnsExactCaption()
         {
-            var config = BuildConfiguration(new Dictionary<string, string>
+            var controller = BuildController(new VariantsHiderFeatureSettings
             {
-                { "DotSee.Discipline:VariantsHider:Enabled", "true" },
-                { "DotSee.Discipline:VariantsHider:Caption", "Εναλλαγή εμφάνισης <variants> & \"more\"" }
+                Enabled = true,
+                Caption = "Εναλλαγή εμφάνισης <variants> & \"more\""
             });
-            var controller = new VariantsHiderApiController(config);
 
             var result = controller.GetSettings() as OkObjectResult;
             var response = result?.Value as VariantsHiderSettingsResponse;
@@ -234,12 +120,11 @@ namespace DotSee.Discipline.Tests.VariantsHider
         [Test]
         public void GetSettings_WhenCaptionIsWhitespaceOnly_ReturnsWhitespace()
         {
-            var config = BuildConfiguration(new Dictionary<string, string>
+            var controller = BuildController(new VariantsHiderFeatureSettings
             {
-                { "DotSee.Discipline:VariantsHider:Enabled", "true" },
-                { "DotSee.Discipline:VariantsHider:Caption", "   " }
+                Enabled = true,
+                Caption = "   "
             });
-            var controller = new VariantsHiderApiController(config);
 
             var result = controller.GetSettings() as OkObjectResult;
             var response = result?.Value as VariantsHiderSettingsResponse;
@@ -251,13 +136,12 @@ namespace DotSee.Discipline.Tests.VariantsHider
 
         #endregion
 
-        #region GetSettings - Entire Section Missing Tests
+        #region GetSettings - Defaults Tests
 
         [Test]
-        public void GetSettings_WhenEntireSectionMissing_ReturnsDisabledWithDefaultCaption()
+        public void GetSettings_WhenFeatureSettingsAreDefault_ReturnsDisabledWithDefaultCaption()
         {
-            var config = BuildConfiguration(new Dictionary<string, string>());
-            var controller = new VariantsHiderApiController(config);
+            var controller = BuildController(new VariantsHiderFeatureSettings());
 
             var result = controller.GetSettings() as OkObjectResult;
             var response = result?.Value as VariantsHiderSettingsResponse;
@@ -268,13 +152,13 @@ namespace DotSee.Discipline.Tests.VariantsHider
         }
 
         [Test]
-        public void GetSettings_WhenOnlyCaptionPresent_ReturnsDisabledWithCustomCaption()
+        public void GetSettings_WhenDisabledButCaptionPresent_ReturnsDisabledWithCustomCaption()
         {
-            var config = BuildConfiguration(new Dictionary<string, string>
+            var controller = BuildController(new VariantsHiderFeatureSettings
             {
-                { "DotSee.Discipline:VariantsHider:Caption", "My Custom Caption" }
+                Enabled = false,
+                Caption = "My Custom Caption"
             });
-            var controller = new VariantsHiderApiController(config);
 
             var result = controller.GetSettings() as OkObjectResult;
             var response = result?.Value as VariantsHiderSettingsResponse;
@@ -291,8 +175,7 @@ namespace DotSee.Discipline.Tests.VariantsHider
         [Test]
         public void GetSettings_ReturnsOkResult()
         {
-            var config = BuildConfiguration(new Dictionary<string, string>());
-            var controller = new VariantsHiderApiController(config);
+            var controller = BuildController(new VariantsHiderFeatureSettings());
 
             var result = controller.GetSettings();
 
@@ -302,8 +185,7 @@ namespace DotSee.Discipline.Tests.VariantsHider
         [Test]
         public void GetSettings_ReturnsCorrectResponseType()
         {
-            var config = BuildConfiguration(new Dictionary<string, string>());
-            var controller = new VariantsHiderApiController(config);
+            var controller = BuildController(new VariantsHiderFeatureSettings());
 
             var result = controller.GetSettings() as OkObjectResult;
 

@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using DotSee.Discipline.AutoNode;
+using DotSee.Discipline.Backoffice;
 using DotSee.Discipline.Interfaces;
 using Moq;
 using Serilog;
@@ -24,6 +25,7 @@ namespace DotSee.Discipline.Tests.AutoNode
         private Mock<Serilog.ILogger> _loggerMock;
         private Mock<IRuleProviderService<IEnumerable<Rule>>> _ruleProviderMock;
         private Mock<ISqlContext> _sqlContextMock;
+        private Mock<IDisciplineSettingsResolver> _settingsResolverMock;
         private AutoNodeUtils _autoNodeUtils;
         private long _totalRecords;
 
@@ -35,6 +37,7 @@ namespace DotSee.Discipline.Tests.AutoNode
             _loggerMock = new Mock<Serilog.ILogger>();
             _ruleProviderMock = new Mock<IRuleProviderService<IEnumerable<Rule>>>();
             _sqlContextMock = new Mock<ISqlContext>();
+            _settingsResolverMock = new Mock<IDisciplineSettingsResolver>();
             var langMock = new Mock<ILanguageService>();
             var dictMock = new Mock<IDictionaryItemService>();
             _autoNodeUtils = new AutoNodeUtils(_loggerMock.Object, langMock.Object, dictMock.Object);
@@ -79,7 +82,8 @@ namespace DotSee.Discipline.Tests.AutoNode
                 _loggerMock.Object,
                 _ruleProviderMock.Object,
                 _sqlContextMock.Object,
-                _autoNodeUtils);
+                _autoNodeUtils,
+                _settingsResolverMock.Object);
         }
 
         [Test]
@@ -103,7 +107,8 @@ namespace DotSee.Discipline.Tests.AutoNode
                 _loggerMock.Object,
                 _ruleProviderMock.Object,
                 _sqlContextMock.Object,
-                _autoNodeUtils);
+                _autoNodeUtils,
+                _settingsResolverMock.Object);
             var node = CreateMockNode(1, "HomePage");
 
             var result = sut.Run(node);
@@ -144,30 +149,6 @@ namespace DotSee.Discipline.Tests.AutoNode
 
             Assert.That(result, Is.False);
             _contentServiceMock.Verify(x => x.Create(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>()), Times.Never);
-        }
-
-        [Test]
-        public void RegisterRule_AddsRuleToRulesList()
-        {
-            var sut = CreateSut(new List<Rule>());
-            var rule = new Rule("HomePage", "ChildDoc", "Child");
-
-            sut.RegisterRule(rule);
-
-            Assert.That(sut.Rules, Has.Count.EqualTo(1));
-            Assert.That(sut.Rules[0], Is.SameAs(rule));
-        }
-
-        [Test]
-        public void ClearRules_RemovesAllRules()
-        {
-            var rules = new List<Rule> { new Rule("A", "B", "C") };
-            var sut = CreateSut(rules);
-            Assert.That(sut.Rules, Has.Count.EqualTo(1));
-
-            sut.ClearRules();
-
-            Assert.That(sut.Rules, Is.Empty);
         }
 
         [Test]
@@ -518,35 +499,6 @@ namespace DotSee.Discipline.Tests.AutoNode
 
             Assert.That(result, Is.True);
             _contentServiceMock.Verify(x => x.Create("ChildName", It.IsAny<Guid>(), "ChildDoc"), Times.Once);
-        }
-
-        #endregion
-
-        #region Edge Case Tests - RegisterRule / ClearRules
-
-        [Test]
-        public void RegisterRule_MultipleRules_AllAdded()
-        {
-            var sut = CreateSut(new List<Rule>());
-
-            sut.RegisterRule(new Rule("A", "B", "C"));
-            sut.RegisterRule(new Rule("D", "E", "F"));
-            sut.RegisterRule(new Rule("G", "H", "I"));
-
-            Assert.That(sut.Rules, Has.Count.EqualTo(3));
-        }
-
-        [Test]
-        public void ClearRules_ThenRegisterNew_OnlyNewRuleExists()
-        {
-            var rules = new List<Rule> { new Rule("A", "B", "C"), new Rule("D", "E", "F") };
-            var sut = CreateSut(rules);
-
-            sut.ClearRules();
-            sut.RegisterRule(new Rule("X", "Y", "Z"));
-
-            Assert.That(sut.Rules, Has.Count.EqualTo(1));
-            Assert.That(sut.Rules[0].CreatedDocTypeAlias, Is.EqualTo("X"));
         }
 
         #endregion

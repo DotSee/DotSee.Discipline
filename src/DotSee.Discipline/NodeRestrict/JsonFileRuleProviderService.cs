@@ -1,29 +1,29 @@
-﻿using DotSee.Discipline.AutoNode;
+using DotSee.Discipline.Backoffice;
 using DotSee.Discipline.Interfaces;
-using Microsoft.Extensions.Configuration;
-using Serilog;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DotSee.Discipline.NodeRestrict
 {
-    public class JsonFileRuleProviderService :ISettings<NodeRestrictSettings>, IRuleProviderService< IEnumerable<Rule>>
+    public class JsonFileRuleProviderService : ISettings<NodeRestrictSettings>, IRuleProviderService<IEnumerable<Rule>>
     {
+        private readonly IDisciplineSettingsResolver _resolver;
 
-        private NodeRestrictSettings _settings;
-        private List<Rule> _rules;
-        private readonly ILogger _logger;
-        private readonly IConfiguration _configuration;
-
-        public JsonFileRuleProviderService(ILogger logger, IConfiguration configuration)
+        public JsonFileRuleProviderService(IDisciplineSettingsResolver resolver)
         {
-            _logger = logger;
-            _configuration = configuration;
+            _resolver = resolver;
         }
 
         public NodeRestrictSettings Settings
         {
             get
             {
-                return (_settings ?? GetSettings());
+                var feature = _resolver.GetNodeRestrict();
+                return new NodeRestrictSettings
+                {
+                    PropertyAlias = feature.PropertyAlias,
+                    ShowWarnings = feature.ShowWarnings,
+                };
             }
         }
 
@@ -31,49 +31,23 @@ namespace DotSee.Discipline.NodeRestrict
         {
             get
             {
-                return (_rules == null || !_rules.Any()) ? GetRules() : _rules;
+                var feature = _resolver.GetNodeRestrict();
+                return feature.Rules.Select(r => new Rule
+                {
+                    ParentDocType = r.ParentDocType,
+                    ChildDocType = r.ChildDocType,
+                    MaxNodes = r.MaxNodes,
+                    ShowWarnings = r.ShowWarnings,
+                    CustomMessage = r.CustomMessage,
+                    CustomMessageCategory = r.CustomMessageCategory,
+                    CustomWarningMessage = r.CustomWarningMessage,
+                    CustomWarningMessageCategory = r.CustomWarningMessageCategory,
+                }).ToList();
             }
         }
-
 
         public void ReloadData()
         {
-            _settings = null;
-            _rules = null;
-        }
-
-        private NodeRestrictSettings GetSettings()
-        {
-            NodeRestrictSettings r = new();
-
-            try
-            {
-                _configuration.GetSection("DotSee.Discipline:NodeRestrict:Settings").Bind(r);
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, MessageConstants.ErrorLoadConfig);
-                return null;
-            }
-            return r;
-        }
-        private List<Rule> GetRules()
-        {
-            List<Rule> r = new();
-
-            try
-            {
-                _configuration.GetSection("DotSee.Discipline:NodeRestrict:Rules").Bind(r);
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, MessageConstants.ErrorLoadConfig);
-                return null;
-            }
-
-            _logger.Information(string.Format(MessageConstants.InfoLoadConfigComplete, r.Count));
-
-            return r;
         }
     }
 }

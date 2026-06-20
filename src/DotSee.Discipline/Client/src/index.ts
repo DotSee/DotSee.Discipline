@@ -6,21 +6,33 @@ import { manifests as localizationManifests } from './localization/manifest.js';
 import { initializeVariantsHiderService, getVariantsHiderService } from './services/service-instance.js';
 import { fetchVariantsHiderSettings, fetchPropertyVersionsSettings } from './services/settings-fetcher.js';
 import { setNoVersionsCaption } from './services/pv-captions.js';
+import { disciplineSettingsManifests } from './disciplineSettings/manifests.js';
+import { fetchDisciplineUiStatus } from './disciplineSettings/ui-status.js';
 
 // Re-export for external use
 export { VariantsHiderService } from './services/variants-hider.service.js';
 export { getVariantsHiderService };
 
 export const onInit: UmbEntryPointOnInit = async (_host, extensionRegistry) => {
+  // Localization manifests are always registered so that every feature can
+  // resolve its strings, regardless of which features the host enables.
+  extensionRegistry.registerMany(localizationManifests);
+
   // Get auth token for authenticated API calls
   const authContext = await _host.getContext(UMB_AUTH_CONTEXT);
   const authToken = await authContext.getLatestToken();
 
-  // Fetch settings for both features in parallel
-  const [pvSettings, settings] = await Promise.all([
+  // Fetch settings for all features in parallel
+  const [pvSettings, settings, uiStatus] = await Promise.all([
     fetchPropertyVersionsSettings(authToken),
     fetchVariantsHiderSettings(),
+    fetchDisciplineUiStatus(authToken),
   ]);
+
+  // Register the backoffice settings UI when enabled via appsettings
+  if (uiStatus.uiEnabled) {
+    extensionRegistry.registerMany(disciplineSettingsManifests);
+  }
 
   // Register property version navigation actions if enabled
   if (pvSettings.enabled) {
@@ -37,10 +49,7 @@ export const onInit: UmbEntryPointOnInit = async (_host, extensionRegistry) => {
   if (settings.enabled) {
     const entityActionManifest = createEntityActionManifest(settings.caption);
 
-    extensionRegistry.registerMany([
-      entityActionManifest,
-      ...localizationManifests,
-    ]);
+    extensionRegistry.registerMany([entityActionManifest]);
 
     const service = initializeVariantsHiderService();
     service.initializeWithSettings(settings);

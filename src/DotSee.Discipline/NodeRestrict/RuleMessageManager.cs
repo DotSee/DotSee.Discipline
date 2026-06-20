@@ -1,4 +1,6 @@
-﻿using Umbraco.Cms.Core.Services;
+using System.Collections.Generic;
+using System.Globalization;
+using Umbraco.Cms.Core.Services;
 
 namespace DotSee.Discipline.NodeRestrict
 {
@@ -7,22 +9,24 @@ namespace DotSee.Discipline.NodeRestrict
     /// </summary>
     public class RuleMessageManager
     {
-        private Rule _rule;
-        private string _parentDocTypeName;
-        private string _childDocTypeName;
+        private readonly Rule _rule;
+        private readonly string _parentDocTypeName;
+        private readonly string _childDocTypeName;
+        private readonly ILocalizedTextService _localizedTextService;
 
-        public RuleMessageManager(Rule rule, IContentTypeService contentTypeService)
+        public RuleMessageManager(Rule rule, IContentTypeService contentTypeService, ILocalizedTextService localizedTextService)
         {
             _rule = rule;
+            _localizedTextService = localizedTextService;
             IContentTypeService _cst = contentTypeService;
 
             _parentDocTypeName = _cst.GetAll().Where(x => x.Alias.ToLower() == _rule.ParentDocType.ToLower()).FirstOrDefault()?.Name;
             _childDocTypeName = _cst.GetAll().Where(x => x.Alias.ToLower() == _rule.ChildDocType.ToLower()).FirstOrDefault()?.Name;
         }
+
         /// <summary>
         /// Returns the message to be displayed when a node publishing limit has been reached
         /// </summary>
-        /// <returns></returns>
         public string GetMessage()
         {
             //Custom message overrides everything
@@ -31,32 +35,33 @@ namespace DotSee.Discipline.NodeRestrict
             //Return a standard message if this rule is created on the fly based on a special document property value
             if (_rule.FromProperty)
             {
-                return (string.Format("Node saved but not published. Max allowed children: {0}.", _rule.MaxNodes.ToString()));
+                return Localize("nodeRestrictFromProperty", _rule.MaxNodes.ToString());
             }
 
-            //This is the message that is returned when a rule is in the config file, and no custom message has been defined.
-            return string.Format(
-                "Node saved but not published. Max allowed children {1} directly under {2}: {0}."
-                , _rule.MaxNodes.ToString()
-                , _rule.ChildDocType.Equals("*") ? "of any type" : string.Format("of type \"{0}\"", _childDocTypeName)
-                , _rule.ParentDocType.Equals("*") ? "any node" : string.Format("nodes of type \"{0}\"", _parentDocTypeName)
-                );
+            var childPart = _rule.ChildDocType.Equals("*")
+                ? Localize("nodeRestrictOfAnyType")
+                : Localize("nodeRestrictOfType", _childDocTypeName);
+
+            var parentPart = _rule.ParentDocType.Equals("*")
+                ? Localize("nodeRestrictAnyNode")
+                : Localize("nodeRestrictNodesOfType", _parentDocTypeName);
+
+            return Localize("nodeRestrictDefault", _rule.MaxNodes.ToString(), childPart, parentPart);
         }
 
         /// <summary>
         /// Returns the literal for the message category
         /// </summary>
-        /// <returns></returns>
         public string GetMessageCategory()
         {
-            return (string.IsNullOrEmpty(_rule.CustomMessageCategory) ? "Publish" : _rule.CustomMessageCategory);
+            if (!string.IsNullOrEmpty(_rule.CustomMessageCategory)) { return _rule.CustomMessageCategory; }
+
+            return Localize("nodeRestrictDefaultCategory");
         }
 
         /// <summary>
         /// Returns the warning message to be displayed on publishing a node when a rule is in effect but the limit has not been reached.
         /// </summary>
-        /// <param name="currentNodeCount"></param>
-        /// <returns></returns>
         public string GetWarningMessage(int currentNodeCount)
         {
             //Custom message overrides everything
@@ -65,27 +70,44 @@ namespace DotSee.Discipline.NodeRestrict
             //Return a standard message if this rule is created on the fly based on a special document property value
             if (_rule.FromProperty)
             {
-                return (string.Format("Restrictions for this node are in place. You have published {0} out {1} allowed child nodes.", (currentNodeCount + 1).ToString(), _rule.MaxNodes.ToString()));
+                return Localize("nodeRestrictWarningFromProperty", (currentNodeCount + 1).ToString(), _rule.MaxNodes.ToString());
             }
 
-            //This is the message that is returned when a rule is in the config file, and no custom message has been defined.
-            return string.Format(
-                "Restrictions in place. {3} directly under {2}: {1} of {0} allowed."
-                , _rule.MaxNodes.ToString()
-                , (currentNodeCount + 1).ToString()
-                , _rule.ParentDocType.Equals("*") ? "any node" : string.Format("nodes of type \"{0}\"", _parentDocTypeName)
-                , _rule.ChildDocType.Equals("*") ? "Any node" : string.Format("Nodes of type \"{0}\"", _childDocTypeName)
-                );
+            var parentPart = _rule.ParentDocType.Equals("*")
+                ? Localize("nodeRestrictAnyNode")
+                : Localize("nodeRestrictNodesOfType", _parentDocTypeName);
 
+            var childPart = _rule.ChildDocType.Equals("*")
+                ? Localize("nodeRestrictAnyNodeCap")
+                : Localize("nodeRestrictNodesOfTypeCap", _childDocTypeName);
+
+            return Localize("nodeRestrictWarningDefault", _rule.MaxNodes.ToString(), (currentNodeCount + 1).ToString(), parentPart, childPart);
         }
+
         /// <summary>
         /// Returns the literal for the warning message category
         /// </summary>
-        /// <returns></returns>
         public string GetWarningMessageCategory()
         {
-            return (string.IsNullOrEmpty(_rule.CustomWarningMessageCategory) ? "Publish" : _rule.CustomWarningMessageCategory);
+            if (!string.IsNullOrEmpty(_rule.CustomWarningMessageCategory)) { return _rule.CustomWarningMessageCategory; }
+
+            return Localize("nodeRestrictDefaultCategory");
         }
 
+        private string Localize(string key, params string[] tokens)
+        {
+            if (tokens.Length == 0)
+            {
+                return _localizedTextService.Localize("dotseeDiscipline", key, CultureInfo.CurrentUICulture);
+            }
+
+            var dict = new Dictionary<string, string>(tokens.Length);
+            for (int i = 0; i < tokens.Length; i++)
+            {
+                dict[i.ToString()] = tokens[i];
+            }
+
+            return _localizedTextService.Localize("dotseeDiscipline", key, CultureInfo.CurrentUICulture, dict);
+        }
     }
 }
