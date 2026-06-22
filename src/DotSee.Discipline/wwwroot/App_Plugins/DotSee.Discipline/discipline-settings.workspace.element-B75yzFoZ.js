@@ -6,7 +6,7 @@ import { UmbLitElement as A } from "@umbraco-cms/backoffice/lit-element";
 import { UMB_AUTH_CONTEXT as C } from "@umbraco-cms/backoffice/auth";
 import { UMB_MODAL_MANAGER_CONTEXT as F, UMB_CONFIRM_MODAL as M } from "@umbraco-cms/backoffice/modal";
 import { UMB_NOTIFICATION_CONTEXT as E } from "@umbraco-cms/backoffice/notification";
-import { D as B, c as I, b as L, d as O } from "./index-DD6SoC2v.js";
+import { D as B, c as I, b as L, d as O } from "./index-fVpIiBIX.js";
 const w = "/umbraco/api/discipline";
 class V {
   constructor(e) {
@@ -319,7 +319,7 @@ let m = class extends A {
     }
   }
   _canSave() {
-    return this._settings.useBackoffice ? this._validationErrors().length === 0 : !1;
+    return this._settings.useBackoffice ? this._validationErrors().length === 0 : !0;
   }
   _validationErrors() {
     const e = [], t = this._settings, a = (s, ...o) => this.localize.term(s, ...o);
@@ -376,8 +376,8 @@ let m = class extends A {
                 <div ?hidden=${this._activeTab !== "aiSummary"}>${this._renderAiSummaryTab(t)}</div>
                 <div ?hidden=${this._activeTab !== "propertyVersions"}>${this._renderPropertyVersionsTab(t)}</div>
               </div>
-              ${this._renderFooter()}
             ` : g}
+        ${this._renderFooter()}
       </umb-body-layout>
     `;
   }
@@ -2032,4 +2032,4 @@ export {
   m as DisciplineSettingsWorkspaceElement,
   ee as default
 };
-//# sourceMappingURL=discipline-settings.workspace.element-DHdJTH37.js.map
+//# sourceMappingURL=discipline-settings.workspace.element-B75yzFoZ.js.map

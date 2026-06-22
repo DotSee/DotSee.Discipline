@@ -11,7 +11,7 @@ function _(i) {
     alias: "DotSee.Discipline.VariantsHider.ToggleAction",
     name: "Toggle Unset Variants Display",
     weight: 100,
-    api: () => import("./toggle-variants.action-CYyEt1Qs.js"),
+    api: () => import("./toggle-variants.action-UvZjcb2Q.js"),
     forEntityTypes: ["document-root"],
     meta: {
       icon: "icon-axis-rotation",
@@ -39,7 +39,7 @@ function M(i) {
       type: "propertyAction",
       alias: "DotSee.Discipline.PropertyVersions.PrevVersion",
       name: "Previous Version",
-      api: () => import("./prev-version.action-BELIgELl.js"),
+      api: () => import("./prev-version.action-GNTeOWsd.js"),
       element: () => import("./version-action.element-DAiNSxFv.js"),
       forPropertyEditorUis: y,
       meta: {
@@ -342,7 +342,7 @@ const W = "DotSee.Discipline.Settings.Workspace", f = "DotSee.Discipline.Setting
     type: "workspace",
     alias: W,
     name: "DotSee Discipline Settings Workspace",
-    element: () => import("./discipline-settings.workspace.element-DHdJTH37.js"),
+    element: () => import("./discipline-settings.workspace.element-B75yzFoZ.js"),
     meta: {
       entityType: E
     }
@@ -438,4 +438,4 @@ export {
   Y as g,
   Z as o
 };
-//# sourceMappingURL=index-DD6SoC2v.js.map
+//# sourceMappingURL=index-fVpIiBIX.js.map
