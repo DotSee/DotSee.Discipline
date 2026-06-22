@@ -10,7 +10,7 @@ using Umbraco.Extensions;
 
 namespace DotSee.Discipline.VirtualNodes
 {
-    public class VirtualNodesContentFinder : IContentFinder
+    public class VirtualNodesContentFinder : IContentFinder, IDisposable
     {
         private const string CacheKey = "cachedVirtualNodes";
 
@@ -18,6 +18,7 @@ namespace DotSee.Discipline.VirtualNodes
         private readonly IUmbracoContextAccessor _contextAccessor;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger _logger;
+        private readonly IDisciplineSettingsResolver _settingsResolver;
 
         public VirtualNodesContentFinder(IMemoryCache memCache, IUmbracoContextAccessor contextAccessor, IServiceScopeFactory serviceScopeFactory, ILogger logger, IDisciplineSettingsResolver settingsResolver)
         {
@@ -25,10 +26,18 @@ namespace DotSee.Discipline.VirtualNodes
             _contextAccessor = contextAccessor;
             _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
+            _settingsResolver = settingsResolver;
 
             // Backoffice saves drop the cached URL->nodeId map so that enabling/disabling the
             // feature (or editing rules) takes effect immediately, without an app restart.
-            settingsResolver.SettingsChanged += () => _memCache.Remove(CacheKey);
+            _settingsResolver.SettingsChanged += OnSettingsChanged;
+        }
+
+        private void OnSettingsChanged() => _memCache.Remove(CacheKey);
+
+        public void Dispose()
+        {
+            _settingsResolver.SettingsChanged -= OnSettingsChanged;
         }
 
         public Task<bool> TryFindContent(IPublishedRequestBuilder request)
