@@ -1,9 +1,9 @@
-var V = Object.defineProperty;
-var C = (i, e, t) => e in i ? V(i, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : i[e] = t;
-var r = (i, e, t) => C(i, typeof e != "symbol" ? e + "" : e, t);
-import { UMB_AUTH_CONTEXT as D } from "@umbraco-cms/backoffice/auth";
-import { UmbModalToken as v } from "@umbraco-cms/backoffice/modal";
-function I(i) {
+var C = Object.defineProperty;
+var D = (i, e, t) => e in i ? C(i, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : i[e] = t;
+var r = (i, e, t) => D(i, typeof e != "symbol" ? e + "" : e, t);
+import { UMB_AUTH_CONTEXT as v } from "@umbraco-cms/backoffice/auth";
+import { UmbModalToken as I } from "@umbraco-cms/backoffice/modal";
+function _(i) {
   const e = i && i.length > 0 ? i : "#dotseeDiscipline_variantsHider_toggle";
   return {
     type: "entityAction",
@@ -11,7 +11,7 @@ function I(i) {
     alias: "DotSee.Discipline.VariantsHider.ToggleAction",
     name: "Toggle Unset Variants Display",
     weight: 100,
-    api: () => import("./toggle-variants.action-DZP5lmQe.js"),
+    api: () => import("./toggle-variants.action-CYyEt1Qs.js"),
     forEntityTypes: ["document-root"],
     meta: {
       icon: "icon-axis-rotation",
@@ -29,19 +29,22 @@ const y = [
   "Umb.PropertyEditorUi.TextBox",
   "Umb.PropertyEditorUi.TextArea",
   "Umb.PropertyEditorUi.Tiptap"
-], _ = "#dotseeDiscipline_propertyVersions_previousVersion", w = "#dotseeDiscipline_propertyVersions_nextVersion";
-function R(i) {
+], w = "#dotseeDiscipline_propertyVersions_previousVersion", R = "#dotseeDiscipline_propertyVersions_nextVersion";
+function S(i, e) {
+  return i && i.trim() ? i : e;
+}
+function M(i) {
   return [
     {
       type: "propertyAction",
       alias: "DotSee.Discipline.PropertyVersions.PrevVersion",
       name: "Previous Version",
-      api: () => import("./prev-version.action-DI6NumYt.js"),
+      api: () => import("./prev-version.action-BELIgELl.js"),
       element: () => import("./version-action.element-DAiNSxFv.js"),
       forPropertyEditorUis: y,
       meta: {
         icon: "icon-arrow-left",
-        label: i.previousVersionCaption ?? _
+        label: S(i.previousVersionCaption, w)
       }
     },
     {
@@ -53,12 +56,12 @@ function R(i) {
       forPropertyEditorUis: y,
       meta: {
         icon: "icon-arrow-right",
-        label: i.nextVersionCaption ?? w
+        label: S(i.nextVersionCaption, R)
       }
     }
   ];
 }
-const M = {
+const U = {
   type: "localization",
   alias: "DotSee.Discipline.Localization.En",
   name: "DotSee Discipline Localization (English)",
@@ -66,8 +69,8 @@ const M = {
     culture: "en"
   },
   js: () => import("./en-C_Ns929E.js")
-}, U = [M];
-class N {
+}, N = [U];
+class L {
   constructor() {
     r(this, "isHidden", !1);
     r(this, "enabled", !1);
@@ -232,22 +235,22 @@ class N {
   }
 }
 let d = null;
-function L() {
-  return d || (d = new N()), d;
+function x() {
+  return d || (d = new L()), d;
 }
-function q() {
+function Y() {
   return d;
 }
 const h = {
   enabled: !1,
   caption: "Toggle unset variants display"
-}, S = {
+}, g = {
   enabled: !1,
   nextVersionCaption: null,
   previousVersionCaption: null,
   noVersionsCaption: null
 };
-async function x(i) {
+async function P(i) {
   try {
     const e = document.documentElement.lang || "", t = e ? `/umbraco/api/propertyversions/settings?culture=${encodeURIComponent(e)}` : "/umbraco/api/propertyversions/settings", s = await fetch(t, {
       method: "GET",
@@ -264,12 +267,12 @@ async function x(i) {
         noVersionsCaption: n.noVersionsCaption ?? null
       };
     }
-    return S;
+    return g;
   } catch {
-    return S;
+    return g;
   }
 }
-async function P() {
+async function O() {
   try {
     const i = await fetch("/umbraco/api/variantshider/settings", {
       method: "GET",
@@ -290,16 +293,16 @@ async function P() {
     return h;
   }
 }
-const E = "#dotseeDiscipline_propertyVersions_noPreviousVersions";
-let T = E;
-function O(i) {
-  T = i && i.length > 0 ? i : E;
+const T = "#dotseeDiscipline_propertyVersions_noPreviousVersions";
+let A = T;
+function k(i) {
+  A = i && i.length > 0 ? i : T;
 }
-function Y() {
-  return T;
-}
-const g = "dotsee-discipline-settings";
 function K() {
+  return A;
+}
+const E = "dotsee-discipline-settings";
+function $() {
   return {
     createdDocTypeAlias: "",
     docTypeAliasToCreate: "",
@@ -312,7 +315,7 @@ function K() {
     blueprint: ""
   };
 }
-function $() {
+function X() {
   return {
     parentDocType: "",
     childDocType: "*",
@@ -324,7 +327,7 @@ function $() {
     customWarningMessageCategory: ""
   };
 }
-function X() {
+function J() {
   return {
     docTypeAlias: "",
     documentGuids: "",
@@ -332,21 +335,21 @@ function X() {
     customMessageCategory: ""
   };
 }
-const k = "DotSee.Discipline.Settings.Workspace", f = "DotSee.Discipline.Settings.Menu", W = "DotSee.Discipline.Settings.SidebarApp", H = "DotSee.Discipline.Settings.MenuItem", A = "DotSee.Discipline.AboutModal", J = new v(A, {
+const W = "DotSee.Discipline.Settings.Workspace", f = "DotSee.Discipline.Settings.Menu", H = "DotSee.Discipline.Settings.SidebarApp", z = "DotSee.Discipline.Settings.MenuItem", V = "DotSee.Discipline.AboutModal", Q = new I(V, {
   modal: { type: "dialog", size: "small" }
-}), z = [
+}), B = [
   {
     type: "workspace",
-    alias: k,
+    alias: W,
     name: "DotSee Discipline Settings Workspace",
-    element: () => import("./discipline-settings.workspace.element-B7S1xPa3.js"),
+    element: () => import("./discipline-settings.workspace.element-DHdJTH37.js"),
     meta: {
-      entityType: g
+      entityType: E
     }
   },
   {
     type: "modal",
-    alias: A,
+    alias: V,
     name: "DotSee Discipline About Modal",
     element: () => import("./discipline-about-modal.element-B3gGJCql.js")
   },
@@ -360,20 +363,20 @@ const k = "DotSee.Discipline.Settings.Workspace", f = "DotSee.Discipline.Setting
   },
   {
     type: "menuItem",
-    alias: H,
+    alias: z,
     name: "DotSee Discipline Menu Item",
     weight: 50,
     meta: {
       label: "#dotseeDiscipline_menu_itemLabel",
       icon: "icon-settings-alt",
-      entityType: g,
+      entityType: E,
       menus: [f]
     }
   },
   {
     // Custom element (not kind: 'menu') so no group headline is rendered — just the menu link.
     type: "sectionSidebarApp",
-    alias: W,
+    alias: H,
     name: "DotSee Discipline Sidebar App",
     weight: 50,
     element: () => import("./discipline-sidebar-app.element-DpKXH40p.js"),
@@ -388,7 +391,7 @@ const k = "DotSee.Discipline.Settings.Workspace", f = "DotSee.Discipline.Setting
     ]
   }
 ];
-async function B(i) {
+async function j(i) {
   try {
     const e = await fetch("/umbraco/api/discipline/settings", {
       method: "GET",
@@ -404,16 +407,16 @@ async function B(i) {
     return { uiEnabled: !0 };
   }
 }
-const Q = async (i, e) => {
-  e.registerMany(U);
-  const s = await (await i.getContext(D)).getLatestToken(), [n, o, l] = await Promise.all([
-    x(s),
-    P(),
-    B(s)
+const Z = async (i, e) => {
+  e.registerMany(N);
+  const s = await (await i.getContext(v)).getLatestToken(), [n, o, l] = await Promise.all([
+    P(s),
+    O(),
+    j(s)
   ]);
-  if (l.uiEnabled && e.registerMany(z), n.enabled) {
-    O(n.noVersionsCaption);
-    const a = R({
+  if (l.uiEnabled && e.registerMany(B), n.enabled) {
+    k(n.noVersionsCaption);
+    const a = M({
       nextVersionCaption: n.nextVersionCaption,
       previousVersionCaption: n.previousVersionCaption,
       noVersionsCaption: n.noVersionsCaption
@@ -421,18 +424,18 @@ const Q = async (i, e) => {
     e.registerMany(a);
   }
   if (o.enabled) {
-    const a = I(o.caption);
-    e.registerMany([a]), L().initializeWithSettings(o);
+    const a = _(o.caption);
+    e.registerMany([a]), x().initializeWithSettings(o);
   }
 };
 export {
-  J as D,
-  N as V,
-  Y as a,
-  $ as b,
-  K as c,
-  X as d,
-  q as g,
-  Q as o
+  Q as D,
+  L as V,
+  K as a,
+  X as b,
+  $ as c,
+  J as d,
+  Y as g,
+  Z as o
 };
-//# sourceMappingURL=index-BzeZ3Cba.js.map
+//# sourceMappingURL=index-DD6SoC2v.js.map
