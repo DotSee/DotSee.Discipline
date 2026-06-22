@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using DotSee.Discipline.AiSummary;
@@ -28,6 +29,12 @@ namespace DotSee.Discipline.Backoffice.ApiControllers
         /// Defaults to true when missing.
         /// </summary>
         public const string UiEnabledConfigKey = "DotSee.Discipline:Backoffice:Enabled";
+
+        /// <summary>
+        /// Placeholder sent to the UI in place of a stored API key, so the real secret never reaches
+        /// the browser. When the UI sends this value back unchanged, the stored key is preserved.
+        /// </summary>
+        private const string MaskedApiKey = "********";
 
         private readonly IDisciplineSettingsStore _store;
         private readonly IDisciplineAppSettingsReader _appSettingsReader;
@@ -79,6 +86,13 @@ namespace DotSee.Discipline.Backoffice.ApiControllers
                 return BadRequest(_localizedTextService.Localize("dotseeDiscipline", "apiSettingsRequired", CultureInfo.CurrentUICulture));
             }
 
+            // The UI never receives the real API key (it gets a mask). If it sends the mask back
+            // unchanged, keep the currently-stored key instead of overwriting it with the placeholder.
+            if (settings.AiSummary != null && settings.AiSummary.ApiKey == MaskedApiKey)
+            {
+                settings.AiSummary.ApiKey = _store.Load().AiSummary?.ApiKey ?? string.Empty;
+            }
+
             _store.Save(settings);
             _settingsResolver.NotifySettingsChanged();
             return Ok(BuildResponse(settings));
@@ -88,7 +102,7 @@ namespace DotSee.Discipline.Backoffice.ApiControllers
         [ProducesResponseType(typeof(DisciplineSettings), StatusCodes.Status200OK)]
         public IActionResult GetAppSettingsSnapshot()
         {
-            return Ok(_appSettingsReader.Read());
+            return Ok(WithMaskedApiKey(_appSettingsReader.Read()));
         }
 
         [HttpPost("import-from-appsettings")]
@@ -185,9 +199,20 @@ namespace DotSee.Discipline.Backoffice.ApiControllers
                 return BadRequest(new { message = _localizedTextService.Localize("dotseeDiscipline", "aiSummaryModelsApiKeyRequired", CultureInfo.CurrentUICulture) });
             }
 
+            // The settings form holds a mask in place of the saved key; resolve it to the real,
+            // decrypted key so the provider can be queried without ever exposing the key to the UI.
+            var apiKey = request.ApiKey == MaskedApiKey
+                ? _store.Load().AiSummary?.ApiKey ?? string.Empty
+                : request.ApiKey;
+
+            if (string.IsNullOrWhiteSpace(apiKey))
+            {
+                return BadRequest(new { message = _localizedTextService.Localize("dotseeDiscipline", "aiSummaryModelsApiKeyRequired", CultureInfo.CurrentUICulture) });
+            }
+
             try
             {
-                AiModelListResult result = await _aiModelCatalog.GetModelsAsync(request.Llm, request.ApiKey, cancellationToken);
+                AiModelListResult result = await _aiModelCatalog.GetModelsAsync(request.Llm, apiKey, cancellationToken);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -223,8 +248,29 @@ namespace DotSee.Discipline.Backoffice.ApiControllers
             {
                 UiEnabled = IsUiEnabled(),
                 HasAppSettings = _appSettingsReader.HasAppSettings(),
-                Settings = settings,
+                Settings = WithMaskedApiKey(settings),
             };
+        }
+
+        /// <summary>
+        /// Returns a clone of the settings with the AiSummary API key replaced by a mask, so the
+        /// real key is never serialized to the browser. The cloning leaves the in-memory cache
+        /// (which holds the real, decrypted key for the feature handlers) untouched.
+        /// </summary>
+        private static DisciplineSettings WithMaskedApiKey(DisciplineSettings settings)
+        {
+            if (settings == null)
+            {
+                return settings;
+            }
+
+            var clone = JsonSerializer.Deserialize<DisciplineSettings>(JsonSerializer.Serialize(settings))!;
+            if (clone.AiSummary != null && !string.IsNullOrEmpty(clone.AiSummary.ApiKey))
+            {
+                clone.AiSummary.ApiKey = MaskedApiKey;
+            }
+
+            return clone;
         }
 
         private bool IsUiEnabled()

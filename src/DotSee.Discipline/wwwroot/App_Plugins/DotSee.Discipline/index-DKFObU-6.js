@@ -11,7 +11,7 @@ function _(i) {
     alias: "DotSee.Discipline.VariantsHider.ToggleAction",
     name: "Toggle Unset Variants Display",
     weight: 100,
-    api: () => import("./toggle-variants.action-C3NFBgbJ.js"),
+    api: () => import("./toggle-variants.action-Bm28bDrb.js"),
     forEntityTypes: ["document-root"],
     meta: {
       icon: "icon-axis-rotation",
@@ -36,7 +36,7 @@ function M(i) {
       type: "propertyAction",
       alias: "DotSee.Discipline.PropertyVersions.PrevVersion",
       name: "Previous Version",
-      api: () => import("./prev-version.action-DDmj22wn.js"),
+      api: () => import("./prev-version.action-Cu9D2P22.js"),
       element: () => import("./version-action.element-DAiNSxFv.js"),
       forPropertyEditorUis: y,
       meta: {
@@ -65,7 +65,7 @@ const N = {
   meta: {
     culture: "en"
   },
-  js: () => import("./en-B-UGgs1P.js")
+  js: () => import("./en-C_Ns929E.js")
 }, v = [N];
 class L {
   constructor() {
@@ -326,7 +326,7 @@ const k = "DotSee.Discipline.Settings.Workspace", f = "DotSee.Discipline.Setting
     type: "workspace",
     alias: k,
     name: "DotSee Discipline Settings Workspace",
-    element: () => import("./discipline-settings.workspace.element-CiWuwwOY.js"),
+    element: () => import("./discipline-settings.workspace.element-D5Zyojlp.js"),
     meta: {
       entityType: g
     }
@@ -422,4 +422,4 @@ export {
   q as g,
   Q as o
 };
-//# sourceMappingURL=index-BiMJv13B.js.map
+//# sourceMappingURL=index-DKFObU-6.js.map
