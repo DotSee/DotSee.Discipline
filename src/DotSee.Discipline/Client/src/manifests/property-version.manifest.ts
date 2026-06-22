@@ -13,6 +13,11 @@ export interface PropertyVersionCaptions {
 const PREV_LABEL_KEY = '#dotseeDiscipline_propertyVersions_previousVersion';
 const NEXT_LABEL_KEY = '#dotseeDiscipline_propertyVersions_nextVersion';
 
+/** Use the caption only when it has non-whitespace content; otherwise fall back to the localized key. */
+function labelOrFallback(caption: string | null, fallbackKey: string): string {
+  return caption && caption.trim() ? caption : fallbackKey;
+}
+
 export function createPropertyVersionManifests(captions: PropertyVersionCaptions) {
   return [
     {
@@ -24,7 +29,7 @@ export function createPropertyVersionManifests(captions: PropertyVersionCaptions
       forPropertyEditorUis: targetEditors,
       meta: {
         icon: 'icon-arrow-left',
-        label: captions.previousVersionCaption ?? PREV_LABEL_KEY,
+        label: labelOrFallback(captions.previousVersionCaption, PREV_LABEL_KEY),
       },
     },
     {
@@ -36,7 +41,7 @@ export function createPropertyVersionManifests(captions: PropertyVersionCaptions
       forPropertyEditorUis: targetEditors,
       meta: {
         icon: 'icon-arrow-right',
-        label: captions.nextVersionCaption ?? NEXT_LABEL_KEY,
+        label: labelOrFallback(captions.nextVersionCaption, NEXT_LABEL_KEY),
       },
     },
   ];

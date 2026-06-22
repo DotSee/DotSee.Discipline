@@ -18,8 +18,6 @@ namespace DotSee.Discipline.NodeProtect
         private IContentService _cs;
         private readonly IRuleProviderService<IEnumerable<Rule>> _ruleProviderService;
         private readonly ILogger _logger;
-        private List<Rule> _rules;
-        private NodeProtectSettings _settings;
 
         #endregion
 
@@ -41,31 +39,28 @@ namespace DotSee.Discipline.NodeProtect
 
         #region Public Methods
 
-        // Read settings and rules fresh from the provider on every run. The provider reads them
-        // from the in-memory settings store (no file I/O), which Save() updates synchronously, so
-        // enabling/disabling the feature or editing rules takes effect immediately — no restart.
-        private void LoadFromProvider()
-        {
-            _rules = _ruleProviderService.Rules.ToList();
-            _settings = ((ISettings<NodeProtectSettings>)_ruleProviderService).Settings;
-        }
-
         /// <summary>
         /// Applies all rules on publishing a node.
         /// </summary>
         /// <param name="node">The newly created node we need to apply rules for</param>
         public virtual Result Run(IContent node)
         {
-            LoadFromProvider();
+            // Read settings and rules fresh from the provider on every run, into locals. The service
+            // is a singleton invoked concurrently, so per-run state must not live in instance fields.
+            // The provider reads from the in-memory settings store (no file I/O), which Save() updates
+            // synchronously, so enabling/disabling the feature or editing rules takes effect
+            // immediately — no restart.
+            List<Rule> rules = _ruleProviderService.Rules.ToList();
+            NodeProtectSettings settings = ((ISettings<NodeProtectSettings>)_ruleProviderService).Settings;
 
             // A node is protected if it — or any of its descendants — matches a configured rule
             // OR carries the "protected" property set to true. Stop at the first match.
-            Result result = CheckNode(node);
+            Result result = CheckNode(node, rules, settings);
             if (result != null) { return result; }
 
             foreach (var subnode in _cs.GetPagedDescendants(node.Id, 0, int.MaxValue, out long total))
             {
-                result = CheckNode(subnode);
+                result = CheckNode(subnode, rules, settings);
                 if (result != null) { return result; }
             }
 
@@ -81,14 +76,14 @@ namespace DotSee.Discipline.NodeProtect
         /// the configured rules and must run even when no doctype/GUID rules are defined), then
         /// each configured rule.
         /// </summary>
-        private Result CheckNode(IContent node)
+        private Result CheckNode(IContent node, List<Rule> rules, NodeProtectSettings settings)
         {
-            if (IsProtectedByProperty(node))
+            if (IsProtectedByProperty(node, settings))
             {
                 return Result.GetResult(new Rule("", node.Key.ToString()), node);
             }
 
-            foreach (Rule rule in _rules)
+            foreach (Rule rule in rules)
             {
                 Result result = CheckRule(rule, node);
                 if (result != null) { return result; }
@@ -101,9 +96,9 @@ namespace DotSee.Discipline.NodeProtect
         /// True when the node carries the configured (optional) "protected" true/false property
         /// set to true. Returns false when no alias is configured or the property is missing.
         /// </summary>
-        private bool IsProtectedByProperty(IContent node)
+        private bool IsProtectedByProperty(IContent node, NodeProtectSettings settings)
         {
-            var propertyAlias = _settings.PropertyAlias;
+            var propertyAlias = settings.PropertyAlias;
             if (string.IsNullOrEmpty(propertyAlias)) { return false; }
 
             // Swallow exceptions — if the property is missing or unreadable, the node simply isn't

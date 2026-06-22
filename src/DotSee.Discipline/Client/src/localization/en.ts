@@ -226,7 +226,7 @@ export default {
       'Which large-language-model provider to use for summaries. Determines which Model names and API key format are valid.',
     apiKey: 'API key *',
     apiKeyHelp:
-      'Secret key issued by the selected LLM provider. Stored as plain text in settings — protect access to this screen accordingly.',
+      'Secret key issued by the selected LLM provider. Stored encrypted and never shown here once saved — leave the masked value to keep the current key, or type a new key to replace it.',
     model: 'Model *',
     modelHelp:
       'Pick the model to call. The list is loaded from your provider using the API key above (refresh after changing the key or provider). It defaults to the lowest-tier model.',

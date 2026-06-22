@@ -179,7 +179,7 @@ const e = {
     llm: "LLM *",
     llmHelp: "Which large-language-model provider to use for summaries. Determines which Model names and API key format are valid.",
     apiKey: "API key *",
-    apiKeyHelp: "Secret key issued by the selected LLM provider. Stored as plain text in settings — protect access to this screen accordingly.",
+    apiKeyHelp: "Secret key issued by the selected LLM provider. Stored encrypted and never shown here once saved — leave the masked value to keep the current key, or type a new key to replace it.",
     model: "Model *",
     modelHelp: "Pick the model to call. The list is loaded from your provider using the API key above (refresh after changing the key or provider). It defaults to the lowest-tier model.",
     modelRefresh: "Refresh",
@@ -222,4 +222,4 @@ const e = {
 export {
   e as default
 };
-//# sourceMappingURL=en-B-UGgs1P.js.map
+//# sourceMappingURL=en-C_Ns929E.js.map
