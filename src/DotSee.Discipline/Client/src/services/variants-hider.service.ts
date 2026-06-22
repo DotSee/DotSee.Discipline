@@ -265,6 +265,12 @@ export class VariantsHiderService {
   }
 
   dispose(): void {
+    // Restore anything we hid (remove display:none and data-dotsee-hidden) before tearing down,
+    // so disposing while in "hidden" mode doesn't leave the tree permanently modified.
+    if (this.isHidden) {
+      this.processTreeItems(false);
+      this.isHidden = false;
+    }
     this.stopObserving();
   }
 }

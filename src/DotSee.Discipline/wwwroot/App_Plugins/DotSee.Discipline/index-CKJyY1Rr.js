@@ -11,7 +11,7 @@ function _(i) {
     alias: "DotSee.Discipline.VariantsHider.ToggleAction",
     name: "Toggle Unset Variants Display",
     weight: 100,
-    api: () => import("./toggle-variants.action-UvZjcb2Q.js"),
+    api: () => import("./toggle-variants.action-DfhuvoVs.js"),
     forEntityTypes: ["document-root"],
     meta: {
       icon: "icon-axis-rotation",
@@ -25,12 +25,12 @@ function _(i) {
     ]
   };
 }
-const y = [
+const S = [
   "Umb.PropertyEditorUi.TextBox",
   "Umb.PropertyEditorUi.TextArea",
   "Umb.PropertyEditorUi.Tiptap"
 ], w = "#dotseeDiscipline_propertyVersions_previousVersion", R = "#dotseeDiscipline_propertyVersions_nextVersion";
-function S(i, e) {
+function g(i, e) {
   return i && i.trim() ? i : e;
 }
 function M(i) {
@@ -39,12 +39,12 @@ function M(i) {
       type: "propertyAction",
       alias: "DotSee.Discipline.PropertyVersions.PrevVersion",
       name: "Previous Version",
-      api: () => import("./prev-version.action-GNTeOWsd.js"),
+      api: () => import("./prev-version.action-BT6KGEdC.js"),
       element: () => import("./version-action.element-DAiNSxFv.js"),
-      forPropertyEditorUis: y,
+      forPropertyEditorUis: S,
       meta: {
         icon: "icon-arrow-left",
-        label: S(i.previousVersionCaption, w)
+        label: g(i.previousVersionCaption, w)
       }
     },
     {
@@ -53,10 +53,10 @@ function M(i) {
       name: "Next Version",
       api: () => import("./next-version.action-DJq-VoNF.js"),
       element: () => import("./version-action.element-DAiNSxFv.js"),
-      forPropertyEditorUis: y,
+      forPropertyEditorUis: S,
       meta: {
         icon: "icon-arrow-right",
-        label: S(i.nextVersionCaption, R)
+        label: g(i.nextVersionCaption, R)
       }
     }
   ];
@@ -194,7 +194,7 @@ class L {
     return !1;
   }
   getTreeItemName(e) {
-    var o, l, a, m, b;
+    var o, l, a, m, y;
     const t = e.getAttribute("label") || e.getAttribute("name");
     if (t) return t.trim();
     const s = [
@@ -215,42 +215,44 @@ class L {
     }
     if (e.shadowRoot) {
       for (const c of s) {
-        const p = e.shadowRoot.querySelector(c);
-        if ((l = p == null ? void 0 : p.textContent) != null && l.trim())
-          return p.textContent.trim();
+        const d = e.shadowRoot.querySelector(c);
+        if ((l = d == null ? void 0 : d.textContent) != null && l.trim())
+          return d.textContent.trim();
       }
       const u = (a = e.shadowRoot.textContent) == null ? void 0 : a.trim();
       if (u) return u;
     }
     const n = (m = e.textContent) == null ? void 0 : m.trim();
-    return n ? ((b = n.split(`
-`)[0]) == null ? void 0 : b.trim()) || n : "";
+    return n ? ((y = n.split(`
+`)[0]) == null ? void 0 : y.trim()) || n : "";
   }
   isUnsetVariant(e) {
     const t = e.trim();
     return t.startsWith("(") && t.endsWith(")") && t.length > 2;
   }
   dispose() {
-    this.stopObserving();
+    this.isHidden && (this.processTreeItems(!1), this.isHidden = !1), this.stopObserving();
   }
 }
-let d = null;
+let p = null;
 function x() {
-  return d || (d = new L()), d;
+  return p || (p = new L()), p;
 }
 function Y() {
-  return d;
+  return p;
 }
 const h = {
   enabled: !1,
   caption: "Toggle unset variants display"
-}, g = {
+}, f = {
   enabled: !1,
   nextVersionCaption: null,
   previousVersionCaption: null,
   noVersionsCaption: null
 };
 async function P(i) {
+  if (!i)
+    return f;
   try {
     const e = document.documentElement.lang || "", t = e ? `/umbraco/api/propertyversions/settings?culture=${encodeURIComponent(e)}` : "/umbraco/api/propertyversions/settings", s = await fetch(t, {
       method: "GET",
@@ -267,9 +269,9 @@ async function P(i) {
         noVersionsCaption: n.noVersionsCaption ?? null
       };
     }
-    return g;
+    return f;
   } catch {
-    return g;
+    return f;
   }
 }
 async function O() {
@@ -295,7 +297,7 @@ async function O() {
 }
 const T = "#dotseeDiscipline_propertyVersions_noPreviousVersions";
 let A = T;
-function k(i) {
+function H(i) {
   A = i && i.length > 0 ? i : T;
 }
 function K() {
@@ -335,14 +337,14 @@ function J() {
     customMessageCategory: ""
   };
 }
-const W = "DotSee.Discipline.Settings.Workspace", f = "DotSee.Discipline.Settings.Menu", H = "DotSee.Discipline.Settings.SidebarApp", z = "DotSee.Discipline.Settings.MenuItem", V = "DotSee.Discipline.AboutModal", Q = new I(V, {
+const W = "DotSee.Discipline.Settings.Workspace", b = "DotSee.Discipline.Settings.Menu", k = "DotSee.Discipline.Settings.SidebarApp", z = "DotSee.Discipline.Settings.MenuItem", V = "DotSee.Discipline.AboutModal", Q = new I(V, {
   modal: { type: "dialog", size: "small" }
 }), B = [
   {
     type: "workspace",
     alias: W,
     name: "DotSee Discipline Settings Workspace",
-    element: () => import("./discipline-settings.workspace.element-B75yzFoZ.js"),
+    element: () => import("./discipline-settings.workspace.element-CDEF3i5l.js"),
     meta: {
       entityType: E
     }
@@ -355,7 +357,7 @@ const W = "DotSee.Discipline.Settings.Workspace", f = "DotSee.Discipline.Setting
   },
   {
     type: "menu",
-    alias: f,
+    alias: b,
     name: "DotSee Discipline Menu",
     meta: {
       label: "#dotseeDiscipline_menu_label"
@@ -370,18 +372,18 @@ const W = "DotSee.Discipline.Settings.Workspace", f = "DotSee.Discipline.Setting
       label: "#dotseeDiscipline_menu_itemLabel",
       icon: "icon-settings-alt",
       entityType: E,
-      menus: [f]
+      menus: [b]
     }
   },
   {
     // Custom element (not kind: 'menu') so no group headline is rendered — just the menu link.
     type: "sectionSidebarApp",
-    alias: H,
+    alias: k,
     name: "DotSee Discipline Sidebar App",
     weight: 50,
     element: () => import("./discipline-sidebar-app.element-DpKXH40p.js"),
     meta: {
-      menu: f
+      menu: b
     },
     conditions: [
       {
@@ -392,6 +394,8 @@ const W = "DotSee.Discipline.Settings.Workspace", f = "DotSee.Discipline.Setting
   }
 ];
 async function j(i) {
+  if (!i)
+    return { uiEnabled: !1 };
   try {
     const e = await fetch("/umbraco/api/discipline/settings", {
       method: "GET",
@@ -400,11 +404,11 @@ async function j(i) {
       }
     });
     if (!e.ok)
-      return { uiEnabled: !0 };
+      return { uiEnabled: !1 };
     const t = await e.json();
     return { uiEnabled: (t == null ? void 0 : t.uiEnabled) !== !1 };
   } catch {
-    return { uiEnabled: !0 };
+    return { uiEnabled: !1 };
   }
 }
 const Z = async (i, e) => {
@@ -415,7 +419,7 @@ const Z = async (i, e) => {
     j(s)
   ]);
   if (l.uiEnabled && e.registerMany(B), n.enabled) {
-    k(n.noVersionsCaption);
+    H(n.noVersionsCaption);
     const a = M({
       nextVersionCaption: n.nextVersionCaption,
       previousVersionCaption: n.previousVersionCaption,
@@ -438,4 +442,4 @@ export {
   Y as g,
   Z as o
 };
-//# sourceMappingURL=index-fVpIiBIX.js.map
+//# sourceMappingURL=index-CKJyY1Rr.js.map
