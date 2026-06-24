@@ -23,19 +23,21 @@ namespace DotSee.Discipline.Tests.NodeRestrict
 
         private void SetupLocalizedText()
         {
-            // Mirrors the strings in wwwroot/App_Plugins/DotSee.Discipline/Lang/en.xml
-            // so tests can assert on the same default English text the runtime returns.
-            SetupText("nodeRestrictDefaultCategory", "Publish");
-            SetupText("nodeRestrictFromProperty", "Node saved but not published. Max allowed children: {0}.");
-            SetupText("nodeRestrictDefault", "Node saved but not published. Max allowed children {1} directly under {2}: {0}.");
-            SetupText("nodeRestrictWarningFromProperty", "Restrictions for this node are in place. You have published {0} out {1} allowed child nodes.");
-            SetupText("nodeRestrictWarningDefault", "Restrictions in place. {3} directly under {2}: {1} of {0} allowed.");
-            SetupText("nodeRestrictAnyNode", "any node");
-            SetupText("nodeRestrictNodesOfType", "nodes of type \"{0}\"");
+            // Mirrors, verbatim, the strings in the shipped server-side language file
+            // (Client/public/lang/en.xml → wwwroot/App_Plugins/DotSee.Discipline/lang/en.xml),
+            // including its %0%/%1% token convention, so tests assert on the same default
+            // English text the runtime returns.
+            SetupText("nodeRestrictDefaultCategory", "Node limit reached");
+            SetupText("nodeRestrictDefault", "A maximum of %0% child node(s) %1% is allowed under %2%.");
+            SetupText("nodeRestrictFromProperty", "A maximum of %0% child node(s) is allowed under this node.");
             SetupText("nodeRestrictOfAnyType", "of any type");
-            SetupText("nodeRestrictOfType", "of type \"{0}\"");
-            SetupText("nodeRestrictAnyNodeCap", "Any node");
-            SetupText("nodeRestrictNodesOfTypeCap", "Nodes of type \"{0}\"");
+            SetupText("nodeRestrictOfType", "of type '%0%'");
+            SetupText("nodeRestrictAnyNode", "any node");
+            SetupText("nodeRestrictNodesOfType", "nodes of type '%0%'");
+            SetupText("nodeRestrictWarningDefault", "%3% under %2% are limited to %0%. You are about to create node number %1%.");
+            SetupText("nodeRestrictWarningFromProperty", "You are about to create node number %0% of a maximum of %1% allowed under this node.");
+            SetupText("nodeRestrictAnyNodeCap", "Nodes of any type");
+            SetupText("nodeRestrictNodesOfTypeCap", "Nodes of type '%0%'");
         }
 
         private void SetupText(string key, string template)
@@ -53,7 +55,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
                     {
                         foreach (var kvp in tokens)
                         {
-                            result = result.Replace("{" + kvp.Key + "}", kvp.Value);
+                            result = result.Replace("%" + kvp.Key + "%", kvp.Value);
                         }
                     }
                     return result;
@@ -102,7 +104,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
 
             var result = mgr.GetMessage();
 
-            Assert.That(result, Is.EqualTo("Node saved but not published. Max allowed children: 10."));
+            Assert.That(result, Is.EqualTo("A maximum of 10 child node(s) is allowed under this node."));
         }
 
         [Test]
@@ -186,7 +188,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
         }
 
         [Test]
-        public void GetMessageCategory_WhenNoCustomCategory_ReturnsPublish()
+        public void GetMessageCategory_WhenNoCustomCategory_ReturnsDefaultCategory()
         {
             SetupContentTypes("parentAlias", "Parent", "childAlias", "Child");
             var rule = new Rule("parentAlias", "childAlias", 5);
@@ -194,11 +196,11 @@ namespace DotSee.Discipline.Tests.NodeRestrict
 
             var result = mgr.GetMessageCategory();
 
-            Assert.That(result, Is.EqualTo("Publish"));
+            Assert.That(result, Is.EqualTo("Node limit reached"));
         }
 
         [Test]
-        public void GetMessageCategory_WhenEmptyCustomCategory_ReturnsPublish()
+        public void GetMessageCategory_WhenEmptyCustomCategory_ReturnsDefaultCategory()
         {
             SetupContentTypes("parentAlias", "Parent", "childAlias", "Child");
             var rule = new Rule("parentAlias", "childAlias", 5, customMessageCategory: "");
@@ -206,7 +208,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
 
             var result = mgr.GetMessageCategory();
 
-            Assert.That(result, Is.EqualTo("Publish"));
+            Assert.That(result, Is.EqualTo("Node limit reached"));
         }
 
         #endregion
@@ -267,7 +269,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
         }
 
         [Test]
-        public void GetWarningMessage_WhenWildcardChild_UsesAnyNodeLabel()
+        public void GetWarningMessage_WhenWildcardChild_UsesAnyTypeCapLabel()
         {
             _contentTypeServiceMock.Setup(x => x.GetAll()).Returns(new List<IContentType>());
             var rule = new Rule("*", "*", 10);
@@ -275,7 +277,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
 
             var result = mgr.GetWarningMessage(5);
 
-            Assert.That(result, Does.Contain("Any node"));
+            Assert.That(result, Does.Contain("Nodes of any type"));
         }
 
         [Test]
@@ -307,7 +309,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
         }
 
         [Test]
-        public void GetWarningMessageCategory_WhenNotSet_ReturnsPublish()
+        public void GetWarningMessageCategory_WhenNotSet_ReturnsDefaultCategory()
         {
             SetupContentTypes("parentAlias", "Parent", "childAlias", "Child");
             var rule = new Rule("parentAlias", "childAlias", 5);
@@ -315,11 +317,11 @@ namespace DotSee.Discipline.Tests.NodeRestrict
 
             var result = mgr.GetWarningMessageCategory();
 
-            Assert.That(result, Is.EqualTo("Publish"));
+            Assert.That(result, Is.EqualTo("Node limit reached"));
         }
 
         [Test]
-        public void GetWarningMessageCategory_WhenEmpty_ReturnsPublish()
+        public void GetWarningMessageCategory_WhenEmpty_ReturnsDefaultCategory()
         {
             SetupContentTypes("parentAlias", "Parent", "childAlias", "Child");
             var rule = new Rule("parentAlias", "childAlias", 5, customWarningMessageCategory: "");
@@ -327,7 +329,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
 
             var result = mgr.GetWarningMessageCategory();
 
-            Assert.That(result, Is.EqualTo("Publish"));
+            Assert.That(result, Is.EqualTo("Node limit reached"));
         }
 
         #endregion
