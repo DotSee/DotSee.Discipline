@@ -20,7 +20,7 @@ Discipline is designed to be configured via appSettings.json, but it also has a 
 
 You can find it under Settings -> Discipline in the back office. 
 
-The UI-based configuration is stored in a custom JSON file in Umbraco/Data/DotSee.Discipline/settings.json and overrides the appSettings.json configuration, so you can choose to use either one.
+The UI-based configuration is stored in a custom JSON file in umbraco/Data/DotSee.Discipline/settings.json and overrides the appSettings.json configuration, so you can choose to use either one.
 
 You can also hit a button to import appsettings.json settings into the UI-based config (if you're already using Discipline). 
 

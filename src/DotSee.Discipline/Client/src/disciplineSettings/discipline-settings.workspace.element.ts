@@ -348,7 +348,9 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
   }
 
   private _canSave(): boolean {
-    if (!this._settings.useBackoffice) return false;
+    // When managing from appsettings (backoffice off) the feature tabs are hidden and their
+    // validation doesn't apply — the user must still be able to persist the source toggle itself.
+    if (!this._settings.useBackoffice) return true;
     return this._validationErrors().length === 0;
   }
 
@@ -458,9 +460,9 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
                 <div ?hidden=${this._activeTab !== 'aiSummary'}>${this._renderAiSummaryTab(disabled)}</div>
                 <div ?hidden=${this._activeTab !== 'propertyVersions'}>${this._renderPropertyVersionsTab(disabled)}</div>
               </div>
-              ${this._renderFooter()}
             `
           : nothing}
+        ${this._renderFooter()}
       </umb-body-layout>
     `;
   }

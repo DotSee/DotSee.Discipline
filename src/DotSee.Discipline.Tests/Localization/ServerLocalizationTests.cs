@@ -67,8 +67,12 @@ namespace DotSee.Discipline.Tests.Localization
 
             try
             {
+                // Dispose the provider (releasing any file-system watcher) before the finally block
+                // recursively deletes langDir. The returned PhysicalFileInfo wraps the path
+                // independently, so it keeps working after the provider is disposed.
+                using var fileProvider = new PhysicalFileProvider(langDir);
                 var supplementary = new LocalizedTextServiceSupplementaryFileSource(
-                    new PhysicalFileProvider(langDir).GetFileInfo("en.xml"), false);
+                    fileProvider.GetFileInfo("en.xml"), false);
 
                 var sources = new LocalizedTextServiceFileSources(
                     NullLogger<LocalizedTextServiceFileSources>.Instance,
