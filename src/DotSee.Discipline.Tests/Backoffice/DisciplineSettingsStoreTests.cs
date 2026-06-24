@@ -101,5 +101,31 @@ namespace DotSee.Discipline.Tests.Backoffice
             var loaded = CreateStore(provider).Load();
             Assert.That(loaded.AiSummary.ApiKey, Is.EqualTo("second-key"));
         }
+
+        [Test]
+        public void Load_ReturnsClone_MutatingResultDoesNotCorruptCache()
+        {
+            var store = CreateStore(new EphemeralDataProtectionProvider());
+            store.Save(new DisciplineSettings { AiSummary = new AiSummaryFeatureSettings { ApiKey = "original" } });
+
+            var first = store.Load();
+            first.AiSummary.ApiKey = "mutated-by-caller";
+
+            var second = store.Load();
+            Assert.That(second.AiSummary.ApiKey, Is.EqualTo("original"));
+        }
+
+        [Test]
+        public void Save_ClonesInput_MutatingArgumentAfterSaveDoesNotAffectCache()
+        {
+            var store = CreateStore(new EphemeralDataProtectionProvider());
+            var input = new DisciplineSettings { AiSummary = new AiSummaryFeatureSettings { ApiKey = "saved-value" } };
+            store.Save(input);
+
+            input.AiSummary.ApiKey = "mutated-after-save";
+
+            var loaded = store.Load();
+            Assert.That(loaded.AiSummary.ApiKey, Is.EqualTo("saved-value"));
+        }
     }
 }

@@ -42,38 +42,43 @@ namespace DotSee.Discipline.Backoffice
 
         public DisciplineSettings Load()
         {
-            if (_cached != null) return _cached;
+            // Clone on egress so callers can't mutate the protected cached state. (A cached object
+            // is never mutated after publication, so cloning the captured reference is race-safe.)
+            var cached = _cached;
+            if (cached != null) return Clone(cached);
 
             lock (_gate)
             {
-                if (_cached != null) return _cached;
-
-                var path = GetFilePath();
-                if (!File.Exists(path))
+                if (_cached == null)
                 {
-                    _cached = new DisciplineSettings();
-                    return _cached;
-                }
-
-                try
-                {
-                    var json = File.ReadAllText(path);
-                    _cached = JsonSerializer.Deserialize<DisciplineSettings>(json, SerializerOptions)
-                              ?? new DisciplineSettings();
-
-                    // The API key is stored encrypted at rest; decrypt it for in-memory use.
-                    if (_cached.AiSummary != null)
+                    var path = GetFilePath();
+                    if (!File.Exists(path))
                     {
-                        _cached.AiSummary.ApiKey = Unprotect(_cached.AiSummary.ApiKey);
+                        _cached = new DisciplineSettings();
+                    }
+                    else
+                    {
+                        try
+                        {
+                            var json = File.ReadAllText(path);
+                            _cached = JsonSerializer.Deserialize<DisciplineSettings>(json, SerializerOptions)
+                                      ?? new DisciplineSettings();
+
+                            // The API key is stored encrypted at rest; decrypt it for in-memory use.
+                            if (_cached.AiSummary != null)
+                            {
+                                _cached.AiSummary.ApiKey = Unprotect(_cached.AiSummary.ApiKey);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.Error(ex, "Failed to read DotSee.Discipline backoffice settings from {Path}. Falling back to defaults.", path);
+                            _cached = new DisciplineSettings();
+                        }
                     }
                 }
-                catch (Exception ex)
-                {
-                    _logger.Error(ex, "Failed to read DotSee.Discipline backoffice settings from {Path}. Falling back to defaults.", path);
-                    _cached = new DisciplineSettings();
-                }
 
-                return _cached;
+                return Clone(_cached);
             }
         }
 
@@ -125,8 +130,17 @@ namespace DotSee.Discipline.Backoffice
                     }
                 }
 
-                _cached = settings;
+                // Clone on ingress so the caller can't mutate the cached state after saving.
+                _cached = Clone(settings);
             }
+        }
+
+        // Deep-clones via a JSON round-trip so the cache is isolated from caller-held references.
+        private static DisciplineSettings Clone(DisciplineSettings settings)
+        {
+            return JsonSerializer.Deserialize<DisciplineSettings>(
+                       JsonSerializer.Serialize(settings, SerializerOptions), SerializerOptions)
+                   ?? new DisciplineSettings();
         }
 
         private string GetFilePath()
