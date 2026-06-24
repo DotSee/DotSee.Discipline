@@ -114,7 +114,16 @@ export class VariantsHiderService {
    */
   private observeRoot(root: Node): void {
     const observer = new MutationObserver(() => this.scheduleScan());
-    observer.observe(root, { childList: true, subtree: true });
+    observer.observe(root, {
+      childList: true,
+      subtree: true,
+      // getTreeItemName() reads the label/name attributes and text content, which can change
+      // in place (e.g. a language variant being created flips "(Name)" to "Name"). Watch those
+      // so a rename triggers a rescan. The attribute filter keeps us off unrelated attribute
+      // churn and avoids re-triggering on our own style / data-dotsee-hidden writes.
+      attributeFilter: ['label', 'name'],
+      characterData: true,
+    });
     this.observers.add(observer);
   }
 

@@ -11,7 +11,7 @@ function _(i) {
     alias: "DotSee.Discipline.VariantsHider.ToggleAction",
     name: "Toggle Unset Variants Display",
     weight: 100,
-    api: () => import("./toggle-variants.action-DfhuvoVs.js"),
+    api: () => import("./toggle-variants.action-C6_WvYbp.js"),
     forEntityTypes: ["document-root"],
     meta: {
       icon: "icon-axis-rotation",
@@ -39,7 +39,7 @@ function M(i) {
       type: "propertyAction",
       alias: "DotSee.Discipline.PropertyVersions.PrevVersion",
       name: "Previous Version",
-      api: () => import("./prev-version.action-BT6KGEdC.js"),
+      api: () => import("./prev-version.action-CyZwaC2Y.js"),
       element: () => import("./version-action.element-DAiNSxFv.js"),
       forPropertyEditorUis: S,
       meta: {
@@ -150,7 +150,16 @@ class L {
    */
   observeRoot(e) {
     const t = new MutationObserver(() => this.scheduleScan());
-    t.observe(e, { childList: !0, subtree: !0 }), this.observers.add(t);
+    t.observe(e, {
+      childList: !0,
+      subtree: !0,
+      // getTreeItemName() reads the label/name attributes and text content, which can change
+      // in place (e.g. a language variant being created flips "(Name)" to "Name"). Watch those
+      // so a rename triggers a rescan. The attribute filter keeps us off unrelated attribute
+      // churn and avoids re-triggering on our own style / data-dotsee-hidden writes.
+      attributeFilter: ["label", "name"],
+      characterData: !0
+    }), this.observers.add(t);
   }
   /**
    * Queue a single scan for the next animation frame. Repeated mutations within the
@@ -344,7 +353,7 @@ const W = "DotSee.Discipline.Settings.Workspace", b = "DotSee.Discipline.Setting
     type: "workspace",
     alias: W,
     name: "DotSee Discipline Settings Workspace",
-    element: () => import("./discipline-settings.workspace.element-CDEF3i5l.js"),
+    element: () => import("./discipline-settings.workspace.element-DM8zR34v.js"),
     meta: {
       entityType: E
     }
@@ -393,7 +402,7 @@ const W = "DotSee.Discipline.Settings.Workspace", b = "DotSee.Discipline.Setting
     ]
   }
 ];
-async function j(i) {
+async function F(i) {
   if (!i)
     return { uiEnabled: !1 };
   try {
@@ -416,7 +425,7 @@ const Z = async (i, e) => {
   const s = await (await i.getContext(v)).getLatestToken(), [n, o, l] = await Promise.all([
     P(s),
     O(),
-    j(s)
+    F(s)
   ]);
   if (l.uiEnabled && e.registerMany(B), n.enabled) {
     H(n.noVersionsCaption);
@@ -442,4 +451,4 @@ export {
   Y as g,
   Z as o
 };
-//# sourceMappingURL=index-CKJyY1Rr.js.map
+//# sourceMappingURL=index-2_dCitlK.js.map
