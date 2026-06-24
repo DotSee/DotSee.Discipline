@@ -86,5 +86,20 @@ namespace DotSee.Discipline.Tests.Backoffice
             var loaded = CreateStore(provider).Load();
             Assert.That(loaded.AiSummary.ApiKey, Is.EqualTo(string.Empty));
         }
+
+        [Test]
+        public void Save_Twice_AtomicallyReplaces_AndLoadReadsLatest_WithoutTempLeftover()
+        {
+            var provider = new EphemeralDataProtectionProvider();
+            var store = CreateStore(provider);
+
+            // First save creates the file (File.Move); second overwrites it (File.Replace).
+            store.Save(new DisciplineSettings { AiSummary = new AiSummaryFeatureSettings { ApiKey = "first-key" } });
+            store.Save(new DisciplineSettings { AiSummary = new AiSummaryFeatureSettings { ApiKey = "second-key" } });
+
+            Assert.That(File.Exists(SettingsFilePath() + ".tmp"), Is.False, "Temp file was left behind.");
+            var loaded = CreateStore(provider).Load();
+            Assert.That(loaded.AiSummary.ApiKey, Is.EqualTo("second-key"));
+        }
     }
 }

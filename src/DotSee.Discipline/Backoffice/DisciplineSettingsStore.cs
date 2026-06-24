@@ -101,7 +101,21 @@ namespace DotSee.Discipline.Backoffice
                     }
 
                     var json = JsonSerializer.Serialize(settings, SerializerOptions);
-                    File.WriteAllText(path, json);
+
+                    // Write to a temp file in the same directory, then atomically swap it into
+                    // place, so an interrupted write can never leave settings.json partially
+                    // written or corrupted. File.Replace needs an existing target, so fall back
+                    // to File.Move on the first-ever save.
+                    var tempPath = path + ".tmp";
+                    File.WriteAllText(tempPath, json);
+                    if (File.Exists(path))
+                    {
+                        File.Replace(tempPath, path, null);
+                    }
+                    else
+                    {
+                        File.Move(tempPath, path);
+                    }
                 }
                 finally
                 {
