@@ -1,3 +1,4 @@
+using DotSee.Discipline.Backoffice;
 using DotSee.Discipline.Interfaces;
 using Serilog;
 using Umbraco.Cms.Core.Models;
@@ -19,11 +20,6 @@ namespace DotSee.Discipline.AutoNode
         /// The list of rule objects
         /// </summary>
         private List<Rule> _rules = new List<Rule>();
-
-        /// <summary>
-        /// Flag to indicate whether have been loaded by the rules provider
-        /// </summary>
-        private bool _rulesLoaded;
 
         /// <summary>
         /// Additional settings for autonode, presently only logLevel available
@@ -50,13 +46,6 @@ namespace DotSee.Discipline.AutoNode
 
         #endregion Private Members
 
-        #region Public Members
-        public List<Rule> Rules
-        {
-            get => _rules;
-        }
-        #endregion Public Members
-
         #region Constructors
 
         /// <summary>
@@ -68,7 +57,8 @@ namespace DotSee.Discipline.AutoNode
             , ILogger logger
             , IRuleProviderService<IEnumerable<Rule>> ruleProviderService
             , ISqlContext sqlContext
-            , AutoNodeUtils autoNodeUtils)
+            , AutoNodeUtils autoNodeUtils
+            , IDisciplineSettingsResolver settingsResolver)
         {
             _contentService = contentService;
             _logger = logger;
@@ -76,29 +66,21 @@ namespace DotSee.Discipline.AutoNode
             _contentTypeService = contentTypeService;
             _ruleProviderService = ruleProviderService;
             _sqlContext = sqlContext;
-            _rules = ruleProviderService.Rules?.ToList() ?? new List<Rule>();
         }
 
         #endregion Constructors
 
         #region Public Methods
 
-        /// <summary>
-        /// Registers a new rule object
-        /// </summary>
-        /// <param name="rule">The rule object</param>
-        public void RegisterRule(Rule rule)
+        // Read rules and settings fresh from the provider on every run. The provider reads them
+        // from the in-memory settings store (no file I/O), which Save() updates synchronously, so
+        // enabling/disabling the feature or editing rules takes effect immediately — no restart.
+        private void LoadFromProvider()
         {
-            _rules.Add(rule);
-        }
-
-        /// <summary>
-        /// Removes all rules from the AutoNode instance
-        /// </summary>
-        public void ClearRules()
-        {
-            _rules.RemoveAll<Rule>(x => true);
-            _rulesLoaded = false;
+            _rules = _ruleProviderService?.Rules?.ToList() ?? new List<Rule>();
+            _settings = (_ruleProviderService as ISettings<RuleSettings>)?.Settings;
+            _logVerbose = _settings != null && _settings.LogLevel == "Verbose";
+            _republishExistingNodes = _settings != null && _settings.RepublishExistingNodes;
         }
 
 
@@ -108,28 +90,13 @@ namespace DotSee.Discipline.AutoNode
         /// <param name="node">The newly created node we need to apply rules for</param>
         public virtual bool Run(IContent node, string culture = "")
         {
-            if (_rules != null && _rules.Count() > 0)
-            {
-                _rulesLoaded = true;
-            }
+            LoadFromProvider();
 
-            if (!_rulesLoaded && _ruleProviderService?.Rules != null)
-            {
-                foreach (Rule r in _ruleProviderService.Rules)
-                {
-                    _rules.Add(r);
-                }
-                _rulesLoaded = true;
-            }
-
-            if (_rules == null || _rules.Count() == 0)
+            if (_rules.Count == 0)
             {
                 return false;
             }
 
-            _settings = (_ruleProviderService as ISettings<RuleSettings>)?.Settings;
-            _logVerbose = (_settings != null && _settings.LogLevel != null && _settings.LogLevel == "Verbose");
-            _republishExistingNodes = (_settings != null && _settings.RepublishExistingNodes);
             string createdDocTypeAlias = node.ContentType.Alias;
 
             bool hasChildren = _contentService.GetPagedChildren(node.Id, 0, 1, out long totalRecords).Any();

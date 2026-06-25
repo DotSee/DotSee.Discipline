@@ -1,3 +1,4 @@
+using DotSee.Discipline.Backoffice;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -9,19 +10,34 @@ using Umbraco.Extensions;
 
 namespace DotSee.Discipline.VirtualNodes
 {
-    public class VirtualNodesContentFinder : IContentFinder
+    public class VirtualNodesContentFinder : IContentFinder, IDisposable
     {
+        private const string CacheKey = "cachedVirtualNodes";
+
         private readonly IMemoryCache _memCache;
         private readonly IUmbracoContextAccessor _contextAccessor;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger _logger;
+        private readonly IDisciplineSettingsResolver _settingsResolver;
 
-        public VirtualNodesContentFinder(IMemoryCache memCache, IUmbracoContextAccessor contextAccessor, IServiceScopeFactory serviceScopeFactory, ILogger logger)
+        public VirtualNodesContentFinder(IMemoryCache memCache, IUmbracoContextAccessor contextAccessor, IServiceScopeFactory serviceScopeFactory, ILogger logger, IDisciplineSettingsResolver settingsResolver)
         {
             _memCache = memCache;
             _contextAccessor = contextAccessor;
             _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
+            _settingsResolver = settingsResolver;
+
+            // Backoffice saves drop the cached URL->nodeId map so that enabling/disabling the
+            // feature (or editing rules) takes effect immediately, without an app restart.
+            _settingsResolver.SettingsChanged += OnSettingsChanged;
+        }
+
+        private void OnSettingsChanged() => _memCache.Remove(CacheKey);
+
+        public void Dispose()
+        {
+            _settingsResolver.SettingsChanged -= OnSettingsChanged;
         }
 
         public Task<bool> TryFindContent(IPublishedRequestBuilder request)
@@ -33,7 +49,7 @@ namespace DotSee.Discipline.VirtualNodes
             }
 
             //Get a cached dictionary of urls and node ids
-            var cachedVirtualNodeUrls = _memCache.Get<Dictionary<string, int>>("cachedVirtualNodes");
+            var cachedVirtualNodeUrls = _memCache.Get<Dictionary<string, int>>(CacheKey);
 
             //Get the request path
             string path = request.AbsolutePathDecoded;
@@ -88,7 +104,7 @@ namespace DotSee.Discipline.VirtualNodes
                 }
 
                 //Update cache
-                _memCache.Set("cachedVirtualNodes", cachedVirtualNodeUrls, new MemoryCacheEntryOptions
+                _memCache.Set(CacheKey, cachedVirtualNodeUrls, new MemoryCacheEntryOptions
                 {
                     Priority = CacheItemPriority.High
                 });

@@ -1,35 +1,29 @@
-﻿using DotSee.Discipline.Interfaces;
-using Lucene.Net.Util.Fst;
-using Microsoft.Extensions.Configuration;
-using Serilog;
-using System;
+using DotSee.Discipline.Backoffice;
+using DotSee.Discipline.Interfaces;
 using System.Collections.Generic;
-using System.Configuration;
-using System.IO;
 using System.Linq;
 
 namespace DotSee.Discipline.AutoNode
 {
-    public class JsonFileRuleProviderService :ISettings<RuleSettings>, IRuleProviderService<IEnumerable<Rule>>
+    public class JsonFileRuleProviderService : ISettings<RuleSettings>, IRuleProviderService<IEnumerable<Rule>>
     {
-        private RuleSettings _settings;
-        private List<Rule> _rules;
-        private readonly ILogger _logger;
-        private readonly IConfiguration _configuration;
+        private readonly IDisciplineSettingsResolver _resolver;
 
-        public JsonFileRuleProviderService(ILogger logger, IConfiguration configuration)
+        public JsonFileRuleProviderService(IDisciplineSettingsResolver resolver)
         {
-            _logger = logger;
-            _settings = null;
-            _rules = null;
-            _configuration = configuration;
+            _resolver = resolver;
         }
 
         public RuleSettings Settings
         {
             get
             {
-                return (_settings ?? GetSettings());
+                var feature = _resolver.GetAutoNode();
+                return new RuleSettings
+                {
+                    LogLevel = feature.LogLevel,
+                    RepublishExistingNodes = feature.RepublishExistingNodes,
+                };
             }
         }
 
@@ -37,51 +31,25 @@ namespace DotSee.Discipline.AutoNode
         {
             get
             {
-                return (_rules == null || !_rules.Any()) ? GetRules() : _rules;
+                var feature = _resolver.GetAutoNode();
+                return feature.Rules.Select(r => new Rule
+                {
+                    CreatedDocTypeAlias = r.CreatedDocTypeAlias,
+                    DocTypeAliasToCreate = r.DocTypeAliasToCreate,
+                    NodeName = r.NodeName,
+                    BringNewNodeFirst = r.BringNewNodeFirst,
+                    OnlyCreateIfNoChildren = r.OnlyCreateIfNoChildren,
+                    CreateIfExistsWithDifferentName = r.CreateIfExistsWithDifferentName,
+                    DictionaryItemForName = r.DictionaryItemForName,
+                    KeepNewNodeUnpublished = r.KeepNewNodeUnpublished,
+                    Blueprint = r.Blueprint,
+                }).ToList();
             }
         }
-
 
         public void ReloadData()
         {
-            _rules = null;
-            _settings = null;
+            // Data is read directly from the resolver on every access — nothing to invalidate here.
         }
-
-        private RuleSettings GetSettings()
-        {
-            RuleSettings r = new();
-
-            try
-            {
-                _configuration.GetSection("DotSee.Discipline:AutoNode:Settings").Bind(r);
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, MessageConstants.ErrorLoadConfig);
-                return null;
-            }
-            return r;
-        }
-         
-        private List<Rule> GetRules()
-        {
-            List<Rule> r = new();
-
-            try
-            {
-                _configuration.GetSection("DotSee.Discipline:AutoNode:Rules").Bind(r);
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, MessageConstants.ErrorLoadConfig);
-                return null;
-            }
-
-            _logger.Information(string.Format(MessageConstants.InfoLoadConfigComplete, r.Count));
-
-            return r;
-        }
-      
     }
 }

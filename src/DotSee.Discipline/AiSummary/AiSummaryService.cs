@@ -1,6 +1,7 @@
 using DotSee.Discipline.AiSummary.Exceptions;
 using DotSee.Discipline.AiSummary.Generators;
 using DotSee.Discipline.AiSummary.Helpers;
+using DotSee.Discipline.Backoffice;
 using DotSee.Discipline.Interfaces;
 using NPoco;
 using Serilog;
@@ -31,13 +32,21 @@ namespace DotSee.Discipline.AiSummary
             JsonSettingsProviderService settingsProviderService,
             ILogger logger,
             IJsonSerializer jsonSerializer,
-            IContentTypeService contentTypeService)
+            IContentTypeService contentTypeService,
+            IDisciplineSettingsResolver settingsResolver)
         {
             _settingsProviderService = settingsProviderService;
-            _settings = ((ISettings<AiSummarySettings>)_settingsProviderService).Settings;
             _logger = logger;
             _jsonSerializer = jsonSerializer;
             _contentTypeService = contentTypeService;
+        }
+
+        // Read settings fresh from the provider on every run. The provider reads them from the
+        // in-memory settings store (no file I/O), which Save() updates synchronously, so enabling/
+        // disabling the feature or editing settings takes effect immediately — no restart.
+        private void LoadFromProvider()
+        {
+            _settings = ((ISettings<AiSummarySettings>)_settingsProviderService).Settings;
         }
         #endregion
 
@@ -57,6 +66,8 @@ namespace DotSee.Discipline.AiSummary
         /// <returns>True if at least one AI summary was generated; false otherwise.</returns>
         public virtual bool Run(IContent node, IEnumerable<string> savingCultures = null)
         {
+            LoadFromProvider();
+
             //Make all the necessary checks to decide if we should continue.
             //If so, return an object with other useful info to use further down the line.
             ServiceCheckResults checkResults = ShouldContinue(node);

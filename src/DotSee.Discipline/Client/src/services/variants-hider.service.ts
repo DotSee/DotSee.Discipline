@@ -7,14 +7,22 @@ import type { VariantsHiderSettings } from './settings-fetcher.js';
  * for a specific language, it appears in the tree with its name in parentheses (e.g., "(Page Name)").
  * This service provides functionality to hide these placeholder nodes to reduce clutter.
  *
- * Uses requestAnimationFrame to scan for new items before the browser paints,
- * ensuring no visible flash when tree nodes are expanded.
+ * Uses a MutationObserver (over the light DOM and any open shadow roots) to detect
+ * tree changes and re-scan only when something actually changes, coalescing bursts
+ * to at most one scan per animation frame — instead of scanning the whole document
+ * and shadow-DOM tree on every frame. The coalescing frame still runs before paint,
+ * so newly rendered items are hidden without a visible flash.
  */
 export class VariantsHiderService {
   private isHidden: boolean = false;
-  private rafId: number | null = null;
   private enabled: boolean = false;
   private caption: string = 'Toggle unset variants display';
+
+  // Mutation-driven scanning state.
+  private observing: boolean = false;
+  private observers: Set<MutationObserver> = new Set();
+  private observedRoots: WeakSet<ShadowRoot> = new WeakSet();
+  private scanRafId: number | null = null;
 
   // Selectors for finding tree items in Umbraco v14+ backoffice
   private readonly TREE_ITEM_SELECTORS = [
@@ -79,41 +87,69 @@ export class VariantsHiderService {
   }
 
   /**
-   * Hide all unset variants and start a requestAnimationFrame loop that
-   * continuously scans for newly rendered items. RAF callbacks run before
-   * the browser paints, so new items are hidden before they appear on screen.
+   * Hide all unset variants and start observing the tree for changes. The initial
+   * pass also attaches observers to any open shadow roots it walks through.
    */
   private hideUnsetVariants(): void {
+    this.observing = true;
     this.processTreeItems(true);
-    this.startRafScan();
+    this.observeRoot(document.body ?? document.documentElement);
   }
 
   /**
-   * Stop scanning, show all hidden variants, and reset state.
+   * Stop observing, show all hidden variants, and reset state.
    */
   private showUnsetVariants(): void {
-    this.stopRafScan();
+    this.stopObserving();
     this.processTreeItems(false);
   }
 
   // ---------------------------------------------------------------------------
-  // requestAnimationFrame scan loop
+  // Mutation-driven scanning
   // ---------------------------------------------------------------------------
 
-  private startRafScan(): void {
-    if (this.rafId !== null) return;
-    const scan = () => {
-      this.processTreeItems(true);
-      this.rafId = requestAnimationFrame(scan);
-    };
-    this.rafId = requestAnimationFrame(scan);
+  /**
+   * Attach a MutationObserver to a light-DOM root or shadow root, once. Mutations
+   * trigger a coalesced rescan rather than a continuous per-frame loop.
+   */
+  private observeRoot(root: Node): void {
+    const observer = new MutationObserver(() => this.scheduleScan());
+    observer.observe(root, {
+      childList: true,
+      subtree: true,
+      // getTreeItemName() reads the label/name attributes and text content, which can change
+      // in place (e.g. a language variant being created flips "(Name)" to "Name"). Watch those
+      // so a rename triggers a rescan. The attribute filter keeps us off unrelated attribute
+      // churn and avoids re-triggering on our own style / data-dotsee-hidden writes.
+      attributeFilter: ['label', 'name'],
+      characterData: true,
+    });
+    this.observers.add(observer);
   }
 
-  private stopRafScan(): void {
-    if (this.rafId !== null) {
-      cancelAnimationFrame(this.rafId);
-      this.rafId = null;
+  /**
+   * Queue a single scan for the next animation frame. Repeated mutations within the
+   * same frame collapse into one scan, and the frame runs before paint (no flash).
+   */
+  private scheduleScan(): void {
+    if (this.scanRafId !== null) return;
+    this.scanRafId = requestAnimationFrame(() => {
+      this.scanRafId = null;
+      if (this.observing) {
+        this.processTreeItems(true);
+      }
+    });
+  }
+
+  private stopObserving(): void {
+    this.observing = false;
+    if (this.scanRafId !== null) {
+      cancelAnimationFrame(this.scanRafId);
+      this.scanRafId = null;
     }
+    this.observers.forEach((observer) => observer.disconnect());
+    this.observers.clear();
+    this.observedRoots = new WeakSet();
   }
 
   // ---------------------------------------------------------------------------
@@ -139,6 +175,12 @@ export class VariantsHiderService {
     const elements = root.querySelectorAll('*');
     elements.forEach((el) => {
       if (el.shadowRoot) {
+        // While observing, watch each open shadow root so changes inside it (which
+        // don't bubble to the host's observer) also trigger a rescan.
+        if (this.observing && !this.observedRoots.has(el.shadowRoot)) {
+          this.observedRoots.add(el.shadowRoot);
+          this.observeRoot(el.shadowRoot);
+        }
         const shadowTreeItems = el.shadowRoot.querySelectorAll(this.TREE_ITEM_SELECTORS);
         shadowTreeItems.forEach((item) => {
           if (this.processTreeItem(item as HTMLElement, hide)) {
@@ -232,6 +274,12 @@ export class VariantsHiderService {
   }
 
   dispose(): void {
-    this.stopRafScan();
+    // Restore anything we hid (remove display:none and data-dotsee-hidden) before tearing down,
+    // so disposing while in "hidden" mode doesn't leave the tree permanently modified.
+    if (this.isHidden) {
+      this.processTreeItems(false);
+      this.isHidden = false;
+    }
+    this.stopObserving();
   }
 }

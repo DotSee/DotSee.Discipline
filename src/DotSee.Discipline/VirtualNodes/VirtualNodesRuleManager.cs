@@ -12,20 +12,10 @@ namespace DotSee.Discipline.VirtualNodes
         public VirtualNodesRuleManager(IRuleProviderService<IEnumerable<String>> ruleProvider)
         {
            _ruleProvider = ruleProvider;
-            _rules = new List<string>();
-
-            if (!_ruleProvider.Rules.Any()) { return; }
-            _rules.AddRange(_ruleProvider.Rules);
         }
 
         #region Private Members
 
-
-
-        /// <summary>
-        /// The list of rule objects
-        /// </summary>
-        private List<string> _rules;
         private readonly IRuleProviderService<IEnumerable<string>> _ruleProvider;
 
         #endregion
@@ -33,15 +23,13 @@ namespace DotSee.Discipline.VirtualNodes
         #region Public Members
 
         /// <summary>
-        /// Gets the list of rules
+        /// Gets the list of rules.
+        /// Read fresh from the rule provider on every access so that enabling/disabling the
+        /// feature (or editing rules) from the backoffice takes effect immediately, without an
+        /// app restart. The underlying settings store is cached and invalidated on save, so this
+        /// is cheap. When the feature is disabled the resolver returns an empty rule set.
         /// </summary>
-        public List<string> Rules { get { return _rules; } }
-
-        #endregion
-
-        #region Constructors
-
-
+        public List<string> Rules => _ruleProvider.Rules?.ToList() ?? new List<string>();
 
         #endregion
     }

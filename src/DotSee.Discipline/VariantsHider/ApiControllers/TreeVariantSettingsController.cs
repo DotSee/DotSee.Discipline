@@ -1,7 +1,7 @@
+using DotSee.Discipline.Backoffice;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 
 namespace DotSee.Discipline.VariantsHider.ApiControllers
 {
@@ -14,53 +14,33 @@ namespace DotSee.Discipline.VariantsHider.ApiControllers
     [Route("umbraco/api/variantshider")]
     public class VariantsHiderApiController : ControllerBase
     {
-        private readonly IConfiguration _configuration;
+        private const string DefaultCaption = "Toggle unset variants display";
 
-        public VariantsHiderApiController(IConfiguration configuration)
+        private readonly IDisciplineSettingsResolver _resolver;
+
+        public VariantsHiderApiController(IDisciplineSettingsResolver resolver)
         {
-            _configuration = configuration;
+            _resolver = resolver;
         }
 
-        /// <summary>
-        /// Gets the VariantsHider settings from configuration.
-        /// </summary>
-        /// <returns>An object containing the enabled status and caption.</returns>
         [HttpGet("settings")]
         [AllowAnonymous]
         [ProducesResponseType(typeof(VariantsHiderSettingsResponse), StatusCodes.Status200OK)]
         public IActionResult GetSettings()
         {
-            var enabledSetting = _configuration.GetSection("DotSee.Discipline:VariantsHider:Enabled")?.Value;
-            var captionSetting = _configuration.GetSection("DotSee.Discipline:VariantsHider:Caption")?.Value;
-
-            var enabled = !string.IsNullOrEmpty(enabledSetting) && 
-                          enabledSetting.Equals("true", StringComparison.OrdinalIgnoreCase);
-            
-            var caption = string.IsNullOrEmpty(captionSetting) 
-                ? "Toggle unset variants display" 
-                : captionSetting;
+            var feature = _resolver.GetVariantsHider();
 
             return Ok(new VariantsHiderSettingsResponse
             {
-                Enabled = enabled,
-                Caption = caption
+                Enabled = feature.Enabled,
+                Caption = string.IsNullOrEmpty(feature.Caption) ? DefaultCaption : feature.Caption,
             });
         }
     }
 
-    /// <summary>
-    /// Response model for VariantsHider settings.
-    /// </summary>
     public class VariantsHiderSettingsResponse
     {
-        /// <summary>
-        /// Gets or sets whether the VariantsHider feature is enabled.
-        /// </summary>
         public bool Enabled { get; set; }
-
-        /// <summary>
-        /// Gets or sets the caption text for the toggle action.
-        /// </summary>
         public string Caption { get; set; } = string.Empty;
     }
 }

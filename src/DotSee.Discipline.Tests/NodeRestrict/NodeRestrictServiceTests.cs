@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DotSee.Discipline.Backoffice;
 using DotSee.Discipline.Interfaces;
 using DotSee.Discipline.NodeRestrict;
 using Moq;
@@ -18,6 +19,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
         private Mock<IRuleProviderService<IEnumerable<Rule>>> _ruleProviderMock;
         private Mock<ISettings<NodeRestrictSettings>> _settingsProviderMock;
         private Mock<IContentTypeService> _contentTypeServiceMock;
+        private Mock<IDisciplineSettingsResolver> _settingsResolverMock;
         private NodeRestrictSettings _settings;
 
         [SetUp]
@@ -28,6 +30,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
             _ruleProviderMock = new Mock<IRuleProviderService<IEnumerable<Rule>>>();
             _settingsProviderMock = _ruleProviderMock.As<ISettings<NodeRestrictSettings>>();
             _contentTypeServiceMock = new Mock<IContentTypeService>();
+            _settingsResolverMock = new Mock<IDisciplineSettingsResolver>();
             _settings = new NodeRestrictSettings { PropertyAlias = null, ShowWarnings = false };
             _settingsProviderMock.Setup(s => s.Settings).Returns(_settings);
         }
@@ -76,7 +79,8 @@ namespace DotSee.Discipline.Tests.NodeRestrict
                 _contentServiceMock.Object,
                 _sqlContextMock.Object,
                 _ruleProviderMock.Object,
-                _contentTypeServiceMock.Object);
+                _contentTypeServiceMock.Object,
+                _settingsResolverMock.Object);
         }
 
         #region Constructor Tests
@@ -95,19 +99,73 @@ namespace DotSee.Discipline.Tests.NodeRestrict
             Assert.That(sut, Is.Not.Null);
         }
 
-        #endregion
+        [Test]
+        public void Run_ReadsRulesFreshOnEveryCall()
+        {
+            // SUT constructed while a rule exists ("enabled")...
+            var sut = CreateSut(new List<Rule> { new Rule("*", "*", 1) });
+            var node = CreateMockNode(2, 1, "child", published: false);
+            _contentServiceMock.Setup(c => c.GetById(1)).Returns(CreateMockParentNode(1, "parent"));
 
-        #region RegisterRule Tests
+            // ...then the feature is disabled: the provider now returns no rules.
+            _ruleProviderMock.Setup(r => r.Rules).Returns(new List<Rule>());
+
+            // No restart and no SettingsChanged event needed — Run reads the current rules.
+            Assert.That(sut.Run(node), Is.Null);
+            _ruleProviderMock.Verify(r => r.Rules, Times.AtLeastOnce);
+        }
 
         [Test]
-        public void RegisterRule_AddsRuleToList()
+        public void RealResolver_DisableViaStoreAndNotify_DropsRulesImmediately()
         {
-            var sut = CreateSut(new List<Rule>());
+            // Full path: real DisciplineSettingsResolver + real JsonFileRuleProviderService,
+            // backoffice store enabled with one rule. This mirrors what the running app does.
+            var store = new FakeStore(new DisciplineSettings
+            {
+                UseBackoffice = true,
+                NodeRestrict = new NodeRestrictFeatureSettings
+                {
+                    Enabled = true,
+                    Rules = { new NodeRestrictRuleDto { ParentDocType = "*", ChildDocType = "*", MaxNodes = 1 } }
+                }
+            });
+            var resolver = new DisciplineSettingsResolver(store, new FakeReader());
+            var provider = new DotSee.Discipline.NodeRestrict.JsonFileRuleProviderService(resolver);
+            var sut = new NodeRestrictService(
+                _contentServiceMock.Object,
+                _sqlContextMock.Object,
+                provider,
+                _contentTypeServiceMock.Object,
+                resolver);
 
-            sut.RegisterRule(new Rule("ParentType", "ChildType", 3));
+            // Sanity: while enabled the rule is visible through the provider.
+            Assert.That(provider.Rules.Count(), Is.EqualTo(1));
 
-            // We can verify by checking behavior - the rule should now be applied
-            Assert.That(sut, Is.Not.Null);
+            // Simulate the controller's SaveSettings: persist a disabled feature, then notify.
+            store.Save(new DisciplineSettings { UseBackoffice = true, NodeRestrict = new NodeRestrictFeatureSettings { Enabled = false } });
+            resolver.NotifySettingsChanged();
+
+            // The disabled feature collapses to an empty rule set straight away.
+            Assert.That(provider.Rules.Count(), Is.EqualTo(0));
+
+            // And the next publish reflects it without a restart.
+            var node = CreateMockNode(2, 1, "child", published: false);
+            _contentServiceMock.Setup(c => c.GetById(1)).Returns(CreateMockParentNode(1, "parent"));
+            Assert.That(sut.Run(node), Is.Null);
+        }
+
+        private sealed class FakeStore : IDisciplineSettingsStore
+        {
+            private DisciplineSettings _settings;
+            public FakeStore(DisciplineSettings settings) => _settings = settings;
+            public DisciplineSettings Load() => _settings;
+            public void Save(DisciplineSettings settings) => _settings = settings;
+        }
+
+        private sealed class FakeReader : IDisciplineAppSettingsReader
+        {
+            public bool HasAppSettings() => false;
+            public DisciplineSettings Read() => new DisciplineSettings();
         }
 
         #endregion
@@ -522,22 +580,6 @@ namespace DotSee.Discipline.Tests.NodeRestrict
 
         #endregion
 
-        #region Edge Case Tests - RegisterRule Behavior
-
-        [Test]
-        public void RegisterRule_MultipleRulesCanBeAdded()
-        {
-            var sut = CreateSut(new List<Rule>());
-
-            sut.RegisterRule(new Rule("ParentA", "ChildA", 3));
-            sut.RegisterRule(new Rule("ParentB", "ChildB", 5));
-            sut.RegisterRule(new Rule("ParentC", "ChildC", 10));
-
-            // Verify all rules are registered by checking behavior with a matching parent
-            Assert.That(sut, Is.Not.Null);
-        }
-
-        #endregion
     }
 }
 

@@ -15,7 +15,18 @@ Version 1.x is for Umbraco v10-v13
 
 Version 2.x is for Umbraco v17
 
-# General Notes
+# UI-based configuration
+Discipline is designed to be configured via appSettings.json, but it also has a UI-based configuration in the back office that allows you to easily create and manage rules for all the functionalities included in the package, as well as toggle them on and off without having to change the configuration file.
+
+You can find it under Settings -> Discipline in the back office. 
+
+The UI-based configuration is stored in a custom JSON file in umbraco/Data/DotSee.Discipline/settings.json and overrides the appSettings.json configuration, so you can choose to use either one.
+
+You can also hit a button to import appsettings.json settings into the UI-based config (if you're already using Discipline). 
+
+Setings applied via the UI are effective immediately. In some cases only, a simple reload of the back office UI is required. The UI will display a message if this is needed.
+
+# General Notes (applies to all functionalities via appSettings.json)
 In your appSettings.json, create a new root level entry as follows:
 
 ```

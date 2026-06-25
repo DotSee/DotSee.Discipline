@@ -37,6 +37,12 @@ const DEFAULT_PV_SETTINGS: PropertyVersionsSettings = {
  * Returns default settings (disabled) if the API call fails.
  */
 export async function fetchPropertyVersionsSettings(authToken: string): Promise<PropertyVersionsSettings> {
+  // Without a valid token, skip the authenticated request (avoids a "Bearer undefined"
+  // header) and fall back to disabled.
+  if (!authToken) {
+    return DEFAULT_PV_SETTINGS;
+  }
+
   try {
     const culture = document.documentElement.lang || '';
     const url = culture

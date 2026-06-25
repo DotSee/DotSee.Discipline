@@ -1,4 +1,7 @@
-﻿using DotSee.Discipline.Interfaces;
+﻿using System;
+using DotSee.Discipline.Backoffice;
+using DotSee.Discipline.Interfaces;
+using Serilog;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
 
@@ -14,22 +17,22 @@ namespace DotSee.Discipline.NodeProtect
 
         private IContentService _cs;
         private readonly IRuleProviderService<IEnumerable<Rule>> _ruleProviderService;
-        private List<Rule> _rules;
-        private NodeProtectSettings _settings;
+        private readonly ILogger _logger;
 
         #endregion
 
         #region Constructors
 
         public NodeProtectService(
-            IContentService contentService
-            , IRuleProviderService<IEnumerable<Rule>> ruleProviderService
+            IContentService contentService,
+            IRuleProviderService<IEnumerable<Rule>> ruleProviderService,
+            IDisciplineSettingsResolver settingsResolver,
+            ILogger logger
             )
         {
             _cs = contentService;
             _ruleProviderService = ruleProviderService;
-            _rules = _ruleProviderService.Rules.ToList();
-            _settings = ((ISettings<NodeProtectSettings>)_ruleProviderService).Settings;
+            _logger = logger;
         }
 
         #endregion
@@ -37,56 +40,102 @@ namespace DotSee.Discipline.NodeProtect
         #region Public Methods
 
         /// <summary>
-        /// Registers a new rule object 
-        /// </summary>
-        /// <param name="rule">The rule object</param>
-        public void RegisterRule(Rule rule)
-        {
-            _rules.Add(rule);
-        }
-
-        /// <summary>
-        /// Applies all rules on publishing a node. 
+        /// Applies all rules on publishing a node.
         /// </summary>
         /// <param name="node">The newly created node we need to apply rules for</param>
         public virtual Result Run(IContent node)
         {
+            // Read settings and rules fresh from the provider on every run, into locals. The service
+            // is a singleton invoked concurrently, so per-run state must not live in instance fields.
+            // The provider reads from the in-memory settings store (no file I/O), which Save() updates
+            // synchronously, so enabling/disabling the feature or editing rules takes effect
+            // immediately — no restart.
+            List<Rule> rules = _ruleProviderService.Rules.ToList();
+            NodeProtectSettings settings = ((ISettings<NodeProtectSettings>)_ruleProviderService).Settings;
 
-            Result result = null;
+            // A node is protected if it — or any of its descendants — matches a configured rule
+            // OR carries the "protected" property set to true. Stop at the first match.
+            Result result = CheckNode(node, rules, settings);
+            if (result != null) { return result; }
 
-            foreach (Rule rule in _rules)
-            {
-                //Check if rule applies
-                result = CheckRule(rule, node);
-
-                //Stop at the first rule that applies. 
-                if (result != null)
-                {
-                    return result;
-                }
-            }
-
-            //Checks for current node not successfull, check all children.
             foreach (var subnode in _cs.GetPagedDescendants(node.Id, 0, int.MaxValue, out long total))
             {
-                if (result != null) { break; }
-
-                foreach (Rule rule in _rules)
-                {
-                    //Check if rule applies
-                    result = CheckRule(rule, subnode);
-
-                    //Stop at the first rule that applies. 
-                    if (result != null) { break; }
-                }
+                result = CheckNode(subnode, rules, settings);
+                if (result != null) { return result; }
             }
-            //Return the result or null if no result has been found
-            return (result);
+
+            return null;
         }
 
         #endregion
 
         #region Private Methods
+
+        /// <summary>
+        /// Evaluates a single node: the property-based protection first (which is independent of
+        /// the configured rules and must run even when no doctype/GUID rules are defined), then
+        /// each configured rule.
+        /// </summary>
+        private Result CheckNode(IContent node, List<Rule> rules, NodeProtectSettings settings)
+        {
+            if (IsProtectedByProperty(node, settings))
+            {
+                return Result.GetResult(new Rule("", node.Key.ToString()), node);
+            }
+
+            foreach (Rule rule in rules)
+            {
+                Result result = CheckRule(rule, node);
+                if (result != null) { return result; }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// True when the node carries the configured (optional) "protected" true/false property
+        /// set to true. Returns false when no alias is configured or the property is missing.
+        /// </summary>
+        private bool IsProtectedByProperty(IContent node, NodeProtectSettings settings)
+        {
+            var propertyAlias = settings.PropertyAlias;
+            if (string.IsNullOrEmpty(propertyAlias)) { return false; }
+
+            // Swallow exceptions — if the property is missing or unreadable, the node simply isn't
+            // protected by it and rule matching still applies.
+            try
+            {
+                if (!node.HasProperty(propertyAlias)) { return false; }
+
+                // Read the invariant value first (covers invariant properties). The True/False
+                // editor persists its value as 1/0 — sometimes as an int, sometimes as the string
+                // "1"/"0" — so coerce the raw value rather than relying on a typed conversion.
+                if (IsTruthy(node.GetValue(propertyAlias))) { return true; }
+
+                // If the property varies by culture, the invariant read above is null and the
+                // value lives under one of the node's cultures — check each of them.
+                foreach (var culture in node.AvailableCultures ?? Enumerable.Empty<string>())
+                {
+                    if (IsTruthy(node.GetValue(propertyAlias, culture))) { return true; }
+                }
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger?.Warning(ex, "NodeProtect could not read property '{Alias}' on node {NodeId}; treating it as not protected.", propertyAlias, node.Id);
+                return false;
+            }
+        }
+
+        // Interprets the various ways a True/False value can be persisted as a boolean.
+        private static bool IsTruthy(object value)
+        {
+            if (value is bool b) { return b; }
+            if (value is int i) { return i != 0; }
+            var s = value?.ToString()?.Trim().ToLowerInvariant();
+            return s == "1" || s == "true";
+        }
 
         /// <summary>
         /// Checks if a given rule applies to a given node
@@ -96,26 +145,6 @@ namespace DotSee.Discipline.NodeProtect
         /// <returns>True if a rule that prevents deletion has been found to match.</returns>
         private Result CheckRule(Rule rule, IContent node)
         {
-            var propertyAlias = _settings.PropertyAlias;
-
-            //Check if the document has the (optional) "special" property that defines 
-            //whether it should be allowed to be deleted.
-            //Swallow any exceptions here. If it's there, it's there. If it's not, don't bother.
-            try
-            {
-                if (
-                    propertyAlias != null
-                    && node.HasProperty(propertyAlias)
-                    && node.Properties[propertyAlias] != null
-                    && node.GetValue<bool>(propertyAlias)
-                    )
-                {
-                    Rule customRule = new Rule("", node.Key.ToString());
-                    return Result.GetResult(customRule, node);
-                }
-            }
-            catch { }
-
             bool guidsDefined = !string.IsNullOrEmpty(rule.DocumentGuids);
             bool doctypesDefined = !string.IsNullOrEmpty(rule.DocTypeAlias);
 

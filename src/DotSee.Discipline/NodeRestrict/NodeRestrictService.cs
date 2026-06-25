@@ -1,3 +1,4 @@
+using DotSee.Discipline.Backoffice;
 using DotSee.Discipline.Interfaces;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Persistence.Querying;
@@ -26,29 +27,30 @@ namespace DotSee.Discipline.NodeRestrict
 
         #region Constructors
 
-        public NodeRestrictService(IContentService contentService, ISqlContext sqlContext, IRuleProviderService<IEnumerable<Rule>> ruleProviderService, IContentTypeService contentTypeService)
+        public NodeRestrictService(
+            IContentService contentService,
+            ISqlContext sqlContext,
+            IRuleProviderService<IEnumerable<Rule>> ruleProviderService,
+            IContentTypeService contentTypeService,
+            IDisciplineSettingsResolver settingsResolver)
         {
             _cs = contentService;
             _sql = sqlContext;
             _ruleProviderService = ruleProviderService;
             _contentTypeService = contentTypeService;
-            _settings = ((ISettings<NodeRestrictSettings>)_ruleProviderService).Settings;
-
-            ///Get rules from the config file. Any rules programmatically declared later on will be added too.
-            _rules = _ruleProviderService.Rules.ToList();
         }
 
         #endregion
 
         #region Public Methods
 
-        /// <summary>
-        /// Registers a new rule object 
-        /// </summary>
-        /// <param name="rule">The rule object</param>
-        public void RegisterRule(Rule rule)
+        // Read settings and rules fresh from the provider on every run. The provider reads them
+        // from the in-memory settings store (no file I/O), which Save() updates synchronously, so
+        // enabling/disabling the feature or editing rules takes effect immediately — no restart.
+        private void LoadFromProvider()
         {
-            _rules.Add(rule);
+            _settings = ((ISettings<NodeRestrictSettings>)_ruleProviderService).Settings;
+            _rules = _ruleProviderService.Rules.ToList();
         }
 
         /// <summary>
@@ -64,6 +66,8 @@ namespace DotSee.Discipline.NodeRestrict
         /// </param>
         public virtual Result Run(IContent node, IEnumerable<string> publishingCultures = null)
         {
+            LoadFromProvider();
+
             //Get the parent node.
             var parent = _cs.GetById(node.ParentId);
             string culture = null;

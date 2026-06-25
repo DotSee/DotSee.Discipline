@@ -112,7 +112,8 @@ export class PrevVersionAction extends UmbPropertyActionBase {
     const block = this.#getBlockParams();
     const contentKey = this.#getContentKey(block);
     const propertyAlias = this.#propertyContext?.getAlias();
-    if (!contentKey || !propertyAlias) return false;
+    // Identity not resolved yet → disable (execute() would no-op in this same case).
+    if (!contentKey || !propertyAlias) return true;
     const culture = this.#propertyContext?.getVariantId()?.culture ?? null;
     return !canGoPrev(contentKey, propertyAlias, culture, block);
   }
