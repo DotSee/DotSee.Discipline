@@ -324,7 +324,9 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
   }
 
   private async _onSaveClick() {
-    if (!this._repository || !this._canSave()) return;
+    // Bail if a save is already in flight — _saving only drives the loader/fields, it doesn't
+    // stop a second click from firing a duplicate PUT/toast.
+    if (!this._repository || this._saving || !this._canSave()) return;
     const refreshSensitiveChanged =
       this._snapshotRefreshSensitive(this._settings) !== this._refreshSensitiveSnapshot;
     try {
@@ -783,7 +785,7 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
           look="primary"
           color="positive"
           label=${this.localize.term('dotseeDiscipline_common_save')}
-          ?disabled=${!this._canSave()}
+          ?disabled=${this._saving || !this._canSave()}
           @click=${this._onSaveClick}
         >
           ${this._saving

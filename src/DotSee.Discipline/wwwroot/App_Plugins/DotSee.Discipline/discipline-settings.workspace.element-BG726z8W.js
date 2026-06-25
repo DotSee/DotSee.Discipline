@@ -6,7 +6,7 @@ import { UmbLitElement as A } from "@umbraco-cms/backoffice/lit-element";
 import { UMB_AUTH_CONTEXT as C } from "@umbraco-cms/backoffice/auth";
 import { UMB_MODAL_MANAGER_CONTEXT as F, UMB_CONFIRM_MODAL as M } from "@umbraco-cms/backoffice/modal";
 import { UMB_NOTIFICATION_CONTEXT as E } from "@umbraco-cms/backoffice/notification";
-import { D as B, c as I, b as L, d as O } from "./index-2_dCitlK.js";
+import { D as B, c as I, b as L, d as O } from "./index-B-uz1c8G.js";
 const w = "/umbraco/api/discipline";
 class V {
   constructor(e) {
@@ -303,7 +303,7 @@ let m = class extends A {
     }
   }
   async _onSaveClick() {
-    if (!this._repository || !this._canSave()) return;
+    if (!this._repository || this._saving || !this._canSave()) return;
     const e = this._snapshotRefreshSensitive(this._settings) !== this._refreshSensitiveSnapshot;
     try {
       this._saving = !0, this.requestUpdate();
@@ -584,7 +584,7 @@ let m = class extends A {
           look="primary"
           color="positive"
           label=${this.localize.term("dotseeDiscipline_common_save")}
-          ?disabled=${!this._canSave()}
+          ?disabled=${this._saving || !this._canSave()}
           @click=${this._onSaveClick}
         >
           ${this._saving ? l`<uui-loader></uui-loader>` : this.localize.term("dotseeDiscipline_common_save")}
@@ -2032,4 +2032,4 @@ export {
   m as DisciplineSettingsWorkspaceElement,
   ee as default
 };
-//# sourceMappingURL=discipline-settings.workspace.element-DM8zR34v.js.map
+//# sourceMappingURL=discipline-settings.workspace.element-BG726z8W.js.map
