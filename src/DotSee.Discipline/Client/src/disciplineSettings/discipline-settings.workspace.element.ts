@@ -30,6 +30,11 @@ interface TabDefinition {
   labelKey: string;
 }
 
+// UI-only sentinel for the NodeRestrict parent doctype dropdown. Selecting it sets the rule's
+// atRoot flag instead of a parent doctype alias; it is never sent to the server. Document type
+// aliases cannot start with "$", so it can never collide with a real alias.
+const NODE_RESTRICT_ROOT_OPTION = '$root';
+
 const TABS: TabDefinition[] = [
   { alias: 'autoNode', labelKey: 'dotseeDiscipline_autoNode_label' },
   { alias: 'nodeRestrict', labelKey: 'dotseeDiscipline_nodeRestrict_label' },
@@ -376,7 +381,8 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     if (s.nodeRestrict.enabled) {
       // propertyAlias is optional — it only enables the per-parent "special property" override.
       s.nodeRestrict.rules.forEach((rule, i) => {
-        if (!rule.parentDocType)
+        // Rules that apply at the content root have no parent doctype by design.
+        if (!rule.atRoot && !rule.parentDocType)
           errors.push(t('dotseeDiscipline_nodeRestrict_validationParentDoctype', i + 1));
         if (!Number.isFinite(rule.maxNodes) || rule.maxNodes < 0)
           errors.push(t('dotseeDiscipline_nodeRestrict_validationMaxNodes', i + 1));
@@ -1078,9 +1084,12 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
             !rule.childDocType || rule.childDocType === '*'
               ? this.localize.term('dotseeDiscipline_common_anyDoctypeLowercase')
               : rule.childDocType;
-          const suffix = rule.parentDocType
-            ? `(${rule.parentDocType} \u2192 ${childLabel})`
-            : '';
+          const parentLabel = rule.atRoot
+            ? this.localize.term('dotseeDiscipline_nodeRestrict_contentRoot')
+            : rule.parentDocType === '*'
+              ? this.localize.term('dotseeDiscipline_common_anyDoctypeLowercase')
+              : rule.parentDocType;
+          const suffix = parentLabel ? `(${parentLabel} \u2192 ${childLabel})` : '';
           const ruleNumber = this.localize.term('dotseeDiscipline_common_ruleNumber', i + 1);
           const ruleName = suffix ? `${ruleNumber} ${suffix}` : ruleNumber;
           const ruleDetail = this.localize.term('dotseeDiscipline_nodeRestrict_ruleDetailMax', rule.maxNodes ?? 0);
@@ -1097,9 +1106,25 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
                 ${this._withFieldHelp(
                   this._docTypeField(
                     this.localize.term('dotseeDiscipline_nodeRestrict_parentDoctype'),
-                    rule.parentDocType,
+                    rule.atRoot ? NODE_RESTRICT_ROOT_OPTION : rule.parentDocType,
                     disabled || !feat.enabled,
-                    (v) => updateRuleAt(i, { parentDocType: v }),
+                    // "Content root" is a UI-only sentinel: it maps onto the atRoot flag and is never persisted
+                    // as a parent doctype alias, so the two can't be set at the same time.
+                    (v) =>
+                      v === NODE_RESTRICT_ROOT_OPTION
+                        ? updateRuleAt(i, { atRoot: true, parentDocType: '' })
+                        : updateRuleAt(i, { atRoot: false, parentDocType: v }),
+                    undefined,
+                    [
+                      {
+                        label: this.localize.term('dotseeDiscipline_nodeRestrict_contentRoot'),
+                        value: NODE_RESTRICT_ROOT_OPTION,
+                      },
+                      {
+                        label: this.localize.term('dotseeDiscipline_common_anyDoctype'),
+                        value: '*',
+                      },
+                    ],
                   ),
                   `noderestrict-rule-${i}-parent-help`,
                   this.localize.term('dotseeDiscipline_nodeRestrict_parentDoctypeHelp'),
@@ -1709,8 +1734,9 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     disabled: boolean,
     onChange: (value: string) => void,
     placeholder?: { label: string; value: string },
+    extraOptions?: { label: string; value: string }[],
   ) {
-    return this._aliasField(label, this._docTypes, value, disabled, onChange, placeholder);
+    return this._aliasField(label, this._docTypes, value, disabled, onChange, placeholder, extraOptions);
   }
 
   private _propertyField(
@@ -1882,9 +1908,12 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
     disabled: boolean,
     onChange: (value: string) => void,
     placeholder?: { label: string; value: string },
+    extraOptions?: { label: string; value: string }[],
   ) {
     const current = value ?? '';
-    const knownAliases = new Set(options.map((o) => o.alias));
+    const extras = extraOptions ?? [];
+    // Extra options carry their own labels (e.g. "Content root"), so they are not rendered as "name (alias)".
+    const knownAliases = new Set([...options.map((o) => o.alias), ...extras.map((e) => e.value)]);
     const placeholderValue = placeholder?.value ?? '';
     const placeholderLabel =
       placeholder?.label ?? this.localize.term('dotseeDiscipline_common_selectPlaceholder');
@@ -1899,6 +1928,11 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
           <option value=${placeholderValue} ?selected=${current === placeholderValue || current === ''}>
             ${placeholderLabel}
           </option>
+          ${extras.map(
+            (e) => html`
+              <option value=${e.value} ?selected=${e.value === current}>${e.label}</option>
+            `,
+          )}
           ${options.map(
             (o) => html`
               <option value=${o.alias} ?selected=${o.alias === current}>

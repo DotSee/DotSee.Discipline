@@ -35,6 +35,7 @@ namespace DotSee.Discipline.NodeRestrict
                 return feature.Rules.Select(r => new Rule
                 {
                     ParentDocType = r.ParentDocType,
+                    AtRoot = r.AtRoot,
                     ChildDocType = r.ChildDocType,
                     MaxNodes = r.MaxNodes,
                     ShowWarnings = r.ShowWarnings,

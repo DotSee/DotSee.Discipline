@@ -6,9 +6,15 @@
     public class Rule
     {
         /// <summary>
-        /// The parent document type alias
+        /// The parent document type alias. Ignored when <see cref="AtRoot"/> is true.
         /// </summary>
         public string ParentDocType { get;  set; }
+        /// <summary>
+        /// If true, the rule applies to nodes published at the content tree root instead of under a parent node.
+        /// A rule with AtRoot set matches only at the root, and <see cref="ParentDocType"/> is ignored.
+        /// Conversely, a rule without AtRoot never matches at the root, not even with a "*" parent document type.
+        /// </summary>
+        public bool AtRoot { get;  set; }
         /// <summary>
         /// The child document type alias (that is, the document being published)
         /// </summary>
@@ -18,27 +24,27 @@
         /// </summary>
         public int MaxNodes { get;  set; }
         /// <summary>
-        /// Indicates whether the rule has been created on the fly based on the document's special property (true) or is a rule that comes from the config file (false)
+        /// If true, a warning message will be displayed when a node is published and a rule is in effect, if the limit has not been reached
         /// </summary>
         public bool ShowWarnings { get;  set; }
         /// <summary>
-        /// If true, a warning message will be displayed when a node is published and a rule is in effect, if the limit has not been reached
+        /// A custom "limit reached" message. This overrides the standard message.
         /// </summary>
         public string CustomMessage { get;  set; }
         /// <summary>
-        /// A custom "limit reached" message. This overrides the standard message.
+        /// Custom category for the "limit reached" message. This overrides the standard category literal.
         /// </summary>
         public string CustomMessageCategory { get;  set; }
         /// <summary>
-        /// Custom category for the "limit reached" message. This overrides the standard category literal.
+        /// A custom warning message. This overrides the standard message.
         /// </summary>
         public string CustomWarningMessage { get;  set; }
         /// <summary>
-        /// A custom warning message. This overrides the standard message.
+        /// Custom category for the warning message. This overrides the standard category literal.
         /// </summary>
         public string CustomWarningMessageCategory { get;  set; }
         /// <summary>
-        /// Custom category for the warning message. This overrides the standard category literal.
+        /// Indicates whether the rule has been created on the fly based on the document's special property (true) or is a rule that comes from the config file (false)
         /// </summary>
         public bool FromProperty { get;  set; }
 
@@ -60,6 +66,7 @@
         /// <param name="customMessageCategory">Custom category for the "limit reached" message. This overrides the standard category literal.</param>
         /// <param name="customWarningMessage">A custom warning message. This overrides the standard message.</param>
         /// <param name="customWarningMessageCategory">Custom category for the warning message. This overrides the standard category literal.</param>
+        /// <param name="atRoot">If true, the rule applies to nodes published at the content tree root and <paramref name="parentDocType"/> is ignored</param>
         public Rule(
             string parentDocType,
             string childDocType,
@@ -69,9 +76,11 @@
             string customMessage = "",
             string customMessageCategory = "",
             string customWarningMessage = "",
-            string customWarningMessageCategory = "")
+            string customWarningMessageCategory = "",
+            bool atRoot = false)
         {
             ParentDocType = parentDocType;
+            AtRoot = atRoot;
             ChildDocType = childDocType;
             MaxNodes = maxNodes;
             FromProperty = fromProperty;

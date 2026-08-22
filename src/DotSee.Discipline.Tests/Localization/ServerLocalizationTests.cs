@@ -26,7 +26,7 @@ namespace DotSee.Discipline.Tests.Localization
             "aiSummaryCategory", "aiSummaryGenerated", "aiSummaryError",
             "nodeProtectDefaultCategory", "nodeProtectDefaultMessage",
             "nodeRestrictDefaultCategory", "nodeRestrictDefault", "nodeRestrictFromProperty",
-            "nodeRestrictOfAnyType", "nodeRestrictOfType", "nodeRestrictAnyNode", "nodeRestrictNodesOfType",
+            "nodeRestrictOfAnyType", "nodeRestrictOfType", "nodeRestrictAnyNode", "nodeRestrictAtRoot", "nodeRestrictNodesOfType",
             "nodeRestrictWarningDefault", "nodeRestrictWarningFromProperty",
             "nodeRestrictAnyNodeCap", "nodeRestrictNodesOfTypeCap",
             "apiSettingsRequired", "apiNoAppsettingsFound",

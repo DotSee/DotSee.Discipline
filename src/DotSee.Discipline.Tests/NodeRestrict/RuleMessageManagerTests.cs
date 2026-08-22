@@ -33,6 +33,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
             SetupText("nodeRestrictOfAnyType", "of any type");
             SetupText("nodeRestrictOfType", "of type '%0%'");
             SetupText("nodeRestrictAnyNode", "any node");
+            SetupText("nodeRestrictAtRoot", "the content root");
             SetupText("nodeRestrictNodesOfType", "nodes of type '%0%'");
             SetupText("nodeRestrictWarningDefault", "%3% under %2% are limited to %0%. You are about to create node number %1%.");
             SetupText("nodeRestrictWarningFromProperty", "You are about to create node number %0% of a maximum of %1% allowed under this node.");
@@ -348,6 +349,67 @@ namespace DotSee.Discipline.Tests.NodeRestrict
 
             // Should still produce a message, just with null names in the format string
             Assert.That(result, Is.Not.Null);
+        }
+
+        #endregion
+
+        #region Content Root Rule Tests
+
+        [Test]
+        public void GetMessage_WhenRuleIsAtRoot_DescribesTheContentRoot()
+        {
+            SetupContentTypes("parentAlias", "Parent Type", "childAlias", "Child Type");
+            var rule = new Rule(null, "childAlias", 1, atRoot: true);
+            var mgr = CreateManager(rule);
+
+            var result = mgr.GetMessage();
+
+            Assert.That(result, Is.EqualTo("A maximum of 1 child node(s) of type 'Child Type' is allowed under the content root."));
+        }
+
+        [Test]
+        public void GetMessage_WhenRuleIsAtRootWithAnyChildDocType_DescribesTheContentRoot()
+        {
+            SetupContentTypes("parentAlias", "Parent Type", "childAlias", "Child Type");
+            var rule = new Rule(null, "*", 3, atRoot: true);
+            var mgr = CreateManager(rule);
+
+            var result = mgr.GetMessage();
+
+            Assert.That(result, Is.EqualTo("A maximum of 3 child node(s) of any type is allowed under the content root."));
+        }
+
+        [Test]
+        public void GetWarningMessage_WhenRuleIsAtRoot_DescribesTheContentRoot()
+        {
+            SetupContentTypes("parentAlias", "Parent Type", "childAlias", "Child Type");
+            var rule = new Rule(null, "childAlias", 3, atRoot: true);
+            var mgr = CreateManager(rule);
+
+            var result = mgr.GetWarningMessage(1);
+
+            Assert.That(result, Is.EqualTo("Nodes of type 'Child Type' under the content root are limited to 3. You are about to create node number 2."));
+        }
+
+        [Test]
+        public void Constructor_WhenRuleIsAtRootWithNullParentDocType_DoesNotThrow()
+        {
+            SetupContentTypes("parentAlias", "Parent Type", "childAlias", "Child Type");
+            var rule = new Rule { AtRoot = true, ChildDocType = "childAlias", MaxNodes = 1 };
+
+            Assert.DoesNotThrow(() => CreateManager(rule));
+        }
+
+        [Test]
+        public void GetMessage_WhenRuleIsAtRootWithCustomMessage_StillReturnsCustomMessage()
+        {
+            SetupContentTypes("parentAlias", "Parent Type", "childAlias", "Child Type");
+            var rule = new Rule(null, "childAlias", 1, customMessage: "Only one site root allowed.", atRoot: true);
+            var mgr = CreateManager(rule);
+
+            var result = mgr.GetMessage();
+
+            Assert.That(result, Is.EqualTo("Only one site root allowed."));
         }
 
         #endregion

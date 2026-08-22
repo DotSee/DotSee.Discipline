@@ -35,6 +35,7 @@
     <key alias="nodeRestrictOfAnyType">of any type</key>
     <key alias="nodeRestrictOfType">of type '%0%'</key>
     <key alias="nodeRestrictAnyNode">any node</key>
+    <key alias="nodeRestrictAtRoot">the content root</key>
     <key alias="nodeRestrictNodesOfType">nodes of type '%0%'</key>
     <key alias="nodeRestrictWarningDefault">%3% under %2% are limited to %0%. You are about to create node number %1%.</key>
     <key alias="nodeRestrictWarningFromProperty">You are about to create node number %0% of a maximum of %1% allowed under this node.</key>

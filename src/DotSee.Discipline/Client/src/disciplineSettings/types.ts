@@ -19,6 +19,8 @@ export interface AutoNodeFeatureSettings {
 
 export interface NodeRestrictRuleDto {
   parentDocType: string;
+  /** When true the rule applies at the content tree root and parentDocType is ignored. */
+  atRoot: boolean;
   childDocType: string;
   maxNodes: number;
   showWarnings: boolean;
@@ -135,6 +137,7 @@ export function createEmptyAutoNodeRule(): AutoNodeRuleDto {
 export function createEmptyNodeRestrictRule(): NodeRestrictRuleDto {
   return {
     parentDocType: '',
+    atRoot: false,
     childDocType: '*',
     maxNodes: 1,
     showWarnings: true,

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using DotSee.Discipline.Backoffice;
 using DotSee.Discipline.Interfaces;
 using DotSee.Discipline.NodeRestrict;
@@ -414,10 +415,11 @@ namespace DotSee.Discipline.Tests.NodeRestrict
 
         #endregion
 
-        // NOTE: Testing scenarios that involve CheckRule with actual child counting
-        // requires integration testing because GetFilter uses _sql.Query<IContent>()
-        // which needs Umbraco's database mapper infrastructure (IMapperCollection)
-        // that cannot be easily mocked in unit tests.
+        // NOTE: Scenarios that involve CheckRule with actual child counting need the
+        // IQuery<IContent> that GetFilter builds via _sql.Query<IContent>() to be stubbed,
+        // since the real one needs Umbraco's database mapper infrastructure (IMapperCollection).
+        // See SetupRootChildren in the "Run - Content Root Tests" region for the pattern:
+        // the filter is never evaluated, so a mock that returns itself from Where() is enough.
 
         #region Edge Case Tests - Rule Construction
 
@@ -427,6 +429,7 @@ namespace DotSee.Discipline.Tests.NodeRestrict
             var rule = new Rule();
 
             Assert.That(rule.ParentDocType, Is.Null);
+            Assert.That(rule.AtRoot, Is.False);
             Assert.That(rule.ChildDocType, Is.Null);
             Assert.That(rule.MaxNodes, Is.EqualTo(0));
             Assert.That(rule.FromProperty, Is.False);
@@ -576,6 +579,248 @@ namespace DotSee.Discipline.Tests.NodeRestrict
             var result = sut.Run(node);
 
             Assert.That(result, Is.Null);
+        }
+
+        #endregion
+
+        #region IsRuleMatch Tests
+
+        [Test]
+        public void IsRuleMatch_WhenAtRootAndRuleIsAtRoot_ReturnsTrue()
+        {
+            var rule = new Rule(null, "ChildType", 1, atRoot: true);
+
+            Assert.That(NodeRestrictService.IsRuleMatch(rule, null, "ChildType", true), Is.True);
+        }
+
+        [Test]
+        public void IsRuleMatch_WhenAtRootAndRuleIsAtRoot_IgnoresParentDocType()
+        {
+            //ParentDocType is meaningless for an AtRoot rule and must not affect matching.
+            var rule = new Rule("SomeOtherType", "ChildType", 1, atRoot: true);
+
+            Assert.That(NodeRestrictService.IsRuleMatch(rule, null, "ChildType", true), Is.True);
+        }
+
+        [Test]
+        public void IsRuleMatch_WhenAtRootAndRuleUsesWildcardParent_ReturnsFalse()
+        {
+            //"*" means "any content parent" and deliberately does not include the root.
+            var rule = new Rule("*", "*", 1);
+
+            Assert.That(NodeRestrictService.IsRuleMatch(rule, null, "ChildType", true), Is.False);
+        }
+
+        [Test]
+        public void IsRuleMatch_WhenAtRootAndRuleUsesNamedParent_ReturnsFalse()
+        {
+            var rule = new Rule("ParentType", "ChildType", 1);
+
+            Assert.That(NodeRestrictService.IsRuleMatch(rule, null, "ChildType", true), Is.False);
+        }
+
+        [Test]
+        public void IsRuleMatch_WhenNotAtRootAndRuleIsAtRoot_ReturnsFalse()
+        {
+            var rule = new Rule(null, "ChildType", 1, atRoot: true);
+
+            Assert.That(NodeRestrictService.IsRuleMatch(rule, "ParentType", "ChildType", false), Is.False);
+        }
+
+        [Test]
+        public void IsRuleMatch_WhenAtRootRuleHasNullParentDocType_DoesNotThrow()
+        {
+            var rule = new Rule { AtRoot = true, ChildDocType = "ChildType", MaxNodes = 1 };
+
+            Assert.DoesNotThrow(() => NodeRestrictService.IsRuleMatch(rule, null, "ChildType", true));
+        }
+
+        [Test]
+        public void IsRuleMatch_WhenAtRootAndChildDocTypeIsWildcard_ReturnsTrue()
+        {
+            var rule = new Rule(null, "*", 1, atRoot: true);
+
+            Assert.That(NodeRestrictService.IsRuleMatch(rule, null, "AnyType", true), Is.True);
+        }
+
+        [Test]
+        public void IsRuleMatch_WhenAtRootAndChildDocTypeDiffersInCase_ReturnsTrue()
+        {
+            var rule = new Rule(null, "childtype", 1, atRoot: true);
+
+            Assert.That(NodeRestrictService.IsRuleMatch(rule, null, "ChildType", true), Is.True);
+        }
+
+        [Test]
+        public void IsRuleMatch_WhenAtRootAndChildDocTypeDoesNotMatch_ReturnsFalse()
+        {
+            var rule = new Rule(null, "ChildType", 1, atRoot: true);
+
+            Assert.That(NodeRestrictService.IsRuleMatch(rule, null, "OtherType", true), Is.False);
+        }
+
+        [Test]
+        public void IsRuleMatch_WhenNotAtRootAndParentDocTypeMatchesCaseInsensitively_ReturnsTrue()
+        {
+            var rule = new Rule("parenttype", "ChildType", 1);
+
+            Assert.That(NodeRestrictService.IsRuleMatch(rule, "ParentType", "ChildType", false), Is.True);
+        }
+
+        [Test]
+        public void IsRuleMatch_WhenNotAtRootAndParentDocTypeIsWildcard_ReturnsTrue()
+        {
+            var rule = new Rule("*", "ChildType", 1);
+
+            Assert.That(NodeRestrictService.IsRuleMatch(rule, "AnyParent", "ChildType", false), Is.True);
+        }
+
+        #endregion
+
+        #region Run - Content Root Tests
+
+        [Test]
+        public void Run_WhenNodeIsAtRoot_AndNoRuleIsMarkedAtRoot_ReturnsNull()
+        {
+            //Regression guard: existing "*" rules must not start firing at the root.
+            var rules = new List<Rule>
+            {
+                new Rule("*", "*", 10),
+                new Rule("ParentType", "ChildType", 1)
+            };
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, -1, "ChildType");
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.Null);
+        }
+
+        [Test]
+        public void Run_WhenNodeIsAtRoot_AndRuleIsAtRoot_AndLimitNotReached_ReturnsResultWithoutLimitReached()
+        {
+            var rules = new List<Rule>
+            {
+                new Rule(null, "ChildType", 2, atRoot: true)
+            };
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, -1, "ChildType");
+
+            SetupRootChildren(CreateMockNode(2, -1, "ChildType", published: true));
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.NodeCount, Is.EqualTo(1));
+            Assert.That(result.LimitReached, Is.False);
+            Assert.That(result.Rule.AtRoot, Is.True);
+        }
+
+        [Test]
+        public void Run_WhenNodeIsAtRoot_AndRuleIsAtRoot_AndLimitReached_ReturnsResultWithLimitReached()
+        {
+            var rules = new List<Rule>
+            {
+                new Rule(null, "ChildType", 1, atRoot: true)
+            };
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, -1, "ChildType");
+
+            SetupRootChildren(CreateMockNode(2, -1, "ChildType", published: true));
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.NodeCount, Is.EqualTo(1));
+            Assert.That(result.LimitReached, Is.True);
+        }
+
+        [Test]
+        public void Run_WhenNodeIsAtRoot_AndRuleIsAtRoot_OnlyCountsPublishedSiblings()
+        {
+            var rules = new List<Rule>
+            {
+                new Rule(null, "*", 2, atRoot: true)
+            };
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, -1, "ChildType");
+
+            SetupRootChildren(
+                CreateMockNode(2, -1, "ChildType", published: true),
+                CreateMockNode(3, -1, "ChildType", published: false));
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.NodeCount, Is.EqualTo(1));
+            Assert.That(result.LimitReached, Is.False);
+        }
+
+        [Test]
+        public void Run_WhenNodeIsAtRoot_AndRuleIsAtRoot_DoesNotLookUpAParentNode()
+        {
+            var rules = new List<Rule>
+            {
+                new Rule(null, "ChildType", 1, atRoot: true)
+            };
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, -1, "ChildType");
+
+            SetupRootChildren();
+
+            sut.Run(node);
+
+            _contentServiceMock.Verify(x => x.GetById(-1), Times.Never);
+        }
+
+        [Test]
+        public void Run_WhenNodeIsAtRoot_AndRuleIsAtRootButChildDocTypeDoesNotMatch_ReturnsNull()
+        {
+            var rules = new List<Rule>
+            {
+                new Rule(null, "OtherType", 1, atRoot: true)
+            };
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, -1, "ChildType");
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.Null);
+        }
+
+        [Test]
+        public void Run_WhenNodeIsAtRoot_AndAlreadyPublished_ReturnsNull()
+        {
+            var rules = new List<Rule>
+            {
+                new Rule(null, "ChildType", 1, atRoot: true)
+            };
+            var sut = CreateSut(rules);
+            var node = CreateMockNode(1, -1, "ChildType", published: true);
+
+            var result = sut.Run(node);
+
+            Assert.That(result, Is.Null);
+        }
+
+        /// <summary>
+        /// Wires up the query filter and the paged children call for a node being published at the root.
+        /// </summary>
+        private void SetupRootChildren(params IContent[] children)
+        {
+            //GetFilter resolves the child doctype when the rule names one explicitly.
+            var childContentTypeMock = new Mock<IContentType>();
+            childContentTypeMock.Setup(c => c.Id).Returns(200);
+            _contentTypeServiceMock.Setup(x => x.Get(It.IsAny<string>())).Returns(childContentTypeMock.Object);
+
+            var queryMock = new Mock<IQuery<IContent>>();
+            queryMock.Setup(q => q.Where(It.IsAny<Expression<Func<IContent, bool>>>())).Returns(queryMock.Object);
+            _sqlContextMock.Setup(s => s.Query<IContent>()).Returns(queryMock.Object);
+
+            long total = children.Length;
+            _contentServiceMock
+                .Setup(x => x.GetPagedChildren(-1, 0, It.IsAny<int>(), out total, It.IsAny<IQuery<IContent>>(), It.IsAny<Ordering>()))
+                .Returns(children);
         }
 
         #endregion

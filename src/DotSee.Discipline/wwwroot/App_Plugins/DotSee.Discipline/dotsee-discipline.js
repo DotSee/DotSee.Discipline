@@ -1,5 +1,5 @@
 import "@umbraco-cms/backoffice/auth";
-import { V as a, g as t, o } from "./index-B-uz1c8G.js";
+import { V as a, g as t, o } from "./index-BA6mLGL1.js";
 export {
   a as VariantsHiderService,
   t as getVariantsHiderService,
