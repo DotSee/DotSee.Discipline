@@ -166,7 +166,8 @@ You can define rules for parent/child sets based on document type as well as use
 
 A rule has the following attributes:
 
-- **parentDocType**: The document type alias of the parent of the document being published. You can alternatively use the "\*" character here to match all document types.
+- **parentDocType**: The document type alias of the parent of the document being published. You can alternatively use the "\*" character here to match all document types. Ignored when "atRoot" is set.
+- **atRoot**: When true, the rule applies to documents published at the content tree root (the top level of the content section) instead of under a parent node. "parentDocType" is ignored for such rules. Note that "\*" as a parentDocType means "under any *parent node*" and does **not** include the root — limiting the root is strictly opt-in via "atRoot".
 - **childDocType**: The document type alias of the document being published. You can alternatively use the "\*" character here to match all document types.
 - **maxNodes**: The maximum number of "childDocType" nodes allowed under a "ParentDocType" node.
 - **showWarnings**: When set, displays warning messages regarding the number of nodes allowed if a rule is matched but the maximum number of children has not yet been reached.
@@ -216,6 +217,25 @@ Another far-fetched example would be to limit EVERY node in your site to having 
 
 The asterisk means "everything", as you may have guessed.
 
+Finally, let's suppose your site should only ever have one "pageHome" node at the top of the content tree. Since there is no parent document type to match against there, use "atRoot" instead:
+
+```
+{
+    "AtRoot": true,
+    "ChildDocType": "pageHome",
+    "MaxNodes": 1,
+    "ShowWarnings": true,
+    "CustomMessage": "This site can only have one home page.",
+    "CustomMessageCategory": "",
+    "CustomWarningMessage": "",
+    "CustomWarningMessageCategory": ""
+}
+```
+
+Set "ChildDocType" to "\*" instead if you want to cap the total number of root nodes regardless of their type.
+
+In the back office, "atRoot" is set by picking **Content root** in the rule's "Parent doctype" dropdown.
+
 ## Usage (using document property)
 
 Now let's suppose you have a single, specific node where you need to limit its number of child nodes to 5. In order to do that, you must specify the "special" property alias you need to use in the config file:
@@ -238,6 +258,8 @@ So if your propertyAlias is, for example, "umbracoRestrictNodes" (this is the de
 ## Limitations
 
 The "special property" limit (when the special property exists and has a value) overrides any defined rules that can apply to the same node.
+
+The "special property" limit cannot be used to restrict the content tree root, since the property has to live on the parent node and the root has none. Use an "atRoot" rule for that.
 
 Rules are processed top-down, so make sure the more general rules go to the bottom.
 

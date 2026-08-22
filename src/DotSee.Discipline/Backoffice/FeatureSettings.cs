@@ -34,6 +34,11 @@ namespace DotSee.Discipline.Backoffice
     public class NodeRestrictRuleDto
     {
         public string ParentDocType { get; set; }
+
+        /// <summary>
+        /// When true, the rule applies at the content tree root and <see cref="ParentDocType"/> is ignored.
+        /// </summary>
+        public bool AtRoot { get; set; }
         public string ChildDocType { get; set; }
         public int MaxNodes { get; set; }
         public bool ShowWarnings { get; set; }

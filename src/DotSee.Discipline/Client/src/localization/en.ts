@@ -134,7 +134,8 @@ export default {
       'Global default. When on, NodeRestrict surfaces warning messages to editors as they approach a limit. Individual rules can override this.',
     parentDoctype: 'Parent doctype *',
     parentDoctypeHelp:
-      'The doctype of the parent node under which the limit is enforced. The rule counts children of this parent.',
+      'The doctype of the parent node under which the limit is enforced. The rule counts children of this parent. Choose "Any doctype" to enforce the limit under every parent, or "Content root" to limit nodes at the top of the content tree — "Any doctype" does not include the root, and the property alias override above cannot apply there.',
+    contentRoot: 'Content root',
     childDoctype: 'Child doctype',
     childDoctypeHelp:
       'The doctype of children that count towards the limit. Choose "Any doctype" to cap the total number of children regardless of type.',

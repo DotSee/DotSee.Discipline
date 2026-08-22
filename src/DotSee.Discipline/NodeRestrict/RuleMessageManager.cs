@@ -20,8 +20,23 @@ namespace DotSee.Discipline.NodeRestrict
             _localizedTextService = localizedTextService;
             IContentTypeService _cst = contentTypeService;
 
-            _parentDocTypeName = _cst.GetAll().Where(x => x.Alias.ToLower() == _rule.ParentDocType.ToLower()).FirstOrDefault()?.Name;
+            //ParentDocType is empty for rules that apply at the content tree root.
+            _parentDocTypeName = string.IsNullOrEmpty(_rule.ParentDocType)
+                ? null
+                : _cst.GetAll().Where(x => x.Alias.ToLower() == _rule.ParentDocType.ToLower()).FirstOrDefault()?.Name;
             _childDocTypeName = _cst.GetAll().Where(x => x.Alias.ToLower() == _rule.ChildDocType.ToLower()).FirstOrDefault()?.Name;
+        }
+
+        /// <summary>
+        /// Returns the phrase describing where the rule applies ("the content root", "any node" or "nodes of type '...'").
+        /// </summary>
+        private string GetParentPart()
+        {
+            if (_rule.AtRoot) { return Localize("nodeRestrictAtRoot"); }
+
+            return _rule.ParentDocType.Equals("*")
+                ? Localize("nodeRestrictAnyNode")
+                : Localize("nodeRestrictNodesOfType", _parentDocTypeName);
         }
 
         /// <summary>
@@ -42,9 +57,7 @@ namespace DotSee.Discipline.NodeRestrict
                 ? Localize("nodeRestrictOfAnyType")
                 : Localize("nodeRestrictOfType", _childDocTypeName);
 
-            var parentPart = _rule.ParentDocType.Equals("*")
-                ? Localize("nodeRestrictAnyNode")
-                : Localize("nodeRestrictNodesOfType", _parentDocTypeName);
+            var parentPart = GetParentPart();
 
             return Localize("nodeRestrictDefault", _rule.MaxNodes.ToString(), childPart, parentPart);
         }
@@ -73,9 +86,7 @@ namespace DotSee.Discipline.NodeRestrict
                 return Localize("nodeRestrictWarningFromProperty", (currentNodeCount + 1).ToString(), _rule.MaxNodes.ToString());
             }
 
-            var parentPart = _rule.ParentDocType.Equals("*")
-                ? Localize("nodeRestrictAnyNode")
-                : Localize("nodeRestrictNodesOfType", _parentDocTypeName);
+            var parentPart = GetParentPart();
 
             var childPart = _rule.ChildDocType.Equals("*")
                 ? Localize("nodeRestrictAnyNodeCap")
