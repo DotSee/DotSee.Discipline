@@ -52,7 +52,9 @@ namespace DotSee.Discipline.Backoffice
             SettingsChanged?.Invoke();
         }
 
-        private bool UseBackoffice() => _store.Load().UseBackoffice;
+        // With no appsettings section there is nothing to fall back to, so the backoffice store
+        // is the only source regardless of the master toggle.
+        private bool UseBackoffice() => !_reader.HasAppSettings() || _store.Load().UseBackoffice;
 
         // When the master toggle is on but a feature is disabled, return an empty shell so
         // downstream services behave as if the feature is off.

@@ -6,7 +6,7 @@ import { UmbLitElement as M } from "@umbraco-cms/backoffice/lit-element";
 import { UMB_AUTH_CONTEXT as E } from "@umbraco-cms/backoffice/auth";
 import { UMB_MODAL_MANAGER_CONTEXT as N, UMB_CONFIRM_MODAL as B } from "@umbraco-cms/backoffice/modal";
 import { UMB_NOTIFICATION_CONTEXT as I } from "@umbraco-cms/backoffice/notification";
-import { D as O, c as L, b as V, d as U } from "./index-BA6mLGL1.js";
+import { D as O, c as L, b as V, d as U } from "./index-hLxgXWmq.js";
 const w = "/umbraco/api/discipline";
 class K {
   constructor(e) {
@@ -220,7 +220,9 @@ let m = class extends M {
     }
   }
   _applyResponse(e) {
-    this._hasAppSettings = e.hasAppSettings, this._settings = e.settings ?? T(), this._refreshSensitiveSnapshot = this._snapshotRefreshSensitive(this._settings), this.requestUpdate();
+    this._hasAppSettings = e.hasAppSettings;
+    const t = e.settings ?? T();
+    this._settings = this._hasAppSettings ? t : { ...t, useBackoffice: !0 }, this._refreshSensitiveSnapshot = this._snapshotRefreshSensitive(this._settings), this.requestUpdate();
   }
   _snapshotRefreshSensitive(e) {
     return JSON.stringify({ variantsHider: e.variantsHider, propertyVersions: e.propertyVersions });
@@ -2050,4 +2052,4 @@ export {
   m as DisciplineSettingsWorkspaceElement,
   ie as default
 };
-//# sourceMappingURL=discipline-settings.workspace.element-Bc0NNA2S.js.map
+//# sourceMappingURL=discipline-settings.workspace.element-D5ordrEh.js.map
