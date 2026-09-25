@@ -205,7 +205,10 @@ export class DisciplineSettingsWorkspaceElement extends UmbLitElement {
 
   private _applyResponse(response: DisciplineSettingsResponse) {
     this._hasAppSettings = response.hasAppSettings;
-    this._settings = response.settings ?? emptySettings();
+    const settings = response.settings ?? emptySettings();
+    // Without an appsettings section the backoffice is the only settings source, so there is
+    // no master toggle to flip — always show the feature tabs.
+    this._settings = this._hasAppSettings ? settings : { ...settings, useBackoffice: true };
     this._refreshSensitiveSnapshot = this._snapshotRefreshSensitive(this._settings);
     this.requestUpdate();
   }
