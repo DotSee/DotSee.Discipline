@@ -20,9 +20,12 @@ Discipline is designed to be configured via appSettings.json, but it also has a 
 
 You can find it under Settings -> Discipline in the back office. 
 
-The UI-based configuration is stored in a custom JSON file in umbraco/Data/DotSee.Discipline/settings.json and overrides the appSettings.json configuration, so you can choose to use either one.
+The UI-based configuration is stored in a custom JSON file in umbraco/Data/DotSee.Discipline/settings.json. Which configuration is actually used depends on whether your appSettings.json contains a "DotSee.Discipline" section:
 
-You can also hit a button to import appsettings.json settings into the UI-based config (if you're already using Discipline). 
+- **A "DotSee.Discipline" section exists:** The settings screen shows a "Manage settings from the backoffice" toggle (stored as `useBackoffice` in settings.json). While the toggle is off, appSettings.json is used and the feature tabs are hidden. When you turn it on and save, the UI-based configuration completely replaces the appSettings.json configuration. Turning it off again goes back to appSettings.json; your UI-based settings are kept, just not used.
+- **No "DotSee.Discipline" section:** There is nothing to fall back to, so the UI-based configuration is always used. The toggle is not shown and the feature tabs are available straight away.
+
+When the toggle is on, a "Load from appsettings.json" button lets you copy your existing appSettings.json configuration into the UI-based config (useful if you're already using Discipline). This overwrites the current UI-based settings but leaves the toggle as it is. The button only appears when a "DotSee.Discipline" section exists.
 
 Setings applied via the UI are effective immediately. In some cases only, a simple reload of the back office UI is required. The UI will display a message if this is needed.
 
