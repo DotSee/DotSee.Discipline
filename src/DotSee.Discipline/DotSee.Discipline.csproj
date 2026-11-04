@@ -1,31 +1,36 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
 	<PropertyGroup>
-		<TargetFrameworks>net10.0</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<StaticWebAssetBasePath>/</StaticWebAssetBasePath>
 		<Nullable>disable</Nullable>
-		<PackageId>DotSee.Discipline</PackageId>
-		<Description>Keep your back office in order with a set of rule-driven functions for automatic node creation, restrictions on creating new nodes, hiding parts of a URL and toggling display of not created nodes in multilingual setups</Description>
+		<StaticWebAssetBasePath>/</StaticWebAssetBasePath>
+		<TargetFrameworks>net10.0</TargetFrameworks>
 		<Title>DotSee.Discipline</Title>
-		<Version>1.0.6</Version>
-		<Authors>DotSee</Authors>
-		<Company>DotSee</Company>
-		<Product>DotSee.Discipline</Product>
-		<ContentTargetFolders>content</ContentTargetFolders>
-		<PackageIcon>DotSee.png</PackageIcon>
-		<PackageOutputPath>../../output</PackageOutputPath>
-		<PackageTags>umbraco;umbraco-marketplace</PackageTags>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageProjectUrl>https://github.com/DotSee/DotSee.Discipline</PackageProjectUrl>
-		<RepositoryType>git</RepositoryType>
-		<RepositoryUrl>https://github.com/DotSee/DotSee.Discipline</RepositoryUrl>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<UserSecretsId>6fedb3fb-c2c0-4c33-8d8d-b53894a8eec5</UserSecretsId>
+		<Version>1.0.6</Version>
 		<!-- Exclude Client folder entirely from MSBuild processing to avoid long path issues with node_modules -->
 		<DefaultItemExcludes>$(DefaultItemExcludes);Client\**</DefaultItemExcludes>
 		<!-- Required for Razor Class Library static assets -->
 		<AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<Authors>DotSee</Authors>
+		<Company>DotSee</Company>
+		<ContentTargetFolders>content</ContentTargetFolders>
+		<Copyright>Copyright © $([System.DateTime]::UtcNow.Year) DotSee Web Services S.A.</Copyright>
+		<Description>Keep your back office in order with a set of rule-driven functions for automatic node creation, restrictions on creating new nodes, hiding parts of a URL and toggling display of not created nodes in multilingual setups</Description>
+		<PackageIcon>DotSee.png</PackageIcon>
+		<PackageId>DotSee.Discipline</PackageId>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageOutputPath>../../output</PackageOutputPath>
+		<PackageProjectUrl>https://github.com/DotSee/DotSee.Discipline</PackageProjectUrl>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageTags>umbraco;umbraco-marketplace</PackageTags>
+		<Product>DotSee.Discipline</Product>
+		<ProjectUrl>https://github.com/DotSee/DotSee.Discipline</ProjectUrl>
+		<RepositoryType>git</RepositoryType>
+		<RepositoryUrl>https://github.com/DotSee/DotSee.Discipline</RepositoryUrl>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -33,13 +38,12 @@
 			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 			<CopyToPublishDirectory>Always</CopyToPublishDirectory>
 		</Content>
-
 		<None Include="build\**">
 			<Pack>true</Pack>
 			<PackagePath>buildTransitive</PackagePath>
 		</None>
-
 	</ItemGroup>
+
 	<ItemGroup>
 		<None Include="..\..\docs\README.md">
 			<Pack>True</Pack>
@@ -49,20 +53,18 @@
 			<Pack>True</Pack>
 			<PackagePath>\</PackagePath>
 		</None>
-
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Umbraco.Cms.Core" Version="17.1.0" />
-		<PackageReference Include="Umbraco.Cms.Web.Common" Version="17.1.0" />
-		<PackageReference Include="Umbraco.Cms.Api.Common" Version="17.1.0" />
+		<PackageReference Include="Umbraco.Cms.Core" Version="[17.1.0, 18.0.0)" />
+		<PackageReference Include="Umbraco.Cms.Api.Common" Version="[17.1.0, 18.0.0)" />
+		<PackageReference Include="Umbraco.Cms.Web.Common" Version="[17.1.0, 18.0.0)" />
 	</ItemGroup>
 
-
 	<ItemGroup>
-	  <PackageReference Include="Google.GenAI" Version="0.8.0" />
-	  <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
-	  <PackageReference Include="OpenAI" Version="2.7.0" />
+		<PackageReference Include="Google.GenAI" Version="0.8.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
+		<PackageReference Include="OpenAI" Version="2.7.0" />
 	</ItemGroup>
 
 </Project>
