@@ -1,10 +1,6 @@
 ﻿{
   "$schema": "https://marketplace.umbraco.com/umbraco-marketplace-schema.json",
   "AuthorDetails": {
-    "Name": "DotSee Web Services S.A.",
-    "Description": "Development and Support Services for Umbraco CMS",
-    "Url": "https://www.dot-see.com",
-    "ImageUrl": "https://raw.githubusercontent.com/DotSee/DotSee/main/DotSee.png",
     "Contributors": [
       {
         "Name": "Sotiris Filippidis",
@@ -19,7 +15,11 @@
       {
         "Name": "Konstantinos Giannopoulos"
       }
-    ]
+    ],
+    "Description": "Development and Support Services for Umbraco CMS",
+    "ImageUrl": "https://raw.githubusercontent.com/DotSee/DotSee/main/DotSee.png",
+    "Name": "DotSee Web Services S.A.",
+    "Url": "https://www.dot-see.com"
   },
   "Category": "Editor Tools",
   "Description": "Keep your back office in order with a set of rule-driven functions for automatic node creation, restrictions on creating new nodes, hiding parts of a URL, toggling display of not created nodes in multilingual setups, and generation of AI summaries.",
@@ -34,7 +34,7 @@
     "noderestrict",
     "virtualnodes",
     "hidenotcreatedvariants",
-	"aisummary"
+    "aisummary"
   ],
   "Title": "Discipline"
 }
