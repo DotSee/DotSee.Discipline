@@ -1,0 +1,10 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="src/DotSee.Discipline.Tests/DotSee.Discipline.Tests.csproj" />
+  <Project Path="src/DotSee.Discipline/DotSee.Discipline.csproj" />
+  <Project Path="src/UmbracoV17/UmbracoV17.csproj" />
+</Solution>
